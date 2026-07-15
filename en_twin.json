@@ -1,0 +1,24 @@
+{
+  "source_path": "airline_tweets.csv",
+  "text_col": "text",
+  "label_col": "airline_sentiment",
+  "entity_col": "airline",
+  "language": "en",
+  "min_words": 3,
+  "seed": 42,
+  "haystack_target_tokens": [100000, 250000],
+  "haystacks_per_length": 5,
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "en_twin_out",
+  "question_templates": {
+    "count": "How many tweets are labeled '{label}'? Answer with the number only.",
+    "proportion": "What percentage of tweets are labeled '{label}'? Round to the nearest integer, answer with the number only.",
+    "entity_count": "How many tweets about '{entity}' are labeled '{label}'? Answer with the number only.",
+    "entity_argmax": "Which airline received the most '{label}' tweets? Answer with the airline name only.",
+    "shift": "Did the share of '{label}' tweets rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
+    "top_k": "Which {k} airlines received the most '{label}' tweets? List them from most to fewest, separated by ' > '.",
+    "pairwise": "Which airline has more '{label}' tweets: '{entity_a}' or '{entity_b}'? Answer with the airline name only."
+  }
+}

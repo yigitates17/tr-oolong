@@ -1,0 +1,20 @@
+{
+  "source_path": "massive_en.parquet",
+  "text_col": "utt",
+  "label_col": "intent",
+  "entity_col": "scenario",
+  "language": "en",
+  "min_words": 1,
+  "seed": 42,
+  "haystack_target_tokens": [50000, 100000],
+  "haystacks_per_length": 5,
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "en_intent_out",
+  "question_templates": {
+    "count": "How many utterances have the intent '{label}'? Answer with the number only.",
+    "proportion": "What percentage of utterances have the intent '{label}'? Round to the nearest integer, answer with the number only.",
+    "shift": "Did the share of utterances with the intent '{label}' rise or fall in the second half compared to the first? Answer 'rose' or 'fell'."
+  }
+}
