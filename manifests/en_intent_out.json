@@ -1,0 +1,120 @@
+{
+  "version": "0.2.0",
+  "date": "2026-07-16",
+  "config": {
+    "source_path": "datasets/massive_en.parquet",
+    "text_col": "utt",
+    "label_col": "intent",
+    "entity_col": "scenario",
+    "language": "en",
+    "min_words": 1,
+    "max_words": 400,
+    "seed": 42,
+    "haystack_target_tokens": [
+      50000,
+      100000
+    ],
+    "haystacks_per_length": 5,
+    "questions_per_haystack": 12,
+    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "drift_mode": true,
+    "min_entity_examples": 8,
+    "proportion_unit": "auto",
+    "top_k_k": 3,
+    "question_templates": {
+      "count": "How many utterances have the intent '{label}'? Answer with the number only.",
+      "proportion": "What percentage of utterances have the intent '{label}'? Round to the nearest integer, answer with the number only.",
+      "shift": "Did the share of utterances with the intent '{label}' rise or fall in the second half compared to the first? Answer 'rose' or 'fell'."
+    },
+    "reference_tokenizer": "Qwen/Qwen3-8B",
+    "chars_per_token": 3.4,
+    "out_dir": "en_intent_out"
+  },
+  "source_hash_first1000": "349e1c5745fca65a",
+  "rows_after_cleaning": 16406,
+  "label_space": 60,
+  "proportion_unit": "per_mille",
+  "top_k_k": 3,
+  "tokenizer": "Qwen/Qwen3-8B",
+  "questions_written": 120,
+  "kind_distribution": {
+    "count": 61,
+    "least_common": 9,
+    "most_common": 10,
+    "proportion": 20,
+    "second_most": 10,
+    "shift": 10
+  },
+  "haystacks": [
+    {
+      "haystack_id": "en-50000-0",
+      "n_examples": 3471,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-1",
+      "n_examples": 3468,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-2",
+      "n_examples": 3461,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-3",
+      "n_examples": 3453,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-4",
+      "n_examples": 3475,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-0",
+      "n_examples": 6933,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-1",
+      "n_examples": 6941,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-2",
+      "n_examples": 6940,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-3",
+      "n_examples": 6933,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-4",
+      "n_examples": 6911,
+      "drift_target": "calendar_set",
+      "drift_ok": true,
+      "n_questions": 12
+    }
+  ]
+}

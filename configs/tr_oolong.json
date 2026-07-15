@@ -1,0 +1,24 @@
+{
+  "source_path": "datasets/turkish_review_sentiment.csv",
+  "text_col": "review",
+  "label_col": "sentiment",
+  "entity_col": "sirket",
+  "language": "tr",
+  "min_words": 3,
+  "seed": 42,
+  "haystack_target_tokens": [100000, 250000, 500000],
+  "haystacks_per_length": 5,
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "tr_oolong_out",
+  "question_templates": {
+    "count": "Bu yorumlardan kaç tanesi '{label}' etiketli? Sadece sayıyı yaz.",
+    "proportion": "Yorumların yüzde kaçı '{label}' etiketli? En yakın tam sayıya yuvarla, sadece sayıyı yaz.",
+    "entity_count": "'{entity}' markası hakkındaki yorumlardan kaç tanesi '{label}'? Sadece sayıyı yaz.",
+    "entity_argmax": "En çok '{label}' yorumu alan marka hangisi? Sadece marka adını yaz.",
+    "shift": "Yorumların ikinci yarısında '{label}' oranı ilk yarıya göre arttı mı azaldı mı? 'artti' veya 'azaldi' yaz.",
+    "top_k": "En çok '{label}' yorumu alan ilk {k} marka hangileri? Çoktan aza doğru, aralarına ' > ' koyarak yaz.",
+    "pairwise": "'{label}' yorumu hangisinde daha çok: '{entity_a}' mı yoksa '{entity_b}' mi? Sadece marka adını yaz."
+  }
+}

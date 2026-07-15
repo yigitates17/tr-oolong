@@ -1,5 +1,5 @@
 {
-  "source_path": "massive_en.parquet",
+  "source_path": "datasets/massive_en.parquet",
   "text_col": "utt",
   "label_col": "intent",
   "entity_col": "scenario",

@@ -1,5 +1,5 @@
 {
-  "source_path": "airline_tweets.csv",
+  "source_path": "datasets/airline_tweets.csv",
   "text_col": "text",
   "label_col": "airline_sentiment",
   "entity_col": "airline",

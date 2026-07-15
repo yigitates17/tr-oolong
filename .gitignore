@@ -1,0 +1,6 @@
+*.parquet
+*.csv
+*_out/
+datasets/
+data/
+__pycache__/

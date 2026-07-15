@@ -1,0 +1,128 @@
+{
+  "version": "0.2.0",
+  "date": "2026-07-16",
+  "config": {
+    "source_path": "datasets/airline_tweets.csv",
+    "text_col": "text",
+    "label_col": "airline_sentiment",
+    "entity_col": "airline",
+    "language": "en",
+    "min_words": 3,
+    "max_words": 400,
+    "seed": 42,
+    "haystack_target_tokens": [
+      100000,
+      250000
+    ],
+    "haystacks_per_length": 5,
+    "questions_per_haystack": 12,
+    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "drift_mode": true,
+    "min_entity_examples": 8,
+    "proportion_unit": "auto",
+    "top_k_k": 3,
+    "question_templates": {
+      "count": "How many tweets are labeled '{label}'? Answer with the number only.",
+      "proportion": "What percentage of tweets are labeled '{label}'? Round to the nearest integer, answer with the number only.",
+      "entity_count": "How many tweets about '{entity}' are labeled '{label}'? Answer with the number only.",
+      "entity_argmax": "Which airline received the most '{label}' tweets? Answer with the airline name only.",
+      "shift": "Did the share of '{label}' tweets rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
+      "top_k": "Which {k} airlines received the most '{label}' tweets? List them from most to fewest, separated by ' > '.",
+      "pairwise": "Which airline has more '{label}' tweets: '{entity_a}' or '{entity_b}'? Answer with the airline name only."
+    },
+    "reference_tokenizer": "Qwen/Qwen3-8B",
+    "chars_per_token": 3.4,
+    "out_dir": "en_twin_out"
+  },
+  "source_hash_first1000": "7c0c35600c5cdcda",
+  "rows_after_cleaning": 14295,
+  "label_space": 3,
+  "proportion_unit": "percent",
+  "top_k_k": 3,
+  "tokenizer": "Qwen/Qwen3-8B",
+  "questions_written": 120,
+  "kind_distribution": {
+    "count": 20,
+    "entity_argmax": 10,
+    "entity_count": 10,
+    "least_common": 10,
+    "most_common": 10,
+    "pairwise": 10,
+    "proportion": 20,
+    "second_most": 10,
+    "shift": 10,
+    "top_k": 10
+  },
+  "haystacks": [
+    {
+      "haystack_id": "en-100000-0",
+      "n_examples": 2912,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-1",
+      "n_examples": 2923,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-2",
+      "n_examples": 2925,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-3",
+      "n_examples": 2914,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-4",
+      "n_examples": 2898,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-0",
+      "n_examples": 7310,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-1",
+      "n_examples": 7321,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-2",
+      "n_examples": 7282,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-3",
+      "n_examples": 7303,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-4",
+      "n_examples": 7267,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    }
+  ]
+}

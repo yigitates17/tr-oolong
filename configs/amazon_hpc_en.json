@@ -1,0 +1,24 @@
+{
+  "source_path": "datasets/amazon_hpc_en.parquet",
+  "text_col": "text",
+  "label_col": "label",
+  "entity_col": "entity",
+  "language": "en",
+  "min_words": 3,
+  "seed": 42,
+  "haystack_target_tokens": [100000, 250000, 500000],
+  "haystacks_per_length": 5,
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "amazon_hpc_en_out",
+  "question_templates": {
+    "count": "How many reviews are labeled '{label}'? Answer with the number only.",
+    "proportion": "What percentage of reviews are labeled '{label}'? Round to the nearest integer, answer with the number only.",
+    "entity_count": "How many reviews about the brand '{entity}' are labeled '{label}'? Answer with the number only.",
+    "entity_argmax": "Which brand received the most '{label}' reviews? Answer with the brand name only.",
+    "shift": "Did the share of '{label}' reviews rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
+    "top_k": "Which {k} brands received the most '{label}' reviews? List them from most to fewest, separated by ' > '.",
+    "pairwise": "Which brand has more '{label}' reviews: '{entity_a}' or '{entity_b}'? Answer with the brand name only."
+  }
+}

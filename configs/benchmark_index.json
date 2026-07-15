@@ -1,0 +1,124 @@
+{
+  "version": "0.2.0",
+  "date": "2026-07-16",
+  "n_sets": 6,
+  "total_questions": 900,
+  "languages": [
+    "en",
+    "tr"
+  ],
+  "sets": [
+    {
+      "config": "tr_intent.json",
+      "out_dir": "tr_intent_out",
+      "language": "tr",
+      "source": "datasets/massive_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 120,
+      "kind_distribution": {
+        "count": 61,
+        "least_common": 9,
+        "most_common": 10,
+        "proportion": 20,
+        "second_most": 10,
+        "shift": 10
+      }
+    },
+    {
+      "config": "en_intent.json",
+      "out_dir": "en_intent_out",
+      "language": "en",
+      "source": "datasets/massive_en.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 120,
+      "kind_distribution": {
+        "count": 61,
+        "least_common": 9,
+        "most_common": 10,
+        "proportion": 20,
+        "second_most": 10,
+        "shift": 10
+      }
+    },
+    {
+      "config": "tr_oolong.json",
+      "out_dir": "tr_oolong_out",
+      "language": "tr",
+      "source": "datasets/turkish_review_sentiment.csv",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 180,
+      "kind_distribution": {
+        "count": 36,
+        "entity_argmax": 15,
+        "entity_count": 15,
+        "least_common": 15,
+        "most_common": 15,
+        "pairwise": 15,
+        "proportion": 30,
+        "second_most": 15,
+        "shift": 15,
+        "top_k": 9
+      }
+    },
+    {
+      "config": "en_twin.json",
+      "out_dir": "en_twin_out",
+      "language": "en",
+      "source": "datasets/airline_tweets.csv",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 120,
+      "kind_distribution": {
+        "count": 20,
+        "entity_argmax": 10,
+        "entity_count": 10,
+        "least_common": 10,
+        "most_common": 10,
+        "pairwise": 10,
+        "proportion": 20,
+        "second_most": 10,
+        "shift": 10,
+        "top_k": 10
+      }
+    },
+    {
+      "config": "vitamins_tr.json",
+      "out_dir": "vitamins_tr_out",
+      "language": "tr",
+      "source": "datasets/vitamins_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 180,
+      "kind_distribution": {
+        "count": 30,
+        "entity_argmax": 15,
+        "entity_count": 15,
+        "least_common": 15,
+        "most_common": 15,
+        "pairwise": 15,
+        "proportion": 30,
+        "second_most": 15,
+        "shift": 15,
+        "top_k": 15
+      }
+    },
+    {
+      "config": "amazon_hpc_en.json",
+      "out_dir": "amazon_hpc_en_out",
+      "language": "en",
+      "source": "datasets/amazon_hpc_en.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 180,
+      "kind_distribution": {
+        "count": 35,
+        "entity_argmax": 14,
+        "entity_count": 15,
+        "least_common": 15,
+        "most_common": 15,
+        "pairwise": 15,
+        "proportion": 31,
+        "second_most": 15,
+        "shift": 15,
+        "top_k": 10
+      }
+    }
+  ]
+}

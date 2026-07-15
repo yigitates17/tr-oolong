@@ -1,0 +1,164 @@
+{
+  "version": "0.2.0",
+  "date": "2026-07-16",
+  "config": {
+    "source_path": "datasets/amazon_hpc_en.parquet",
+    "text_col": "text",
+    "label_col": "label",
+    "entity_col": "entity",
+    "language": "en",
+    "min_words": 3,
+    "max_words": 400,
+    "seed": 42,
+    "haystack_target_tokens": [
+      100000,
+      250000,
+      500000
+    ],
+    "haystacks_per_length": 5,
+    "questions_per_haystack": 12,
+    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "drift_mode": true,
+    "min_entity_examples": 8,
+    "proportion_unit": "auto",
+    "top_k_k": 3,
+    "question_templates": {
+      "count": "How many reviews are labeled '{label}'? Answer with the number only.",
+      "proportion": "What percentage of reviews are labeled '{label}'? Round to the nearest integer, answer with the number only.",
+      "entity_count": "How many reviews about the brand '{entity}' are labeled '{label}'? Answer with the number only.",
+      "entity_argmax": "Which brand received the most '{label}' reviews? Answer with the brand name only.",
+      "shift": "Did the share of '{label}' reviews rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
+      "top_k": "Which {k} brands received the most '{label}' reviews? List them from most to fewest, separated by ' > '.",
+      "pairwise": "Which brand has more '{label}' reviews: '{entity_a}' or '{entity_b}'? Answer with the brand name only."
+    },
+    "reference_tokenizer": "Qwen/Qwen3-8B",
+    "chars_per_token": 3.4,
+    "out_dir": "amazon_hpc_en_out"
+  },
+  "source_hash_first1000": "6db69a0e370dfa65",
+  "rows_after_cleaning": 55909,
+  "label_space": 3,
+  "proportion_unit": "percent",
+  "top_k_k": 3,
+  "tokenizer": "Qwen/Qwen3-8B",
+  "questions_written": 180,
+  "kind_distribution": {
+    "count": 35,
+    "entity_argmax": 14,
+    "entity_count": 15,
+    "least_common": 15,
+    "most_common": 15,
+    "pairwise": 15,
+    "proportion": 31,
+    "second_most": 15,
+    "shift": 15,
+    "top_k": 10
+  },
+  "haystacks": [
+    {
+      "haystack_id": "en-100000-0",
+      "n_examples": 1625,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-1",
+      "n_examples": 1701,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-2",
+      "n_examples": 1676,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-3",
+      "n_examples": 1663,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-4",
+      "n_examples": 1630,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-0",
+      "n_examples": 4178,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-1",
+      "n_examples": 4164,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-2",
+      "n_examples": 4180,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-3",
+      "n_examples": 4152,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-4",
+      "n_examples": 4097,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-0",
+      "n_examples": 8328,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-1",
+      "n_examples": 8155,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-2",
+      "n_examples": 8316,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-3",
+      "n_examples": 8216,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-4",
+      "n_examples": 8294,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    }
+  ]
+}

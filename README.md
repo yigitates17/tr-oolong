@@ -21,11 +21,17 @@ appears verbatim in the text, so nothing is grep-solvable — every question for
 latent classification plus counting, not string matching. This makes it a probe
 for whether a model actually *ingests* a long context rather than skimming it.
 
+The review axis rests on **two independent corpora per language**, so aggregation
+results can be shown to hold across datasets rather than being an artifact of a
+single source. The supplement pair (Turkish Vitaminler.com ↔ English Amazon
+Health & Personal Care) is same-domain and thus the tighter twin; the
+reviews↔airline-tweets pair is matched by pipeline but not domain.
+
 Two axes:
 
 | Axis | Source | Label (classes) | Entity axis | Purpose |
 |---|---|---|---|---|
-| **Review / sentiment** | Turkish brand reviews (+ EN twin: US airline tweets) | sentiment (3) | brand / airline — *orthogonal* | length scaling to 500K; entity-relational reasoning |
+| **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care | sentiment (3) | brand / airline — *orthogonal* | length scaling to 500K; entity-relational reasoning; cross-corpus robustness |
 | **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel-translated) | intent (60) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
 
 ## 2. Question families and where they apply
@@ -125,6 +131,11 @@ about," feeding the Turkish-vs-English degradation analysis.
   ```bash
   python src/build_tr_oolong.py --config configs/tr_intent.json --audit   # inspect first
   python src/build_tr_oolong.py --config configs/tr_intent.json --build
+  ```
+
+  Build all six sets at once (run from repo root):
+  ```bash
+  python src/build_tr_oolong.py --config configs/tr_intent.json configs/en_intent.json configs/tr_oolong.json configs/en_twin.json configs/vitamins_tr.json configs/amazon_hpc_en.json --build
   ```
 
 ## 6. Scaling to many datasets (N Turkish + M English)

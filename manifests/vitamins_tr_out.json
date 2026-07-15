@@ -1,0 +1,164 @@
+{
+  "version": "0.2.0",
+  "date": "2026-07-16",
+  "config": {
+    "source_path": "datasets/vitamins_tr.parquet",
+    "text_col": "text",
+    "label_col": "label",
+    "entity_col": "entity",
+    "language": "tr",
+    "min_words": 3,
+    "max_words": 400,
+    "seed": 42,
+    "haystack_target_tokens": [
+      100000,
+      250000,
+      500000
+    ],
+    "haystacks_per_length": 5,
+    "questions_per_haystack": 12,
+    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "drift_mode": true,
+    "min_entity_examples": 8,
+    "proportion_unit": "auto",
+    "top_k_k": 3,
+    "question_templates": {
+      "count": "Bu yorumlardan kaç tanesi '{label}' etiketli? Sadece sayıyı yaz.",
+      "proportion": "Yorumların yüzde kaçı '{label}' etiketli? En yakın tam sayıya yuvarla, sadece sayıyı yaz.",
+      "entity_count": "'{entity}' markası hakkındaki yorumlardan kaç tanesi '{label}'? Sadece sayıyı yaz.",
+      "entity_argmax": "En çok '{label}' yorumu alan marka hangisi? Sadece marka adını yaz.",
+      "shift": "Yorumların ikinci yarısında '{label}' oranı ilk yarıya göre arttı mı azaldı mı? 'artti' veya 'azaldi' yaz.",
+      "top_k": "En çok '{label}' yorumu alan ilk {k} marka hangileri? Çoktan aza doğru, aralarına ' > ' koyarak yaz.",
+      "pairwise": "'{label}' yorumu hangisinde daha çok: '{entity_a}' mı yoksa '{entity_b}' mi? Sadece marka adını yaz."
+    },
+    "reference_tokenizer": "Qwen/Qwen3-8B",
+    "chars_per_token": 3.4,
+    "out_dir": "vitamins_tr_out"
+  },
+  "source_hash_first1000": "f812905be86f3ff0",
+  "rows_after_cleaning": 39145,
+  "label_space": 3,
+  "proportion_unit": "percent",
+  "top_k_k": 3,
+  "tokenizer": "Qwen/Qwen3-8B",
+  "questions_written": 180,
+  "kind_distribution": {
+    "count": 30,
+    "entity_argmax": 15,
+    "entity_count": 15,
+    "least_common": 15,
+    "most_common": 15,
+    "pairwise": 15,
+    "proportion": 30,
+    "second_most": 15,
+    "shift": 15,
+    "top_k": 15
+  },
+  "haystacks": [
+    {
+      "haystack_id": "tr-100000-0",
+      "n_examples": 2633,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-100000-1",
+      "n_examples": 2660,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-100000-2",
+      "n_examples": 2566,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-100000-3",
+      "n_examples": 2577,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-100000-4",
+      "n_examples": 2691,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-250000-0",
+      "n_examples": 6646,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-250000-1",
+      "n_examples": 6653,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-250000-2",
+      "n_examples": 6547,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-250000-3",
+      "n_examples": 6552,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-250000-4",
+      "n_examples": 6614,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-500000-0",
+      "n_examples": 13120,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-500000-1",
+      "n_examples": 13155,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-500000-2",
+      "n_examples": 13050,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-500000-3",
+      "n_examples": 13224,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-500000-4",
+      "n_examples": 13201,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    }
+  ]
+}

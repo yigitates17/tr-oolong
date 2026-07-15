@@ -1,8 +1,8 @@
 {
-  "source_path": "turkish_review_sentiment.csv",
-  "text_col": "review",
-  "label_col": "sentiment",
-  "entity_col": "sirket",
+  "source_path": "datasets/vitamins_tr.parquet",
+  "text_col": "text",
+  "label_col": "label",
+  "entity_col": "entity",
   "language": "tr",
   "min_words": 3,
   "seed": 42,
@@ -11,7 +11,7 @@
   "questions_per_haystack": 12,
   "proportion_unit": "auto",
   "reference_tokenizer": "Qwen/Qwen3-8B",
-  "out_dir": "tr_oolong_out",
+  "out_dir": "vitamins_tr_out",
   "question_templates": {
     "count": "Bu yorumlardan kaç tanesi '{label}' etiketli? Sadece sayıyı yaz.",
     "proportion": "Yorumların yüzde kaçı '{label}' etiketli? En yakın tam sayıya yuvarla, sadece sayıyı yaz.",

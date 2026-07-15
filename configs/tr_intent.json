@@ -1,0 +1,19 @@
+{
+  "source_path": "datasets/massive_tr.parquet",
+  "text_col": "utt",
+  "label_col": "intent",
+  "entity_col": "scenario",
+  "language": "tr",
+  "min_words": 1,
+  "seed": 42,
+  "haystack_target_tokens": [
+    50000,
+    100000
+  ],
+  "haystacks_per_length": 5,
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "top_k_k": 3,
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "tr_intent_out"
+}

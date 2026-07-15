@@ -790,7 +790,7 @@ def build(cfg: Config) -> None:
 # ---------------------------------------------------------------------------
 
 EXAMPLE_CONFIG = {
-    "source_path": "massive_tr.parquet",
+    "source_path": "datasets/massive_tr.parquet",
     "text_col": "utt",
     "label_col": "intent",
     "entity_col": "scenario",
@@ -862,10 +862,6 @@ def main() -> None:
             build(Config.load(args.config[0]))
         else:
             build_many(args.config, args.index)
-
-
-if __name__ == "__main__":
-    main()
 
 
 if __name__ == "__main__":
