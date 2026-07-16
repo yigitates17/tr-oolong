@@ -6,6 +6,7 @@
   "language": "tr",
   "min_words": 3,
   "seed": 42,
+  "dirichlet_alpha": 1.0,
   "haystack_target_tokens": [100000, 250000, 500000],
   "haystacks_per_length": 5,
   "questions_per_haystack": 12,

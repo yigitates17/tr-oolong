@@ -1,0 +1,362 @@
+[
+  {
+    "set": "tr_intent_out",
+    "n_questions": 120,
+    "exact": 0.058333333333333334,
+    "partial": 0.07143917931824355,
+    "families": {
+      "count": {
+        "n": 40,
+        "exact": 0.0,
+        "partial": 0.0021691342883632977,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.017
+      },
+      "most_common": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.017
+      },
+      "proportion": {
+        "n": 40,
+        "exact": 0.0,
+        "partial": 0.037148403666367326,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.017
+      },
+      "shift": {
+        "n": 10,
+        "exact": 0.7,
+        "partial": 0.7,
+        "chance_floor": 0.5
+      }
+    }
+  },
+  {
+    "set": "en_intent_out",
+    "n_questions": 120,
+    "exact": 0.041666666666666664,
+    "partial": 0.062069711697294964,
+    "families": {
+      "count": {
+        "n": 40,
+        "exact": 0.0,
+        "partial": 4.708881780794598e-05,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.017
+      },
+      "most_common": {
+        "n": 10,
+        "exact": 0.1,
+        "partial": 0.1,
+        "chance_floor": 0.017
+      },
+      "proportion": {
+        "n": 40,
+        "exact": 0.0,
+        "partial": 0.06116204627407695,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.017
+      },
+      "shift": {
+        "n": 10,
+        "exact": 0.4,
+        "partial": 0.4,
+        "chance_floor": 0.5
+      }
+    }
+  },
+  {
+    "set": "tr_oolong_out",
+    "n_questions": 180,
+    "exact": 0.24444444444444444,
+    "partial": 0.2766166005406187,
+    "families": {
+      "count": {
+        "n": 36,
+        "exact": 0.0,
+        "partial": 0.0016523535180113333,
+        "chance_floor": 0.0
+      },
+      "entity_argmax": {
+        "n": 15,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      },
+      "entity_count": {
+        "n": 15,
+        "exact": 0.0,
+        "partial": 0.2990157486813388,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 15,
+        "exact": 0.4,
+        "partial": 0.4,
+        "chance_floor": 0.333
+      },
+      "most_common": {
+        "n": 15,
+        "exact": 0.7333333333333333,
+        "partial": 0.7333333333333333,
+        "chance_floor": 0.333
+      },
+      "pairwise": {
+        "n": 15,
+        "exact": 0.7333333333333333,
+        "partial": 0.7333333333333333,
+        "chance_floor": 0.5
+      },
+      "proportion": {
+        "n": 30,
+        "exact": 0.0,
+        "partial": 0.041542238014762575,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 15,
+        "exact": 0.4,
+        "partial": 0.4,
+        "chance_floor": 0.333
+      },
+      "shift": {
+        "n": 15,
+        "exact": 0.6666666666666666,
+        "partial": 0.6666666666666666,
+        "chance_floor": 0.5
+      },
+      "top_k": {
+        "n": 9,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      }
+    }
+  },
+  {
+    "set": "en_twin_out",
+    "n_questions": 120,
+    "exact": 0.16666666666666666,
+    "partial": 0.169223025292785,
+    "families": {
+      "count": {
+        "n": 20,
+        "exact": 0.0,
+        "partial": 1.6144960572717652e-20,
+        "chance_floor": 0.0
+      },
+      "entity_argmax": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      },
+      "entity_count": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0017859788374031966,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 10,
+        "exact": 0.4,
+        "partial": 0.4,
+        "chance_floor": 0.333
+      },
+      "most_common": {
+        "n": 10,
+        "exact": 0.2,
+        "partial": 0.2,
+        "chance_floor": 0.333
+      },
+      "pairwise": {
+        "n": 10,
+        "exact": 0.3,
+        "partial": 0.3,
+        "chance_floor": 0.5
+      },
+      "proportion": {
+        "n": 20,
+        "exact": 0.0,
+        "partial": 0.014445162338008393,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 10,
+        "exact": 0.4,
+        "partial": 0.4,
+        "chance_floor": 0.333
+      },
+      "shift": {
+        "n": 10,
+        "exact": 0.7,
+        "partial": 0.7,
+        "chance_floor": 0.5
+      },
+      "top_k": {
+        "n": 10,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      }
+    }
+  },
+  {
+    "set": "vitamins_tr_out",
+    "n_questions": 180,
+    "exact": 0.16666666666666666,
+    "partial": 0.19086000564862451,
+    "families": {
+      "count": {
+        "n": 30,
+        "exact": 0.0,
+        "partial": 0.010546875,
+        "chance_floor": 0.0
+      },
+      "entity_argmax": {
+        "n": 15,
+        "exact": 0.06666666666666667,
+        "partial": 0.06666666666666667,
+        "chance_floor": 0.0
+      },
+      "entity_count": {
+        "n": 15,
+        "exact": 0.0,
+        "partial": 0.24243548143244362,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 15,
+        "exact": 0.3333333333333333,
+        "partial": 0.3333333333333333,
+        "chance_floor": 0.333
+      },
+      "most_common": {
+        "n": 15,
+        "exact": 0.4,
+        "partial": 0.4,
+        "chance_floor": 0.333
+      },
+      "pairwise": {
+        "n": 15,
+        "exact": 0.6,
+        "partial": 0.6,
+        "chance_floor": 0.5
+      },
+      "proportion": {
+        "n": 30,
+        "exact": 0.0,
+        "partial": 0.013395418175525219,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 15,
+        "exact": 0.3333333333333333,
+        "partial": 0.3333333333333333,
+        "chance_floor": 0.333
+      },
+      "shift": {
+        "n": 15,
+        "exact": 0.26666666666666666,
+        "partial": 0.26666666666666666,
+        "chance_floor": 0.5
+      },
+      "top_k": {
+        "n": 15,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      }
+    }
+  },
+  {
+    "set": "amazon_hpc_en_out",
+    "n_questions": 180,
+    "exact": 0.1388888888888889,
+    "partial": 0.17389398074317075,
+    "families": {
+      "count": {
+        "n": 33,
+        "exact": 0.0,
+        "partial": 5.431223572489203e-09,
+        "chance_floor": 0.0
+      },
+      "entity_argmax": {
+        "n": 15,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      },
+      "entity_count": {
+        "n": 15,
+        "exact": 0.0,
+        "partial": 0.2806738926185062,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 15,
+        "exact": 0.4666666666666667,
+        "partial": 0.4666666666666667,
+        "chance_floor": 0.333
+      },
+      "most_common": {
+        "n": 15,
+        "exact": 0.13333333333333333,
+        "partial": 0.13333333333333333,
+        "chance_floor": 0.333
+      },
+      "pairwise": {
+        "n": 15,
+        "exact": 0.26666666666666666,
+        "partial": 0.26666666666666666,
+        "chance_floor": 0.5
+      },
+      "proportion": {
+        "n": 30,
+        "exact": 0.0,
+        "partial": 0.06969359884209217,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 15,
+        "exact": 0.3333333333333333,
+        "partial": 0.3333333333333333,
+        "chance_floor": 0.333
+      },
+      "shift": {
+        "n": 15,
+        "exact": 0.4666666666666667,
+        "partial": 0.4666666666666667,
+        "chance_floor": 0.5
+      },
+      "top_k": {
+        "n": 12,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      }
+    }
+  }
+]

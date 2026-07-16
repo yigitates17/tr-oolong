@@ -1,0 +1,84 @@
+{
+  "version": "0.2.1",
+  "date": "2026-07-17",
+  "environment": {
+    "python": "3.12.9",
+    "polars": "1.42.0",
+    "transformers": null
+  },
+  "config": {
+    "source_path": "C:\\Users\\yigit\\Desktop\\Projects\\tr-oolong\\tests\\fixture_source.csv",
+    "text_col": "review",
+    "label_col": "sentiment",
+    "entity_col": "sirket",
+    "language": "tr",
+    "min_words": 3,
+    "max_words": 400,
+    "seed": 42,
+    "haystack_target_tokens": [
+      5000,
+      10000
+    ],
+    "haystacks_per_length": 2,
+    "questions_per_haystack": 10,
+    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "drift_mode": true,
+    "min_entity_examples": 8,
+    "dirichlet_alpha": 1.0,
+    "proportion_unit": "auto",
+    "top_k_k": 3,
+    "question_templates": {},
+    "reference_tokenizer": "",
+    "chars_per_token": 3.4,
+    "out_dir": "C:\\Users\\yigit\\Desktop\\Projects\\tr-oolong\\tests\\golden"
+  },
+  "source_hash_first1000": "7e25adc6f1d56a61",
+  "rows_after_cleaning": 800,
+  "label_space": 3,
+  "proportion_unit": "percent",
+  "top_k_k": 3,
+  "tokenizer": "char_approx(3.4)",
+  "questions_written": 40,
+  "kind_distribution": {
+    "count": 4,
+    "entity_argmax": 4,
+    "entity_count": 4,
+    "least_common": 4,
+    "most_common": 4,
+    "pairwise": 4,
+    "proportion": 4,
+    "second_most": 4,
+    "shift": 4,
+    "top_k": 4
+  },
+  "haystacks": [
+    {
+      "haystack_id": "tr-5000-0",
+      "n_examples": 148,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 10
+    },
+    {
+      "haystack_id": "tr-5000-1",
+      "n_examples": 143,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 10
+    },
+    {
+      "haystack_id": "tr-10000-0",
+      "n_examples": 289,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 10
+    },
+    {
+      "haystack_id": "tr-10000-1",
+      "n_examples": 287,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 10
+    }
+  ]
+}

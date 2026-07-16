@@ -1,0 +1,11 @@
+# Build-critical: these versions affect benchmark output bytes. Pin exactly.
+# Built and verified with Python 3.12.9.
+polars==1.42.0
+transformers==5.1.0
+
+# Data-fetch scripts only (scripts/massive.py, health.py, vitamins.py, webears.py).
+datasets==3.3.2
+
+# Figures only (scripts/make_readme_figs.py); does not affect benchmark output.
+pandas
+matplotlib

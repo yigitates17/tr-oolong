@@ -1,6 +1,11 @@
 {
-  "version": "0.2.0",
-  "date": "2026-07-16",
+  "version": "0.2.1",
+  "date": "2026-07-17",
+  "environment": {
+    "python": "3.12.9",
+    "polars": "1.42.0",
+    "transformers": "5.1.0"
+  },
   "config": {
     "source_path": "datasets/vitamins_tr.parquet",
     "text_col": "text",
@@ -20,6 +25,7 @@
     "separator": "\n\n<<<KAYIT>>>\n\n",
     "drift_mode": true,
     "min_entity_examples": 8,
+    "dirichlet_alpha": 1.0,
     "proportion_unit": "auto",
     "top_k_k": 3,
     "question_templates": {
@@ -57,105 +63,105 @@
   "haystacks": [
     {
       "haystack_id": "tr-100000-0",
-      "n_examples": 2633,
-      "drift_target": "olumlu",
+      "n_examples": 2770,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-1",
-      "n_examples": 2660,
-      "drift_target": "olumlu",
+      "n_examples": 2466,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-2",
-      "n_examples": 2566,
-      "drift_target": "olumlu",
+      "n_examples": 2322,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-3",
-      "n_examples": 2577,
+      "n_examples": 2626,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-4",
-      "n_examples": 2691,
-      "drift_target": "olumlu",
+      "n_examples": 2487,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-0",
-      "n_examples": 6646,
+      "n_examples": 6770,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-1",
-      "n_examples": 6653,
-      "drift_target": "olumlu",
+      "n_examples": 6126,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-2",
-      "n_examples": 6547,
-      "drift_target": "olumlu",
+      "n_examples": 6190,
+      "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-3",
-      "n_examples": 6552,
-      "drift_target": "olumlu",
+      "n_examples": 6190,
+      "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-4",
-      "n_examples": 6614,
+      "n_examples": 6493,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-0",
-      "n_examples": 13120,
-      "drift_target": "olumlu",
+      "n_examples": 12555,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-1",
-      "n_examples": 13155,
+      "n_examples": 12803,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-2",
-      "n_examples": 13050,
+      "n_examples": 13192,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-3",
-      "n_examples": 13224,
-      "drift_target": "olumlu",
+      "n_examples": 13462,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-4",
-      "n_examples": 13201,
+      "n_examples": 13149,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12

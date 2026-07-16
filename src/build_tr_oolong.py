@@ -45,18 +45,21 @@ import argparse
 import dataclasses
 import hashlib
 import json
+import math
+import platform
 import random
 import re
 import sys
 import unicodedata
 from collections import Counter
+from importlib.metadata import version as pkg_version
 from datetime import date
 from pathlib import Path
 from typing import Callable
 
 import polars as pl
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +87,7 @@ class Config:
     separator: str = "\n\n<<<KAYIT>>>\n\n"
     drift_mode: bool = True
     min_entity_examples: int = 8
+    dirichlet_alpha: float = 0.0          # >0: per-haystack Dirichlet label priors
     # question families
     proportion_unit: str = "auto"         # "auto" | "percent" | "per_mille"
     top_k_k: int = 3
@@ -225,9 +229,30 @@ def audit(df: pl.DataFrame, cfg: Config, count_tokens: Callable[[str], int]) -> 
 # Haystack assembly: fit-to-budget FIRST, then drift-order the kept rows
 # ---------------------------------------------------------------------------
 
-def sample_candidate_rows(df: pl.DataFrame, need: int, rng: random.Random) -> pl.DataFrame:
-    idx = rng.sample(range(df.height), min(need, df.height))
-    return df[idx]
+def draw_label_weights(pool_labels: list[str], alpha: float, rng: random.Random) -> dict[str, float]:
+    """Per-haystack label priors: Dirichlet(alpha) target shares, converted to
+    per-row weights (divide by pool count so the target share is met regardless
+    of how skewed the pool is)."""
+    counts = Counter(pool_labels)
+    g = {l: rng.gammavariate(alpha, 1.0) for l in sorted(counts)}
+    z = sum(g.values())
+    return {l: (g[l] / z) / counts[l] for l in counts}
+
+
+def sample_candidate_rows(df: pl.DataFrame, need: int, rng: random.Random,
+                          label_weights: dict[str, float] | None = None) -> pl.DataFrame:
+    k = min(need, df.height)
+    if label_weights is None:
+        idx = rng.sample(range(df.height), k)
+        return df[idx]
+    # Efraimidis-Spirakis A-Res: weighted sampling without replacement via
+    # u**(1/w) keys; top-k keys are the sample, key order is the neutral order.
+    labels = df["label"].to_list()
+    # exponential-race form of the same keys: rank by -Exp(1)/w instead of
+    # u**(1/w), which underflows to 0.0 for the tiny per-row weights of large pools
+    keyed = sorted(((-rng.expovariate(1.0) / label_weights[l], i)
+                    for i, l in enumerate(labels)), reverse=True)
+    return df[[i for _, i in keyed[:k]]]
 
 
 def select_rows_to_fit(
@@ -274,7 +299,8 @@ def order_and_assemble(
         rng.shuffle(tgt)
         rng.shuffle(oth)
         h0 = n // 2
-        cut = max(1, round(len(tgt) * 0.3))          # ~30% of target rows in first half
+        share = rng.choice((0.3, 0.7))               # drift direction randomized per haystack
+        cut = max(1, min(h0 - 1, round(len(tgt) * share)))
         first = tgt[:cut] + oth[: h0 - cut]          # exactly h0 rows when others suffice
         second = tgt[cut:] + oth[h0 - cut:]
         rng.shuffle(first)
@@ -375,7 +401,7 @@ def gt_primary(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=N
         return str(meta.filter(pl.col("label") == label).height)
     if kind == "proportion":
         scale = PROP_SCALE[unit]
-        return str(round(scale * meta.filter(pl.col("label") == label).height / meta.height))
+        return str(math.floor(scale * meta.filter(pl.col("label") == label).height / meta.height + 0.5))
     if kind == "entity_count":
         return str(meta.filter((pl.col("entity") == entity) & (pl.col("label") == label)).height)
     if kind == "entity_argmax":
@@ -447,7 +473,7 @@ def gt_check(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=Non
         return str(sum(1 for l in labels if l == label))
     if kind == "proportion":
         scale = PROP_SCALE[unit]
-        return str(round(scale * sum(1 for l in labels if l == label) / len(labels)))
+        return str(math.floor(scale * sum(1 for l in labels if l == label) / len(labels) + 0.5))
     if kind == "entity_count":
         return str(sum(1 for l, e in zip(labels, ents) if l == label and e == entity))
     if kind in ("entity_argmax", "top_k"):
@@ -492,7 +518,8 @@ def verified_gt(meta, kind, **kw):
     """Both paths must agree; the assertion is the benchmark's validity claim."""
     g1 = gt_primary(meta, kind, **kw)
     g2 = gt_check(meta, kind, **kw)
-    assert g1 == g2, f"GT mismatch [{kind}] {kw}: {g1!r} vs {g2!r}"
+    if g1 != g2:
+        raise ValueError(f"GT mismatch [{kind}] {kw}: {g1!r} vs {g2!r}")
     return g1
 
 
@@ -573,7 +600,6 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k):
         if gt is None:
             return None
         answer = SHIFT_ANSWER[cfg.language][gt]
-        assert answer in set(SHIFT_ANSWER[cfg.language].values())
         return {"kind": kind, "label": label, "answer": answer,
                 "question": resolve_template(cfg, kind).format(label=label)}
 
@@ -619,7 +645,8 @@ def allocate_quota(families: list[str], total: int) -> dict[str, int]:
             spill = quota[f] - 1
             quota[f] = 1
             for _ in range(spill):
-                quota[priority[0]] += 1
+                quota[priority[i % len(priority)]] += 1
+                i += 1
     return quota
 
 
@@ -715,14 +742,18 @@ def build(cfg: Config) -> None:
             for ki in range(cfg.haystacks_per_length):
                 rng = random.Random(f"{cfg.seed}-{cfg.language}-{target}-{ki}")
                 need = round(target / (mean_tok + sep_tok) * 1.05)   # separator-aware
-                cand = sample_candidate_rows(df, need, rng)
+                weights = (draw_label_weights(df["label"].to_list(), cfg.dirichlet_alpha, rng)
+                           if cfg.dirichlet_alpha > 0 else None)
+                cand = sample_candidate_rows(df, need, rng, weights)
                 kept = select_rows_to_fit(cand, target, count_tokens, cfg.separator)
 
                 # Drift: try eligible targets (strongest first); keep the first that
                 # yields a DETECTABLE shift. Otherwise build driftless and flag it.
                 drift_target, hay, meta, drift_ok = None, None, None, False
                 if cfg.drift_mode:
-                    for cand_tgt in eligible_drift_targets(kept):
+                    eligible = eligible_drift_targets(kept)
+                    rng.shuffle(eligible)
+                    for cand_tgt in eligible:
                         h, m = order_and_assemble(kept, cand_tgt, cfg, count_tokens, rng)
                         if gt_primary(m, "shift", label=cand_tgt) is not None:
                             drift_target, hay, meta, drift_ok = cand_tgt, h, m, True
@@ -734,7 +765,8 @@ def build(cfg: Config) -> None:
                               f"target; built without shift", file=sys.stderr)
                 # invariant: a persisted drift_target is always detectable
                 if drift_target is not None:
-                    assert gt_primary(meta, "shift", label=drift_target) is not None
+                    if gt_primary(meta, "shift", label=drift_target) is None:
+                        raise RuntimeError(f"persisted drift_target {drift_target!r} is not detectable")
 
                 questions = generate_questions(
                     meta, cfg, rng, drift_target=drift_target, unit=unit, k=k)
@@ -766,6 +798,11 @@ def build(cfg: Config) -> None:
     manifest = {
         "version": VERSION,
         "date": date.today().isoformat(),
+        "environment": {
+            "python": platform.python_version(),
+            "polars": pl.__version__,
+            "transformers": pkg_version("transformers") if cfg.reference_tokenizer else None,
+        },
         "config": dataclasses.asdict(cfg),
         "source_hash_first1000": source_hash,
         "rows_after_cleaning": df.height,

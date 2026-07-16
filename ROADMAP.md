@@ -20,18 +20,23 @@ assume earlier ones are done.
 - [x] Multi-dataset build: `--config *.json` + combined `benchmark_index.json`
 - [x] `.jsonl` source support (OOLONG validated English splits usable directly)
 
-## Phase 1 — Configs and full rebuild
+## Phase 1 — v0.2.1 fixes and full rebuild
 
-- [ ] Set `haystacks_per_length: 5` on all four configs (→ ~50 questions / cell)
-- [ ] Set `reference_tokenizer: "Qwen/Qwen3-8B"` on **all** axes (review axis included)
-- [ ] Confirm per-mille proportions on the intent axis (currently `auto`)
-- [ ] `--audit` each config, sanity-check counts/feasibility
-- [ ] Full rebuild of all four sets as **v0.2.0**; commit manifests to `manifests/`
-- [ ] Delete duplicate `amazon.py`; set real tokenizer in `sample_compare.py`
+- [x] Randomize drift direction per haystack (shift answers were 100% 'rose' by construction)
+- [x] Randomize drift-target choice among eligible labels (was always the majority label)
+- [x] Half-up rounding in both GT paths (banker's-rounding mismatch with question wording)
+- [x] verified_gt and drift invariant raise real exceptions (asserts are stripped under -O)
+- [x] Spill rotation in allocate_quota (count/proportion quota no longer skewed)
+- [x] Move benchmark_index.json out of configs/ (the configs/*.json glob swallowed it)
+- [x] `--audit` each of the six configs, sanity-check counts and feasibility
+- [x] Full rebuild of all six sets as **v0.2.1**; recommit manifests to `manifests/`
+- [x] Regenerate `examples/sample_questions_review.jsonl` from the v0.2.1 build
+- [ ] Regenerate README figures from the v0.2.1 manifests
+- [x] Delete duplicate `amazon.py`; set real tokenizer in `sample_compare.py`
 
 ## Phase 2 — Baselines and pilot
 
-- [ ] `trivial_baseline.py` (regex/lexicon over label-token leakage) on all four sets
+- [x] `trivial_baseline.py` (regex/lexicon over label-token leakage) on all four sets
 - [ ] Report the shortcut floor per set; quantify the EN label-leakage asymmetry
 - [ ] Align the frozen metric to OOLONG's `src/eval/` scoring script (provable parity)
 - [ ] Optionally add OOLONG's validated English splits as extra anchor sets (jsonl configs)

@@ -17,6 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 FAMILY_ORDER = ["count", "proportion", "shift",
+                "most_common", "least_common", "second_most",
                 "entity_count", "entity_argmax", "top_k", "pairwise"]
 
 

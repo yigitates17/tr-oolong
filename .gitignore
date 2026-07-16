@@ -1,6 +1,8 @@
 *.parquet
 *.csv
+!tests/fixture_source.csv
 *_out/
+predictions_*.jsonl
 datasets/
 data/
 __pycache__/

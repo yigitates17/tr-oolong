@@ -1,0 +1,70 @@
+[
+  {
+    "set": "golden",
+    "n_questions": 40,
+    "exact": 0.225,
+    "partial": 0.2285998221081078,
+    "families": {
+      "count": {
+        "n": 4,
+        "exact": 0.0,
+        "partial": 4.65836982294689e-06,
+        "chance_floor": 0.0
+      },
+      "entity_argmax": {
+        "n": 4,
+        "exact": 0.25,
+        "partial": 0.25,
+        "chance_floor": 0.0
+      },
+      "entity_count": {
+        "n": 4,
+        "exact": 0.0,
+        "partial": 0.035916250530738936,
+        "chance_floor": 0.0
+      },
+      "least_common": {
+        "n": 4,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.333
+      },
+      "most_common": {
+        "n": 4,
+        "exact": 0.25,
+        "partial": 0.25,
+        "chance_floor": 0.333
+      },
+      "pairwise": {
+        "n": 4,
+        "exact": 1.0,
+        "partial": 1.0,
+        "chance_floor": 0.5
+      },
+      "proportion": {
+        "n": 4,
+        "exact": 0.0,
+        "partial": 7.731218051610806e-05,
+        "chance_floor": 0.0
+      },
+      "second_most": {
+        "n": 4,
+        "exact": 0.25,
+        "partial": 0.25,
+        "chance_floor": 0.333
+      },
+      "shift": {
+        "n": 4,
+        "exact": 0.5,
+        "partial": 0.5,
+        "chance_floor": 0.5
+      },
+      "top_k": {
+        "n": 4,
+        "exact": 0.0,
+        "partial": 0.0,
+        "chance_floor": 0.0
+      }
+    }
+  }
+]

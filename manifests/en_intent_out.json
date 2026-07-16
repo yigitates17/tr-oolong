@@ -1,6 +1,11 @@
 {
-  "version": "0.2.0",
-  "date": "2026-07-16",
+  "version": "0.2.1",
+  "date": "2026-07-17",
+  "environment": {
+    "python": "3.12.9",
+    "polars": "1.42.0",
+    "transformers": "5.1.0"
+  },
   "config": {
     "source_path": "datasets/massive_en.parquet",
     "text_col": "utt",
@@ -19,6 +24,7 @@
     "separator": "\n\n<<<KAYIT>>>\n\n",
     "drift_mode": true,
     "min_entity_examples": 8,
+    "dirichlet_alpha": 5.0,
     "proportion_unit": "auto",
     "top_k_k": 3,
     "question_templates": {
@@ -38,81 +44,81 @@
   "tokenizer": "Qwen/Qwen3-8B",
   "questions_written": 120,
   "kind_distribution": {
-    "count": 61,
-    "least_common": 9,
+    "count": 40,
+    "least_common": 10,
     "most_common": 10,
-    "proportion": 20,
+    "proportion": 40,
     "second_most": 10,
     "shift": 10
   },
   "haystacks": [
     {
       "haystack_id": "en-50000-0",
-      "n_examples": 3471,
-      "drift_target": "calendar_set",
+      "n_examples": 3549,
+      "drift_target": "transport_traffic",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-1",
-      "n_examples": 3468,
-      "drift_target": "calendar_set",
+      "n_examples": 3528,
+      "drift_target": "play_radio",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-2",
-      "n_examples": 3461,
-      "drift_target": "calendar_set",
+      "n_examples": 3507,
+      "drift_target": "transport_taxi",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-3",
-      "n_examples": 3453,
-      "drift_target": "calendar_set",
+      "n_examples": 3506,
+      "drift_target": "qa_currency",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-4",
-      "n_examples": 3475,
-      "drift_target": "calendar_set",
+      "n_examples": 3521,
+      "drift_target": "alarm_set",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-0",
-      "n_examples": 6933,
+      "n_examples": 7006,
       "drift_target": "calendar_set",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-1",
-      "n_examples": 6941,
-      "drift_target": "calendar_set",
+      "n_examples": 6997,
+      "drift_target": "email_sendemail",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-2",
-      "n_examples": 6940,
-      "drift_target": "calendar_set",
+      "n_examples": 6987,
+      "drift_target": "cooking_recipe",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-3",
-      "n_examples": 6933,
-      "drift_target": "calendar_set",
+      "n_examples": 7032,
+      "drift_target": "general_quirky",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 6911,
-      "drift_target": "calendar_set",
+      "n_examples": 7035,
+      "drift_target": "general_quirky",
       "drift_ok": true,
       "n_questions": 12
     }

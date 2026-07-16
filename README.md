@@ -135,7 +135,7 @@ about," feeding the Turkish-vs-English degradation analysis.
 
   Build all six sets at once (run from repo root):
   ```bash
-  python src/build_tr_oolong.py --config configs/tr_intent.json configs/en_intent.json configs/tr_oolong.json configs/en_twin.json configs/vitamins_tr.json configs/amazon_hpc_en.json --build
+  python src/build_tr_oolong.py --config configs/tr_intent.json configs/en_intent.json configs/tr_oolong.json configs/en_twin.json configs/vitamins_tr.json configs/amazon_hpc_en.json --build --index manifests/benchmark_index.json
   ```
 
 ## 6. Scaling to many datasets (N Turkish + M English)
@@ -145,7 +145,7 @@ datasets you write N+M configs — each naming a `source_path`, `text_col`,
 `label_col`, and (optionally) `entity_col` — and build them in one command:
 
 ```bash
-python src/build_tr_oolong.py --config configs/*.json --build --index benchmark_index.json
+python src/build_tr_oolong.py --config configs/*.json --build --index manifests/benchmark_index.json
 ```
 
 This writes each set to its own `out_dir` and a combined `benchmark_index.json`

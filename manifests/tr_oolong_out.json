@@ -1,6 +1,11 @@
 {
-  "version": "0.2.0",
-  "date": "2026-07-16",
+  "version": "0.2.1",
+  "date": "2026-07-17",
+  "environment": {
+    "python": "3.12.9",
+    "polars": "1.42.0",
+    "transformers": "5.1.0"
+  },
   "config": {
     "source_path": "datasets/turkish_review_sentiment.csv",
     "text_col": "review",
@@ -20,6 +25,7 @@
     "separator": "\n\n<<<KAYIT>>>\n\n",
     "drift_mode": true,
     "min_entity_examples": 8,
+    "dirichlet_alpha": 1.0,
     "proportion_unit": "auto",
     "top_k_k": 3,
     "question_templates": {
@@ -57,105 +63,105 @@
   "haystacks": [
     {
       "haystack_id": "tr-100000-0",
-      "n_examples": 1471,
+      "n_examples": 1542,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-1",
-      "n_examples": 1473,
-      "drift_target": "olumsuz",
+      "n_examples": 1542,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-2",
-      "n_examples": 1444,
-      "drift_target": "olumsuz",
+      "n_examples": 1410,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-3",
-      "n_examples": 1496,
-      "drift_target": "olumsuz",
+      "n_examples": 1542,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-4",
-      "n_examples": 1477,
-      "drift_target": "olumsuz",
+      "n_examples": 1542,
+      "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-0",
-      "n_examples": 3635,
+      "n_examples": 3855,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-1",
-      "n_examples": 3722,
-      "drift_target": "olumsuz",
+      "n_examples": 3855,
+      "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-2",
-      "n_examples": 3602,
-      "drift_target": "olumsuz",
+      "n_examples": 3855,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-3",
-      "n_examples": 3675,
+      "n_examples": 3855,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-4",
-      "n_examples": 3671,
-      "drift_target": "olumsuz",
+      "n_examples": 3855,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-0",
-      "n_examples": 7404,
+      "n_examples": 7581,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-1",
-      "n_examples": 7405,
-      "drift_target": "olumsuz",
+      "n_examples": 7709,
+      "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-2",
-      "n_examples": 7298,
-      "drift_target": "olumsuz",
+      "n_examples": 7709,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-3",
-      "n_examples": 7362,
-      "drift_target": "olumsuz",
+      "n_examples": 7709,
+      "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-4",
-      "n_examples": 7354,
+      "n_examples": 7709,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
