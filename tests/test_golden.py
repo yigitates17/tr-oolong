@@ -32,6 +32,9 @@ def normalized_manifest(path: Path) -> dict:
     man["date"] = None
     man["environment"] = None
     man["config"]["out_dir"] = None
+    # absolute, machine-specific, and recorded verbatim in the manifest -- left
+    # in, the golden files only ever match on the machine that generated them
+    man["config"]["source_path"] = None
     return man
 
 

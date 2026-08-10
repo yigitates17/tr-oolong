@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.3.0",
+  "date": "2026-08-10",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -14,6 +14,8 @@
     "language": "en",
     "min_words": 3,
     "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
       100000,
@@ -41,15 +43,21 @@
     "chars_per_token": 3.4,
     "out_dir": "amazon_hpc_en_out"
   },
-  "source_hash_first1000": "6db69a0e370dfa65",
-  "rows_after_cleaning": 55909,
+  "source_hash_first1000": "bf6793642e441676",
+  "rows_after_cleaning": 55400,
+  "cleaning": {
+    "rows_dropped_label_leakage": 509,
+    "label_leakage_rate": 0.009104,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
   "questions_written": 180,
   "kind_distribution": {
-    "count": 33,
+    "count": 34,
     "entity_argmax": 15,
     "entity_count": 15,
     "least_common": 15,
@@ -58,111 +66,111 @@
     "proportion": 30,
     "second_most": 15,
     "shift": 15,
-    "top_k": 12
+    "top_k": 11
   },
   "haystacks": [
     {
       "haystack_id": "en-100000-0",
-      "n_examples": 1638,
-      "drift_target": "positive",
+      "n_examples": 1657,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-1",
-      "n_examples": 1747,
+      "n_examples": 1750,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-2",
-      "n_examples": 1747,
-      "drift_target": "neutral",
+      "n_examples": 1710,
+      "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-3",
-      "n_examples": 1707,
+      "n_examples": 1688,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 1628,
+      "n_examples": 1655,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-0",
-      "n_examples": 4282,
-      "drift_target": "neutral",
+      "n_examples": 4285,
+      "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-1",
-      "n_examples": 4223,
-      "drift_target": "neutral",
+      "n_examples": 4302,
+      "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-2",
-      "n_examples": 4095,
+      "n_examples": 4053,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-3",
-      "n_examples": 4025,
+      "n_examples": 4045,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-4",
-      "n_examples": 4127,
+      "n_examples": 4100,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-500000-0",
-      "n_examples": 8286,
+      "n_examples": 8495,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-500000-1",
-      "n_examples": 8302,
+      "n_examples": 8441,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-500000-2",
-      "n_examples": 8099,
-      "drift_target": "positive",
+      "n_examples": 8187,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-500000-3",
-      "n_examples": 8333,
+      "n_examples": 8335,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-500000-4",
-      "n_examples": 8723,
-      "drift_target": "neutral",
+      "n_examples": 8779,
+      "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     }

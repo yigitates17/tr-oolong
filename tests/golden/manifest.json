@@ -1,19 +1,21 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.3.0",
+  "date": "2026-08-10",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
     "transformers": null
   },
   "config": {
-    "source_path": "C:\\Users\\yigit\\Desktop\\Projects\\tr-oolong\\tests\\fixture_source.csv",
+    "source_path": "/Users/yigitates/tr-oolong/tests/fixture_source.csv",
     "text_col": "review",
     "label_col": "sentiment",
     "entity_col": "sirket",
     "language": "tr",
     "min_words": 3,
     "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
       5000,
@@ -30,10 +32,16 @@
     "question_templates": {},
     "reference_tokenizer": "",
     "chars_per_token": 3.4,
-    "out_dir": "C:\\Users\\yigit\\Desktop\\Projects\\tr-oolong\\tests\\golden"
+    "out_dir": "/Users/yigitates/tr-oolong/tests/golden"
   },
   "source_hash_first1000": "7e25adc6f1d56a61",
   "rows_after_cleaning": 800,
+  "cleaning": {
+    "rows_dropped_label_leakage": 0,
+    "label_leakage_rate": 0.0,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,

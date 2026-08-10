@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 
 
 # ---------------------------------------------------------------------------
@@ -77,6 +77,8 @@ class Config:
     # cleaning
     min_words: int = 1
     max_words: int = 400
+    drop_label_leakage: bool = True       # drop rows whose text contains a label surface form
+    min_class_support: int = 0            # drop classes with fewer than N rows (0 = keep all)
     # haystack construction
     seed: int = 42
     haystack_target_tokens: list[int] = dataclasses.field(
@@ -138,6 +140,26 @@ def normalize_for_dedup(s: str, language: str) -> str:
     return s
 
 
+def fold(s: str, language: str) -> str:
+    return tr_casefold(s) if language == "tr" else s.casefold()
+
+
+def leak_surface_forms(label: str, language: str) -> set[str]:
+    """Surface strings that would let a solver find a label by substring search.
+    Canonical definition: shared with scripts/trivial_baseline.py so that the
+    leakage filter and the leakage baseline can never disagree."""
+    return {fold(label, language), fold(label.replace("_", " "), language)}
+
+
+def label_leak_mask(texts: list[str], labels: list[str], language: str) -> list[bool]:
+    """True where the text contains ANY label's surface form. Matching on the
+    whole label space (not just the row's own label) is what makes the
+    grep-proofness claim total: after filtering, a substring solver sees zero
+    hits for every label, so its label ranking carries no information."""
+    forms = sorted({f for l in labels for f in leak_surface_forms(l, language)})
+    return [any(f in fold(t, language) for f in forms) for t in texts]
+
+
 # ---------------------------------------------------------------------------
 # Load + clean
 # ---------------------------------------------------------------------------
@@ -160,7 +182,8 @@ def load_source(cfg: Config) -> pl.DataFrame:
     return df
 
 
-def clean(df: pl.DataFrame, cfg: Config) -> pl.DataFrame:
+def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFrame:
+    stats = stats if stats is not None else {}
     df = df.with_columns(
         pl.col("text").str.replace_all(r"\s+", " ").str.strip_chars().alias("text"),
         pl.col("label").str.strip_chars().str.to_lowercase().alias("label"),
@@ -180,6 +203,32 @@ def clean(df: pl.DataFrame, cfg: Config) -> pl.DataFrame:
     )
     df = df.filter(~pl.col("label").str.contains(",") & ~pl.col("entity").str.contains(","))
     df = df.unique(subset=["_norm"], keep="first", maintain_order=True).drop("_norm")
+
+    # Grep-proofness: drop records whose text contains any label surface form.
+    # The drop RATE is itself the label-leakage measurement (see DATACARD) --
+    # it is recorded here precisely because the filter removes the phenomenon
+    # from the built benchmark.
+    before = df.height
+    if cfg.drop_label_leakage and before:
+        leaking = label_leak_mask(df["text"].to_list(), sorted(set(df["label"].to_list())),
+                                  cfg.language)
+        df = df.filter(~pl.Series(leaking))
+    stats["rows_dropped_label_leakage"] = before - df.height
+    stats["label_leakage_rate"] = round((before - df.height) / before, 6) if before else 0.0
+
+    # Class support: a class with too few rows to ever be sampled competitively
+    # is deterministically the rarest in every haystack, which makes
+    # least_common answerable from corpus priors alone rather than from the
+    # context. Such classes are removed from the pool entirely.
+    dropped_classes: list[str] = []
+    if cfg.min_class_support > 0 and df.height:
+        vc = df["label"].value_counts()
+        dropped_classes = sorted(vc.filter(pl.col("count") < cfg.min_class_support)["label"].to_list())
+        if dropped_classes:
+            df = df.filter(~pl.col("label").is_in(dropped_classes))
+    stats["classes_dropped_low_support"] = dropped_classes
+    stats["min_class_support"] = cfg.min_class_support
+
     return df.with_row_index("row_id")
 
 
@@ -717,7 +766,8 @@ def generate_questions(meta, cfg, rng, *, drift_target, unit, k):
 
 def build(cfg: Config) -> None:
     count_tokens = make_token_counter(cfg)
-    df = clean(load_source(cfg), cfg)
+    clean_stats: dict = {}
+    df = clean(load_source(cfg), cfg, clean_stats)
     n_label_space = df.select(pl.col("label").n_unique()).item()
     unit = resolve_proportion_unit(cfg, n_label_space)
     k = cfg.top_k_k
@@ -806,6 +856,7 @@ def build(cfg: Config) -> None:
         "config": dataclasses.asdict(cfg),
         "source_hash_first1000": source_hash,
         "rows_after_cleaning": df.height,
+        "cleaning": clean_stats,
         "label_space": n_label_space,
         "proportion_unit": unit,
         "top_k_k": k,

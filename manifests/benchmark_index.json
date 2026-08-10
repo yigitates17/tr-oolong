@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.3.0",
+  "date": "2026-08-10",
   "n_sets": 6,
   "total_questions": 900,
   "languages": [
@@ -32,11 +32,11 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 40,
+        "count": 43,
         "least_common": 10,
-        "most_common": 10,
+        "most_common": 9,
         "proportion": 40,
-        "second_most": 10,
+        "second_most": 8,
         "shift": 10
       }
     },
@@ -48,7 +48,7 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 180,
       "kind_distribution": {
-        "count": 36,
+        "count": 32,
         "entity_argmax": 15,
         "entity_count": 15,
         "least_common": 15,
@@ -57,7 +57,7 @@
         "proportion": 30,
         "second_most": 15,
         "shift": 15,
-        "top_k": 9
+        "top_k": 13
       }
     },
     {
@@ -108,7 +108,7 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 180,
       "kind_distribution": {
-        "count": 33,
+        "count": 34,
         "entity_argmax": 15,
         "entity_count": 15,
         "least_common": 15,
@@ -117,7 +117,7 @@
         "proportion": 30,
         "second_most": 15,
         "shift": 15,
-        "top_k": 12
+        "top_k": 11
       }
     }
   ]

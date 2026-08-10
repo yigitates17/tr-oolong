@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.3.0",
+  "date": "2026-08-10",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -14,6 +14,8 @@
     "language": "tr",
     "min_words": 1,
     "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
       50000,
@@ -32,9 +34,15 @@
     "chars_per_token": 3.4,
     "out_dir": "tr_intent_out"
   },
-  "source_hash_first1000": "d455ad133a0bf8c7",
-  "rows_after_cleaning": 15815,
-  "label_space": 60,
+  "source_hash_first1000": "85189ad138eb04b5",
+  "rows_after_cleaning": 15250,
+  "cleaning": {
+    "rows_dropped_label_leakage": 0,
+    "label_leakage_rate": 0.0,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
+  "label_space": 49,
   "proportion_unit": "per_mille",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
@@ -50,71 +58,71 @@
   "haystacks": [
     {
       "haystack_id": "tr-50000-0",
-      "n_examples": 2785,
-      "drift_target": "lists_remove",
+      "n_examples": 2708,
+      "drift_target": "qa_currency",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-1",
-      "n_examples": 2754,
-      "drift_target": "music_query",
+      "n_examples": 2765,
+      "drift_target": "qa_currency",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-2",
-      "n_examples": 2735,
-      "drift_target": "recommendation_locations",
+      "n_examples": 2714,
+      "drift_target": "social_post",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-3",
       "n_examples": 2750,
-      "drift_target": "lists_query",
+      "drift_target": "alarm_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-4",
-      "n_examples": 2761,
-      "drift_target": "weather_query",
+      "n_examples": 2775,
+      "drift_target": "transport_traffic",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-0",
-      "n_examples": 5568,
-      "drift_target": "social_post",
+      "n_examples": 5464,
+      "drift_target": "transport_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-1",
-      "n_examples": 5479,
-      "drift_target": "news_query",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "tr-100000-2",
-      "n_examples": 5499,
+      "n_examples": 5468,
       "drift_target": "calendar_remove",
       "drift_ok": true,
       "n_questions": 12
     },
     {
+      "haystack_id": "tr-100000-2",
+      "n_examples": 5513,
+      "drift_target": "play_music",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
       "haystack_id": "tr-100000-3",
-      "n_examples": 5523,
-      "drift_target": "play_radio",
+      "n_examples": 5460,
+      "drift_target": "news_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-4",
-      "n_examples": 5499,
-      "drift_target": "qa_factoid",
+      "n_examples": 5450,
+      "drift_target": "play_audiobook",
       "drift_ok": true,
       "n_questions": 12
     }

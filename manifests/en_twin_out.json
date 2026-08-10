@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.3.0",
+  "date": "2026-08-10",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -14,6 +14,8 @@
     "language": "en",
     "min_words": 3,
     "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
       100000,
@@ -40,8 +42,14 @@
     "chars_per_token": 3.4,
     "out_dir": "en_twin_out"
   },
-  "source_hash_first1000": "7c0c35600c5cdcda",
-  "rows_after_cleaning": 14295,
+  "source_hash_first1000": "e32cfd4e13f9d79e",
+  "rows_after_cleaning": 14280,
+  "cleaning": {
+    "rows_dropped_label_leakage": 15,
+    "label_leakage_rate": 0.001049,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
@@ -62,71 +70,71 @@
   "haystacks": [
     {
       "haystack_id": "en-100000-0",
-      "n_examples": 2959,
-      "drift_target": "negative",
+      "n_examples": 2960,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-1",
-      "n_examples": 2827,
+      "n_examples": 2841,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-2",
-      "n_examples": 2965,
-      "drift_target": "positive",
+      "n_examples": 2972,
+      "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-3",
-      "n_examples": 2937,
+      "n_examples": 2931,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 3024,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-0",
-      "n_examples": 7398,
-      "drift_target": "positive",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-1",
-      "n_examples": 7140,
+      "n_examples": 3096,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
-      "haystack_id": "en-250000-2",
-      "n_examples": 7559,
+      "haystack_id": "en-250000-0",
+      "n_examples": 7403,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-1",
+      "n_examples": 7139,
       "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-250000-2",
+      "n_examples": 7579,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-3",
-      "n_examples": 7559,
-      "drift_target": "positive",
+      "n_examples": 7625,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-4",
-      "n_examples": 7396,
-      "drift_target": "positive",
+      "n_examples": 7386,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     }

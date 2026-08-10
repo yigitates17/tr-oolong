@@ -5,6 +5,7 @@
   "entity_col": "scenario",
   "language": "tr",
   "min_words": 1,
+  "min_class_support": 0,
   "seed": 42,
   "dirichlet_alpha": 5.0,
   "haystack_target_tokens": [

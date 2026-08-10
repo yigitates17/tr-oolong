@@ -34,10 +34,30 @@ assume earlier ones are done.
 - [ ] Regenerate README figures from the v0.2.1 manifests
 - [x] Delete duplicate `amazon.py`; set real tokenizer in `sample_compare.py`
 
+## Phase 1.5 — v0.3.0 validity fixes  ✅ done
+
+- [x] `VERSION` actually bumped to 0.3.0 (v0.3.0 tag had shipped with `VERSION = "0.2.1"`)
+- [x] Leakage eliminated at the source (`drop_label_leakage`): TR review axis
+      `most_common` leakage baseline 0.733 → 0.133
+- [x] Leakage drop rate recorded per corpus — this *is* the asymmetry measurement
+      (MASSIVE en 0.68% vs tr 0.00%)
+- [x] `least_common` degeneracy fixed (`min_class_support=100`): was `cooking_query`
+      in 10/10 haystacks in both languages; now majority 0.20, 8–9 distinct
+- [x] Leakage + support filters applied as a **union over the locale pair**, so the
+      intent twin keeps an identical label space (49) and row set
+- [x] Majority-class baseline added to `trivial_baseline.py` — the real acceptance
+      gate; leakage score alone is blind to prior-driven degeneracy
+- [x] `scripts/airline.py` — the last unscripted source; all six sets now rebuild
+      from public datasets
+- [x] Golden test made platform-independent (absolute `source_path` in manifest)
+- [x] `run_eval.py`: errored questions no longer marked done, so resume retries them
+- [x] Cross-platform reproducibility verified (Windows → macOS/arm64, all six sets)
+- [x] README §1/§3/§4/§5 and DATACARD updated to match measurements
+
 ## Phase 2 — Baselines and pilot
 
 - [x] `trivial_baseline.py` (regex/lexicon over label-token leakage) on all four sets
-- [ ] Report the shortcut floor per set; quantify the EN label-leakage asymmetry
+- [x] Report the shortcut floor per set; quantify the EN label-leakage asymmetry
 - [ ] Align the frozen metric to OOLONG's `src/eval/` scoring script (provable parity)
 - [ ] Optionally add OOLONG's validated English splits as extra anchor sets (jsonl configs)
 - [ ] Frontier reference point: one haystack per axis via a **pinned API model**

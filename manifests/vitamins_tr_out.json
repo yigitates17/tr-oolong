@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.3.0",
+  "date": "2026-08-10",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -14,6 +14,8 @@
     "language": "tr",
     "min_words": 3,
     "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
       100000,
@@ -41,8 +43,14 @@
     "chars_per_token": 3.4,
     "out_dir": "vitamins_tr_out"
   },
-  "source_hash_first1000": "f812905be86f3ff0",
-  "rows_after_cleaning": 39145,
+  "source_hash_first1000": "503da8b5cafa4bf0",
+  "rows_after_cleaning": 38974,
+  "cleaning": {
+    "rows_dropped_label_leakage": 171,
+    "label_leakage_rate": 0.004368,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
@@ -63,106 +71,106 @@
   "haystacks": [
     {
       "haystack_id": "tr-100000-0",
-      "n_examples": 2770,
-      "drift_target": "notr",
+      "n_examples": 2851,
+      "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-1",
-      "n_examples": 2466,
+      "n_examples": 2495,
       "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-2",
-      "n_examples": 2322,
-      "drift_target": "notr",
+      "n_examples": 2452,
+      "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-3",
-      "n_examples": 2626,
+      "n_examples": 2622,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-4",
-      "n_examples": 2487,
-      "drift_target": "notr",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "tr-250000-0",
-      "n_examples": 6770,
+      "n_examples": 2554,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
-      "haystack_id": "tr-250000-1",
-      "n_examples": 6126,
-      "drift_target": "notr",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "tr-250000-2",
-      "n_examples": 6190,
+      "haystack_id": "tr-250000-0",
+      "n_examples": 6912,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
+      "haystack_id": "tr-250000-1",
+      "n_examples": 6073,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "tr-250000-2",
+      "n_examples": 6137,
+      "drift_target": "olumlu",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
       "haystack_id": "tr-250000-3",
-      "n_examples": 6190,
+      "n_examples": 6340,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-4",
-      "n_examples": 6493,
-      "drift_target": "olumlu",
+      "n_examples": 6508,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-0",
-      "n_examples": 12555,
+      "n_examples": 12674,
       "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-1",
-      "n_examples": 12803,
+      "n_examples": 12993,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-2",
-      "n_examples": 13192,
-      "drift_target": "olumlu",
+      "n_examples": 13259,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-3",
-      "n_examples": 13462,
+      "n_examples": 13610,
       "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-4",
-      "n_examples": 13149,
-      "drift_target": "olumlu",
+      "n_examples": 13256,
+      "drift_target": "notr",
       "drift_ok": true,
       "n_questions": 12
     }

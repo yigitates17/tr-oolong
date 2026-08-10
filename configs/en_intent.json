@@ -5,9 +5,13 @@
   "entity_col": "scenario",
   "language": "en",
   "min_words": 1,
+  "min_class_support": 0,
   "seed": 42,
   "dirichlet_alpha": 5.0,
-  "haystack_target_tokens": [50000, 100000],
+  "haystack_target_tokens": [
+    50000,
+    100000
+  ],
   "haystacks_per_length": 5,
   "questions_per_haystack": 12,
   "proportion_unit": "auto",

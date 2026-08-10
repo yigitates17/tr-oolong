@@ -68,7 +68,11 @@ def run_set(d: Path, args) -> dict:
     done = set()
     if pred_path.exists():
         for line in pred_path.read_text(encoding="utf-8").splitlines():
-            done.add(json.loads(line)["id"])
+            row = json.loads(line)
+            # errored rows are NOT done: a transient timeout would otherwise
+            # drop that question permanently from every later resumed run
+            if "error" not in row:
+                done.add(row["id"])
 
     if args.max_questions:
         questions = questions[: args.max_questions]
