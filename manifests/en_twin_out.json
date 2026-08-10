@@ -18,8 +18,8 @@
     "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
-      100000,
-      250000
+      50000,
+      100000
     ],
     "haystacks_per_length": 5,
     "questions_per_haystack": 12,
@@ -50,6 +50,13 @@
     "classes_dropped_low_support": [],
     "min_class_support": 0
   },
+  "ranking_feasibility": {
+    "n_classes": 3,
+    "min_class_pool": 2219,
+    "max_records": 6657,
+    "binding": true,
+    "ranking_length_ceiling_tokens": 224806
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
@@ -68,6 +75,41 @@
     "top_k": 10
   },
   "haystacks": [
+    {
+      "haystack_id": "en-50000-0",
+      "n_examples": 1510,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-1",
+      "n_examples": 1555,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-2",
+      "n_examples": 1451,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-3",
+      "n_examples": 1555,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-4",
+      "n_examples": 1555,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
     {
       "haystack_id": "en-100000-0",
       "n_examples": 2960,
@@ -100,41 +142,6 @@
       "haystack_id": "en-100000-4",
       "n_examples": 3096,
       "drift_target": "negative",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-0",
-      "n_examples": 7403,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-1",
-      "n_examples": 7139,
-      "drift_target": "positive",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-2",
-      "n_examples": 7579,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-3",
-      "n_examples": 7625,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-4",
-      "n_examples": 7386,
-      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     }

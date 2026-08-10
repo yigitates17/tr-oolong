@@ -236,6 +236,53 @@ def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFr
 # Proportion unit resolution
 # ---------------------------------------------------------------------------
 
+RANKING_CONTESTED_K = 10          # above this, ranking is contested among many classes
+
+
+def ranking_length_ceiling(df: pl.DataFrame, tokens_per_record: float) -> tuple[int, dict]:
+    """Longest haystack for which most_common / least_common / second_most can
+    still vary across haystacks, in tokens. Returns (ceiling, diagnostics).
+
+    A haystack of R records over K classes gives each class a 1/K share on
+    average, so a class can only become the most frequent one if the pool can
+    supply more than R/K of it. The smallest class therefore caps the haystack
+    at R = min_class_pool * K records: past that point the rare classes are
+    pinned to the bottom of every ranking by the corpus rather than by the
+    sampled context, and the ranking families answer themselves.
+
+    Only binding for small label spaces. With many classes the ranking is
+    contested among the well-supported ones regardless of the tail, which is
+    what `min_class_support` handles instead; 0 is returned to mean "no bound".
+    """
+    vc = df["label"].value_counts()
+    K = vc.height
+    if K > RANKING_CONTESTED_K or not K:
+        return 0, {"n_classes": K, "binding": False}
+    min_class = int(vc["count"].min())
+    max_records = min_class * K
+    return int(max_records * tokens_per_record), {
+        "n_classes": K, "min_class_pool": min_class,
+        "max_records": max_records, "binding": True,
+    }
+
+
+# Observed: a set at 0.89x its ceiling still varies (tr_oolong at 500K), one at
+# 1.12x is degenerate (airline tweets at 250K). Warn from 0.85x.
+CEILING_WARN_RATIO = 0.85
+
+
+def check_length_feasibility(cfg: Config, ceiling: int) -> None:
+    if not ceiling:
+        return
+    for target in cfg.haystack_target_tokens:
+        ratio = target / ceiling
+        if ratio > CEILING_WARN_RATIO:
+            print(f"[feasibility] {cfg.out_dir}: target {target:,} tokens is "
+                  f"{ratio:.2f}x the ranking ceiling ({ceiling:,}). The label-ranking "
+                  f"families will be skewed toward the corpus prior at this length.",
+                  file=sys.stderr)
+
+
 def resolve_proportion_unit(cfg: Config, n_label_space: int) -> str:
     if cfg.proportion_unit in ("percent", "per_mille"):
         return cfg.proportion_unit
@@ -781,6 +828,10 @@ def build(cfg: Config) -> None:
     mean_tok = sum(count_tokens(t) for t in sample) / len(sample)
     sep_tok = count_tokens(cfg.separator)
 
+    ceiling, ceiling_info = ranking_length_ceiling(df, mean_tok + sep_tok)
+    check_length_feasibility(cfg, ceiling)
+    ceiling_info["ranking_length_ceiling_tokens"] = ceiling
+
     hay_path = out / "haystacks.jsonl"
     q_path = out / "questions.jsonl"
     kind_counts: Counter = Counter()
@@ -857,6 +908,7 @@ def build(cfg: Config) -> None:
         "source_hash_first1000": source_hash,
         "rows_after_cleaning": df.height,
         "cleaning": clean_stats,
+        "ranking_feasibility": ceiling_info,
         "label_space": n_label_space,
         "proportion_unit": unit,
         "top_k_k": k,

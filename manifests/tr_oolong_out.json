@@ -51,6 +51,13 @@
     "classes_dropped_low_support": [],
     "min_class_support": 0
   },
+  "ranking_feasibility": {
+    "n_classes": 3,
+    "min_class_pool": 2913,
+    "max_records": 8739,
+    "binding": true,
+    "ranking_length_ceiling_tokens": 585303
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,

@@ -14,10 +14,12 @@ from pathlib import Path
 import polars as pl
 from datasets import load_dataset
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_tr_oolong import label_leak_mask  # canonical leak definition
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from build_tr_oolong import Config, clean, label_leak_mask  # canonical definitions
 
 LOCALES = {"tr-TR": ("tr", "massive_tr.parquet"), "en-US": ("en", "massive_en.parquet")}
+CONFIG_FOR = {"tr-TR": "tr_intent.json", "en-US": "en_intent.json"}
 
 frames = {}
 for locale, (lang, out) in LOCALES.items():
@@ -45,6 +47,26 @@ for locale, (lang, _) in LOCALES.items():
 print(f"union dropped from both locales: {len(leaking_pairs)} pairs")
 
 frames = {loc: df.filter(~pl.col("pair_id").is_in(list(leaking_pairs)))
+          for loc, df in frames.items()}
+
+# Exact row-level parallelism. The builder's cleaning (word bounds, near-dup
+# collapse) is language-local and removes different utterances in each locale --
+# before this intersection the twin differed by ~600 rows (15,250 tr vs 15,765
+# en), so "the same utterances in both languages" was only approximately true.
+# We run the real builder cleaner with the real configs, then keep the
+# intersection, so both locales end up with an identical set of pair_ids.
+survivors: set[str] | None = None
+for locale, (lang, _) in LOCALES.items():
+    cfg = Config.load(str(ROOT / "configs" / CONFIG_FOR[locale]))
+    staged = frames[locale].select(
+        pl.col("utt").alias("text"), pl.col("intent").alias("label"),
+        pl.col("scenario").alias("entity"), pl.col("pair_id"),
+    )
+    ids = set(clean(staged, cfg)["pair_id"].to_list())
+    print(f"{locale}: {len(ids)} of {frames[locale].height} rows survive cleaning")
+    survivors = ids if survivors is None else (survivors & ids)
+print(f"intersection kept in both locales: {len(survivors)}")
+frames = {loc: df.filter(pl.col("pair_id").is_in(list(survivors)))
           for loc, df in frames.items()}
 
 # Class support is a pair-level decision for the same reason leakage is: cutting

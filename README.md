@@ -3,7 +3,7 @@
 The first Turkish long-context **aggregation** benchmark, with a matched English
 twin built by the identical pipeline. It follows the OOLONG-synth construction
 principle (Bertsch et al., 2025): concatenate examples from an existing *labeled*
-dataset into a 50K–500K-token haystack, then auto-generate distributional
+dataset into a 50K–1M-token haystack, then auto-generate distributional
 questions whose ground truth is computed exactly from the source labels — no
 manual annotation.
 
@@ -31,16 +31,16 @@ Two axes:
 
 | Axis | Source | Label (classes) | Entity axis | Purpose |
 |---|---|---|---|---|
-| **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care | sentiment (3) | brand / airline — *orthogonal* | length scaling to 500K; entity-relational reasoning; cross-corpus robustness |
-| **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel-translated) | intent (49) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
+| **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
+| **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel-translated) | intent (48) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
 
-MASSIVE ships 60 intents, but 11 of them have too few examples to ever be
+MASSIVE ships 60 intents, but 12 of them have too few examples to ever be
 sampled competitively — with 6 rows in a 16.5K-row corpus, `cooking_query` was
 the rarest label in *every* haystack, which made `least_common` answerable from
 corpus priors without reading the context at all. Classes below a support floor
 (`min_class_support`, 100 rows) are dropped from the pool, and the cut is taken
 over the *union* of both locales so the twin keeps an identical label space.
-See §4.
+See §4 and `DESIGN_DECISIONS.md` (D3, D4).
 
 ## 2. Question families and where they apply
 
@@ -143,6 +143,33 @@ label names are ordinary sentiment words in *both* languages. Since the two
 locales of MASSIVE are the same utterances, the filter is applied as a **union**
 over the pair — dropping only the English side would bias the twin toward the
 language that leaks less.
+
+**Maximum length is derived, not chosen.** Making the haystack longer eventually
+breaks the label-ranking families: a haystack of R records over K classes gives
+each class a 1/K share on average, so a class can top the ranking only if the
+pool can supply more than R/K of it. The smallest class therefore caps the
+haystack at **R_max = min_class_pool × K** records — past that, the rare classes
+are pinned to the bottom of every ranking by the corpus rather than by the
+sampled context, and the questions answer themselves. This is the same failure as
+the `least_common` case above, one level up.
+
+The bound was calibrated against measured behaviour (`tr_oolong` at 0.85× its
+ceiling still varies; the airline set at 1.12× was degenerate, with only 2
+distinct `most_common` answers across 10 haystacks). The builder computes the
+ceiling per set, warns above 0.85×, and records it in the manifest under
+`ranking_feasibility`. Each set's length tiers are then set as high as its
+ceiling allows:
+
+| Set | Pool | Smallest class | Ceiling | Tiers |
+|---|---|---|---|---|
+| `amazon_hpc_en` | 55,400 | 17,806 | ~3.16M | 100K / 250K / 500K / **1M** |
+| `vitamins_tr` | 38,974 | 7,994 | ~911K | 100K / 250K / 500K / **750K** |
+| `tr_oolong` | 24,071 | 2,913 | ~559K | 100K / 250K / **500K** |
+| `en_twin` (airline) | 14,280 | 2,219 | ~224K | 50K / 100K |
+
+The bound binds only for small label spaces; with many classes the ranking is
+contested among the well-supported ones, which is what `min_class_support`
+handles instead.
 
 **Shortcut floor vs. answer skew.** `scripts/trivial_baseline.py` reports two
 numbers per family: the leakage solver's score and the **majority baseline** (the
@@ -249,6 +276,7 @@ as the skeleton our families extend.
 tr-oolong/
 ├── README.md
 ├── ROADMAP.md          # tracked checklist — this is where progress lives
+├── DESIGN_DECISIONS.md # why the benchmark is built this way, with the evidence
 ├── DATACARD.md         # per-axis source, license, label-noise, construction
 ├── LICENSE             # MIT (code); data licenses in DATACARD
 ├── src/build_tr_oolong.py

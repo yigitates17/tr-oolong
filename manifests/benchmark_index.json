@@ -2,7 +2,7 @@
   "version": "0.3.0",
   "date": "2026-08-10",
   "n_sets": 6,
-  "total_questions": 900,
+  "total_questions": 1020,
   "languages": [
     "en",
     "tr"
@@ -16,11 +16,11 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 40,
+        "count": 41,
         "least_common": 10,
         "most_common": 10,
         "proportion": 40,
-        "second_most": 10,
+        "second_most": 9,
         "shift": 10
       }
     },
@@ -32,11 +32,11 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 43,
+        "count": 40,
         "least_common": 10,
-        "most_common": 9,
+        "most_common": 10,
         "proportion": 40,
-        "second_most": 8,
+        "second_most": 10,
         "shift": 10
       }
     },
@@ -86,18 +86,18 @@
       "language": "tr",
       "source": "datasets/vitamins_tr.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 180,
+      "questions": 240,
       "kind_distribution": {
-        "count": 30,
-        "entity_argmax": 15,
-        "entity_count": 15,
-        "least_common": 15,
-        "most_common": 15,
-        "pairwise": 15,
-        "proportion": 30,
-        "second_most": 15,
-        "shift": 15,
-        "top_k": 15
+        "count": 40,
+        "entity_argmax": 20,
+        "entity_count": 20,
+        "least_common": 20,
+        "most_common": 20,
+        "pairwise": 20,
+        "proportion": 40,
+        "second_most": 20,
+        "shift": 20,
+        "top_k": 20
       }
     },
     {
@@ -106,18 +106,18 @@
       "language": "en",
       "source": "datasets/amazon_hpc_en.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 180,
+      "questions": 240,
       "kind_distribution": {
-        "count": 34,
-        "entity_argmax": 15,
-        "entity_count": 15,
-        "least_common": 15,
-        "most_common": 15,
-        "pairwise": 15,
-        "proportion": 30,
-        "second_most": 15,
-        "shift": 15,
-        "top_k": 11
+        "count": 44,
+        "entity_argmax": 20,
+        "entity_count": 20,
+        "least_common": 20,
+        "most_common": 20,
+        "pairwise": 20,
+        "proportion": 40,
+        "second_most": 20,
+        "shift": 20,
+        "top_k": 16
       }
     }
   ]

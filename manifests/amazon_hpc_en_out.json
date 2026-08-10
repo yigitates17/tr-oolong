@@ -20,7 +20,8 @@
     "haystack_target_tokens": [
       100000,
       250000,
-      500000
+      500000,
+      1000000
     ],
     "haystacks_per_length": 5,
     "questions_per_haystack": 12,
@@ -51,22 +52,29 @@
     "classes_dropped_low_support": [],
     "min_class_support": 0
   },
+  "ranking_feasibility": {
+    "n_classes": 3,
+    "min_class_pool": 17806,
+    "max_records": 53418,
+    "binding": true,
+    "ranking_length_ceiling_tokens": 3058607
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
-  "questions_written": 180,
+  "questions_written": 240,
   "kind_distribution": {
-    "count": 34,
-    "entity_argmax": 15,
-    "entity_count": 15,
-    "least_common": 15,
-    "most_common": 15,
-    "pairwise": 15,
-    "proportion": 30,
-    "second_most": 15,
-    "shift": 15,
-    "top_k": 11
+    "count": 44,
+    "entity_argmax": 20,
+    "entity_count": 20,
+    "least_common": 20,
+    "most_common": 20,
+    "pairwise": 20,
+    "proportion": 40,
+    "second_most": 20,
+    "shift": 20,
+    "top_k": 16
   },
   "haystacks": [
     {
@@ -170,6 +178,41 @@
     {
       "haystack_id": "en-500000-4",
       "n_examples": 8779,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-1000000-0",
+      "n_examples": 16672,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-1000000-1",
+      "n_examples": 16218,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-1000000-2",
+      "n_examples": 17146,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-1000000-3",
+      "n_examples": 16142,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-1000000-4",
+      "n_examples": 16279,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12

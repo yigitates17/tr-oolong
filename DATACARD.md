@@ -8,11 +8,11 @@ is no manual answer annotation.
 
 - Source: Amazon MASSIVE, locales `tr-TR` and `en-US` (AmazonScience/massive),
   fetched by `scripts/massive.py`.
-- Label: `intent` (**49** classes retained of 60). Entity: `scenario` (18) —
+- Label: `intent` (**48** classes retained of 60). Entity: `scenario` (18) —
   nested in intent, so the four entity families are omitted; the six non-entity
   families apply (count, proportion, shift, most_common, least_common,
   second_most).
-- **Class support floor.** 11 intents have fewer than 100 rows and were dropped.
+- **Class support floor.** 12 intents have fewer than 100 rows and were dropped.
   The motivating case: `cooking_query` has 6 rows in 16.5K, so it was the rarest
   label in every haystack and `least_common` was answerable from corpus priors
   alone (majority baseline 1.00 — the gold answer was `cooking_query` in 10/10
@@ -20,13 +20,14 @@ is no manual answer annotation.
   baseline of 0.20 with 8–9 distinct answers per 10 haystacks.
   Dropped: `audio_volume_down`, `audio_volume_other`, `cooking_query`,
   `datetime_convert`, `email_addcontact`, `general_greet`, `iot_hue_lighton`,
-  `iot_wemo_off`, `iot_wemo_on`, `music_dislikeness`, `music_settings`.
+  `iot_hue_lightdim`, `iot_wemo_off`, `iot_wemo_on`, `music_dislikeness`,
+  `music_settings`.
 - Cross-lingual control: TR and EN are the *same* utterances, professionally
   parallel-translated. Both the leakage filter and the support floor are applied
   as a **union over the locale pair** (drop the utterance/class from both if it
   fails in either), so the twin retains an identical label space and an identical
-  source row set. Applying either filter per locale would have left TR with 48
-  classes and EN with 49 — a comparison across different label spaces.
+  source row set. Applying either filter per locale would have left TR and EN with
+  different class sets — a comparison across different label spaces.
 - Label leakage: 112 English utterances (0.68%) contain their intent's surface
   form; **zero** Turkish utterances do. Those 112 pairs are dropped from both
   locales. This rate is the cross-lingual leakage measurement reported in
@@ -40,7 +41,8 @@ is no manual answer annotation.
 Rests on two independent TR–EN corpus pairs, so results can be shown to hold across
 datasets rather than one source. Label is `sentiment` (3 classes); the entity
 (`brand` / `airline`) is orthogonal to the label, so all ten families apply.
-Carries the length gradient up to 500K tokens. Proportion unit: percent.
+Carries the length gradient up to 1M tokens (see README §4 for how each set's
+maximum length is derived from its smallest class). Proportion unit: percent.
 
 **Pair (a) — brand reviews / airline tweets**
 - Source (TR): Turkish brand reviews (We-Bears/Turkish-Review-Sentiment-Data),

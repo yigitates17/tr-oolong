@@ -38,95 +38,100 @@
     "chars_per_token": 3.4,
     "out_dir": "en_intent_out"
   },
-  "source_hash_first1000": "9a0d7202dccf993a",
-  "rows_after_cleaning": 15765,
+  "source_hash_first1000": "d9c3cc5adfadc61c",
+  "rows_after_cleaning": 15075,
   "cleaning": {
     "rows_dropped_label_leakage": 0,
     "label_leakage_rate": 0.0,
     "classes_dropped_low_support": [],
     "min_class_support": 0
   },
-  "label_space": 49,
+  "ranking_feasibility": {
+    "n_classes": 48,
+    "binding": false,
+    "ranking_length_ceiling_tokens": 0
+  },
+  "label_space": 48,
   "proportion_unit": "per_mille",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
   "questions_written": 120,
   "kind_distribution": {
-    "count": 43,
+    "count": 40,
     "least_common": 10,
-    "most_common": 9,
+    "most_common": 10,
     "proportion": 40,
-    "second_most": 8,
+    "second_most": 10,
     "shift": 10
   },
   "haystacks": [
     {
       "haystack_id": "en-50000-0",
-      "n_examples": 3515,
-      "drift_target": "play_radio",
+      "n_examples": 3478,
+      "drift_target": "news_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-1",
-      "n_examples": 3527,
-      "drift_target": "play_podcasts",
+      "n_examples": 3467,
+      "drift_target": "social_post",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-2",
-      "n_examples": 3485,
-      "drift_target": "lists_remove",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-50000-3",
-      "n_examples": 3538,
-      "drift_target": "play_music",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-50000-4",
-      "n_examples": 3500,
+      "n_examples": 3476,
       "drift_target": "weather_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
+      "haystack_id": "en-50000-3",
+      "n_examples": 3490,
+      "drift_target": "qa_factoid",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-4",
+      "n_examples": 3498,
+      "drift_target": "alarm_set",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
       "haystack_id": "en-100000-0",
-      "n_examples": 7017,
-      "drift_target": "datetime_query",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-100000-1",
-      "n_examples": 6997,
-      "drift_target": "email_sendemail",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-100000-2",
-      "n_examples": 7030,
+      "n_examples": 6983,
       "drift_target": "calendar_remove",
       "drift_ok": true,
       "n_questions": 12
     },
     {
+      "haystack_id": "en-100000-1",
+      "n_examples": 6925,
+      "drift_target": "calendar_query",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-100000-2",
+      "n_examples": 6962,
+      "drift_target": "calendar_query",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
       "haystack_id": "en-100000-3",
-      "n_examples": 7022,
-      "drift_target": "transport_query",
+      "n_examples": 6949,
+      "drift_target": "datetime_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 7067,
-      "drift_target": "email_sendemail",
+      "n_examples": 6962,
+      "drift_target": "general_quirky",
       "drift_ok": true,
       "n_questions": 12
     }

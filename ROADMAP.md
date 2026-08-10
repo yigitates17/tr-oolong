@@ -53,6 +53,13 @@ assume earlier ones are done.
 - [x] `run_eval.py`: errored questions no longer marked done, so resume retries them
 - [x] Cross-platform reproducibility verified (Windows → macOS/arm64, all six sets)
 - [x] README §1/§3/§4/§5 and DATACARD updated to match measurements
+- [x] Intent twin made **exactly** row-parallel (was 15,250 tr vs 15,765 en);
+      both locales now 15,075 rows / 48 intents
+- [x] Maximum haystack length **derived** per set (`R_max = min_class_pool × K`),
+      warned on at build time, recorded in the manifest
+- [x] Length gradient extended 500K → **1M** where the pool allows
+      (amazon 1M, vitamins 750K, tr_oolong 500K, airline 50K/100K); 900 → 1,020 questions
+- [x] `DESIGN_DECISIONS.md` — rationale + evidence for every construction choice
 
 ## Phase 2 — Baselines and pilot
 

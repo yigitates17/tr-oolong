@@ -34,95 +34,100 @@
     "chars_per_token": 3.4,
     "out_dir": "tr_intent_out"
   },
-  "source_hash_first1000": "85189ad138eb04b5",
-  "rows_after_cleaning": 15250,
+  "source_hash_first1000": "6de56b5f9d3cdf5a",
+  "rows_after_cleaning": 15075,
   "cleaning": {
     "rows_dropped_label_leakage": 0,
     "label_leakage_rate": 0.0,
     "classes_dropped_low_support": [],
     "min_class_support": 0
   },
-  "label_space": 49,
+  "ranking_feasibility": {
+    "n_classes": 48,
+    "binding": false,
+    "ranking_length_ceiling_tokens": 0
+  },
+  "label_space": 48,
   "proportion_unit": "per_mille",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
   "questions_written": 120,
   "kind_distribution": {
-    "count": 40,
+    "count": 41,
     "least_common": 10,
     "most_common": 10,
     "proportion": 40,
-    "second_most": 10,
+    "second_most": 9,
     "shift": 10
   },
   "haystacks": [
     {
       "haystack_id": "tr-50000-0",
-      "n_examples": 2708,
-      "drift_target": "qa_currency",
+      "n_examples": 2735,
+      "drift_target": "email_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-1",
-      "n_examples": 2765,
-      "drift_target": "qa_currency",
+      "n_examples": 2735,
+      "drift_target": "music_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-2",
-      "n_examples": 2714,
-      "drift_target": "social_post",
+      "n_examples": 2732,
+      "drift_target": "play_audiobook",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-3",
-      "n_examples": 2750,
-      "drift_target": "alarm_query",
+      "n_examples": 2726,
+      "drift_target": "qa_currency",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-50000-4",
-      "n_examples": 2775,
-      "drift_target": "transport_traffic",
+      "n_examples": 2762,
+      "drift_target": "email_sendemail",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-0",
-      "n_examples": 5464,
-      "drift_target": "transport_query",
+      "n_examples": 5461,
+      "drift_target": "play_audiobook",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-1",
-      "n_examples": 5468,
-      "drift_target": "calendar_remove",
+      "n_examples": 5478,
+      "drift_target": "email_sendemail",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-2",
-      "n_examples": 5513,
-      "drift_target": "play_music",
+      "n_examples": 5521,
+      "drift_target": "cooking_recipe",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-3",
-      "n_examples": 5460,
-      "drift_target": "news_query",
+      "n_examples": 5436,
+      "drift_target": "email_sendemail",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-4",
-      "n_examples": 5450,
-      "drift_target": "play_audiobook",
+      "n_examples": 5461,
+      "drift_target": "qa_definition",
       "drift_ok": true,
       "n_questions": 12
     }
