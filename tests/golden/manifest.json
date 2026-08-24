@@ -60,6 +60,20 @@
     "binding": true,
     "ranking_length_ceiling_tokens": 25192
   },
+  "tier_overlap": {
+    "5000": {
+      "n_haystacks": 2,
+      "mean_jaccard": 0.0875,
+      "max_jaccard": 0.0875,
+      "pool_fraction_per_haystack": 0.1787
+    },
+    "10000": {
+      "n_haystacks": 2,
+      "mean_jaccard": 0.1745,
+      "max_jaccard": 0.1745,
+      "pool_fraction_per_haystack": 0.3575
+    }
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
@@ -80,6 +94,7 @@
       "haystack_id": "tr-5000-0",
       "n_examples": 141,
       "n_tokens": 4944,
+      "n_chars": 16809,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 10
@@ -88,6 +103,7 @@
       "haystack_id": "tr-5000-1",
       "n_examples": 145,
       "n_tokens": 4974,
+      "n_chars": 16913,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 9
@@ -96,6 +112,7 @@
       "haystack_id": "tr-10000-0",
       "n_examples": 287,
       "n_tokens": 9941,
+      "n_chars": 33798,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 10
@@ -104,6 +121,7 @@
       "haystack_id": "tr-10000-1",
       "n_examples": 285,
       "n_tokens": 9925,
+      "n_chars": 33745,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 10

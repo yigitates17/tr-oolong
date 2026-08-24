@@ -75,6 +75,32 @@
     "binding": true,
     "ranking_length_ceiling_tokens": 855621
   },
+  "tier_overlap": {
+    "100000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0345,
+      "max_jaccard": 0.0476,
+      "pool_fraction_per_haystack": 0.07
+    },
+    "250000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0992,
+      "max_jaccard": 0.131,
+      "pool_fraction_per_haystack": 0.1745
+    },
+    "500000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.2141,
+      "max_jaccard": 0.2733,
+      "pool_fraction_per_haystack": 0.3569
+    },
+    "750000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.3782,
+      "max_jaccard": 0.4541,
+      "pool_fraction_per_haystack": 0.5363
+    }
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
@@ -96,6 +122,7 @@
       "haystack_id": "tr-100000-0",
       "n_examples": 2933,
       "n_tokens": 99082,
+      "n_chars": 286287,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -104,6 +131,7 @@
       "haystack_id": "tr-100000-1",
       "n_examples": 2678,
       "n_tokens": 99238,
+      "n_chars": 286690,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -112,6 +140,7 @@
       "haystack_id": "tr-100000-2",
       "n_examples": 2566,
       "n_tokens": 99160,
+      "n_chars": 287670,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
@@ -120,6 +149,7 @@
       "haystack_id": "tr-100000-3",
       "n_examples": 2773,
       "n_tokens": 99175,
+      "n_chars": 286555,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -128,14 +158,16 @@
       "haystack_id": "tr-100000-4",
       "n_examples": 2690,
       "n_tokens": 99189,
+      "n_chars": 285621,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-0",
-      "n_examples": 7353,
-      "n_tokens": 246416,
+      "n_examples": 7399,
+      "n_tokens": 247927,
+      "n_chars": 717682,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 9
@@ -144,6 +176,7 @@
       "haystack_id": "tr-250000-1",
       "n_examples": 6460,
       "n_tokens": 248076,
+      "n_chars": 716819,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
@@ -152,6 +185,7 @@
       "haystack_id": "tr-250000-2",
       "n_examples": 6487,
       "n_tokens": 247958,
+      "n_chars": 715603,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
@@ -160,6 +194,7 @@
       "haystack_id": "tr-250000-3",
       "n_examples": 6692,
       "n_tokens": 247972,
+      "n_chars": 716717,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 10
@@ -168,6 +203,7 @@
       "haystack_id": "tr-250000-4",
       "n_examples": 6961,
       "n_tokens": 247982,
+      "n_chars": 716047,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -176,6 +212,7 @@
       "haystack_id": "tr-500000-0",
       "n_examples": 13539,
       "n_tokens": 496001,
+      "n_chars": 1434170,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
@@ -184,6 +221,7 @@
       "haystack_id": "tr-500000-1",
       "n_examples": 13708,
       "n_tokens": 496081,
+      "n_chars": 1432381,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -192,6 +230,7 @@
       "haystack_id": "tr-500000-2",
       "n_examples": 14065,
       "n_tokens": 496075,
+      "n_chars": 1435228,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
@@ -200,6 +239,7 @@
       "haystack_id": "tr-500000-3",
       "n_examples": 14384,
       "n_tokens": 495918,
+      "n_chars": 1435294,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12
@@ -208,14 +248,16 @@
       "haystack_id": "tr-500000-4",
       "n_examples": 13835,
       "n_tokens": 495958,
+      "n_chars": 1435756,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-750000-0",
-      "n_examples": 22059,
-      "n_tokens": 737105,
+      "n_examples": 22259,
+      "n_tokens": 743959,
+      "n_chars": 2152687,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
@@ -224,6 +266,7 @@
       "haystack_id": "tr-750000-1",
       "n_examples": 20761,
       "n_tokens": 743944,
+      "n_chars": 2148035,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
@@ -232,6 +275,7 @@
       "haystack_id": "tr-750000-2",
       "n_examples": 20264,
       "n_tokens": 744033,
+      "n_chars": 2150669,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
@@ -240,6 +284,7 @@
       "haystack_id": "tr-750000-3",
       "n_examples": 19903,
       "n_tokens": 743936,
+      "n_chars": 2150485,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -248,6 +293,7 @@
       "haystack_id": "tr-750000-4",
       "n_examples": 21307,
       "n_tokens": 744132,
+      "n_chars": 2149010,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12

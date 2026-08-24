@@ -276,7 +276,54 @@ the title — it undersells the construction work, which is the actual novelty.
 
 ---
 
-## 8. The invariants — break these and the thesis breaks
+## 8. What is mechanically verified — the "is there another hole?" answer
+
+Every defect found in this benchmark so far had the same shape: **a property the
+benchmark asserted, with no measurement behind it.** Leakage was assumed until a
+solver tested it. Entity rankings were assumed contested until a prior oracle
+tested them. Haystacks were assumed to hit their length until someone compared
+`n_tokens` to the target. The twin was assumed matched because it was checked by
+hand once.
+
+So the defence is not "we looked hard", it is a **standing check per claim**.
+Run all four before any release:
+
+```bash
+python tests/test_golden.py           # the build is deterministic
+python scripts/quality_audit.py       # + pair check; add --certify 250 pre-release
+python scripts/trivial_baseline.py --sets *_out
+python scripts/verify_release.py      # the written files are what they claim
+```
+
+| Claim the benchmark makes | What proves it | Where |
+|---|---|---|
+| Every answer is correct for its haystack | recomputed from the parquet by an implementation sharing no code with the builder, compared byte-for-byte | `verify_release.py` |
+| Answers computed twice at build time | Polars path and pure-Python path asserted equal | `verified_gt` |
+| Rebuilds are byte-identical | fixture rebuilt and byte-compared | `test_golden.py` |
+| Nothing is grep-solvable | label surface forms searched in the **shipped** haystack text | `verify_release.py` |
+| No shortcut solver beats the answer distribution | leakage + majority baselines | `trivial_baseline.py` |
+| Nothing is answerable without the context | context-free prior oracle vs correctly-modelled chance | `quality_audit.py` |
+| Questions need aggregation, not retrieval | depth and margin measured per question | `quality_audit.py` |
+| A family is certified, not just sampled | hundreds of deduplicated generator draws | `--certify` |
+| The paired twin really is record-identical | row-ids, labels, halves, drift target, gold answers | `quality_audit.py` |
+| Haystacks reach their advertised length | `n_tokens` vs target, per haystack | manifest + `[short-haystack]` |
+| Families are not silently missing | quota vs realized | `[starved]` warning |
+| The haystack matches its metadata | text re-joined from the parquet and compared; char offsets spot-checked | `verify_release.py` |
+| No stale or orphaned files ship | meta parquets cross-checked against `haystacks.jsonl` | `verify_release.py` |
+| Every set is licensed before release | configs cross-checked against the policy table | `publish_hf.py` |
+
+**What is NOT mechanically verifiable, and never will be:**
+
+- **Source label noise.** Requires a human reading Turkish. This is the one
+  remaining assumption with no measurement, and it is the benchmark's accuracy
+  ceiling.
+- **Threshold choices.** Measured and recommended by `--audit`, but a judgement.
+- **Whether the task is the right task.** That is the paper's argument, not a test.
+
+If a new defect appears, it will be in one of those three. Anything mechanical is
+now covered by a standing check that fails loudly.
+
+## 9. The invariants — break these and the thesis breaks
 
 1. Every answer is computed by two independent code paths and asserted equal.
 2. `VERSION` and `tests/golden/` move together, in the same commit.
@@ -289,7 +336,7 @@ the title — it undersells the construction work, which is the actual novelty.
 
 ---
 
-## 9. "Why did you remove that?" — the viva crib sheet
+## 10. "Why did you remove that?" — the viva crib sheet
 
 Every deletion, filter, and threshold in this benchmark, with the one-line answer
 and where the evidence lives. **Nothing here was removed to make numbers look
@@ -340,7 +387,7 @@ questions. Both were added precisely so this is not a judgement call.
 
 ---
 
-## 10. Versioning — what to cite in the thesis, and how not to break it
+## 11. Versioning — what to cite in the thesis, and how not to break it
 
 **Cite three things, always together:**
 

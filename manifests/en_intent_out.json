@@ -62,6 +62,20 @@
     "binding": false,
     "ranking_length_ceiling_tokens": 0
   },
+  "tier_overlap": {
+    "50000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.1881,
+      "max_jaccard": 0.2356,
+      "pool_fraction_per_haystack": 0.2669
+    },
+    "100000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.389,
+      "max_jaccard": 0.431,
+      "pool_fraction_per_haystack": 0.5308
+    }
+  },
   "label_space": 48,
   "proportion_unit": "per_mille",
   "top_k_k": 3,
@@ -80,6 +94,7 @@
       "haystack_id": "en-50000-0",
       "n_examples": 4073,
       "n_tokens": 49938,
+      "n_chars": 191324,
       "drift_target": "qa_definition",
       "drift_ok": true,
       "n_questions": 12
@@ -88,6 +103,7 @@
       "haystack_id": "en-50000-1",
       "n_examples": 4028,
       "n_tokens": 49926,
+      "n_chars": 194364,
       "drift_target": "calendar_remove",
       "drift_ok": true,
       "n_questions": 12
@@ -96,6 +112,7 @@
       "haystack_id": "en-50000-2",
       "n_examples": 3982,
       "n_tokens": 49929,
+      "n_chars": 193634,
       "drift_target": "takeaway_query",
       "drift_ok": true,
       "n_questions": 12
@@ -104,6 +121,7 @@
       "haystack_id": "en-50000-3",
       "n_examples": 3997,
       "n_tokens": 49921,
+      "n_chars": 193124,
       "drift_target": "alarm_query",
       "drift_ok": true,
       "n_questions": 12
@@ -112,6 +130,7 @@
       "haystack_id": "en-50000-4",
       "n_examples": 4034,
       "n_tokens": 49926,
+      "n_chars": 193170,
       "drift_target": "general_quirky",
       "drift_ok": true,
       "n_questions": 12
@@ -120,6 +139,7 @@
       "haystack_id": "en-100000-0",
       "n_examples": 7929,
       "n_tokens": 99799,
+      "n_chars": 388435,
       "drift_target": "calendar_remove",
       "drift_ok": true,
       "n_questions": 12
@@ -128,6 +148,7 @@
       "haystack_id": "en-100000-1",
       "n_examples": 7999,
       "n_tokens": 99871,
+      "n_chars": 387072,
       "drift_target": "recommendation_events",
       "drift_ok": true,
       "n_questions": 12
@@ -136,6 +157,7 @@
       "haystack_id": "en-100000-2",
       "n_examples": 8031,
       "n_tokens": 99826,
+      "n_chars": 383372,
       "drift_target": "qa_factoid",
       "drift_ok": true,
       "n_questions": 12
@@ -144,6 +166,7 @@
       "haystack_id": "en-100000-3",
       "n_examples": 7929,
       "n_tokens": 99830,
+      "n_chars": 387492,
       "drift_target": "calendar_set",
       "drift_ok": true,
       "n_questions": 12
@@ -152,6 +175,7 @@
       "haystack_id": "en-100000-4",
       "n_examples": 8122,
       "n_tokens": 99837,
+      "n_chars": 385331,
       "drift_target": "cooking_recipe",
       "drift_ok": true,
       "n_questions": 12

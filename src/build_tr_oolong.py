@@ -505,27 +505,40 @@ def draw_entity_jitter(pool_entities: list[str], sigma: float,
     return {e: math.exp(sigma * rng.gauss(0.0, 1.0)) for e in sorted(set(pool_entities))}
 
 
-def sample_candidate_rows(df: pl.DataFrame, need: int, rng: random.Random,
-                          label_weights: dict[str, float] | None = None,
-                          entity_weights: dict[str, float] | None = None) -> pl.DataFrame:
-    k = min(need, df.height)
+def rank_candidate_rows(df: pl.DataFrame, rng: random.Random,
+                        label_weights: dict[str, float] | None = None,
+                        entity_weights: dict[str, float] | None = None) -> list[int]:
+    """Full weighted ranking of every pool row; the first k are a weighted sample
+    of size k WITHOUT replacement.
+
+    One key is drawn per pool row regardless of how many rows are wanted, so the
+    rankings for different k are NESTED: taking more rows extends the previous
+    selection rather than resampling it. That is what lets the haystack top-up
+    loop in build() grow a candidate set without perturbing the build.
+    """
     if label_weights is None and entity_weights is None:
-        idx = rng.sample(range(df.height), k)
-        return df[idx]
-    # Efraimidis-Spirakis A-Res: weighted sampling without replacement via
-    # u**(1/w) keys; top-k keys are the sample, key order is the neutral order.
+        idx = list(range(df.height))
+        rng.shuffle(idx)
+        return idx
     labels = df["label"].to_list()
     ents = df["entity"].to_list()
     lw = label_weights or {}
     ew = entity_weights or {}
-    # exponential-race form of the same keys: rank by -Exp(1)/w instead of
-    # u**(1/w), which underflows to 0.0 for the tiny per-row weights of large pools.
-    # Label and entity weights multiply: on an ORTHOGONAL entity axis (the only
-    # axis where the entity families are emitted) this perturbs each marginal
-    # independently.
+    # Efraimidis-Spirakis A-Res in exponential-race form: rank by -Exp(1)/w
+    # instead of u**(1/w), which underflows to 0.0 for the tiny per-row weights
+    # of large pools. Label and entity weights multiply: on an ORTHOGONAL entity
+    # axis (the only axis where the entity families are emitted) this perturbs
+    # each marginal independently.
     keyed = sorted(((-rng.expovariate(1.0) / (lw.get(l, 1.0) * ew.get(e, 1.0)), i)
                     for i, (l, e) in enumerate(zip(labels, ents))), reverse=True)
-    return df[[i for _, i in keyed[:k]]]
+    return [i for _, i in keyed]
+
+
+def sample_candidate_rows(df: pl.DataFrame, need: int, rng: random.Random,
+                          label_weights: dict[str, float] | None = None,
+                          entity_weights: dict[str, float] | None = None) -> pl.DataFrame:
+    order = rank_candidate_rows(df, rng, label_weights, entity_weights)
+    return df[order[: min(need, df.height)]]
 
 
 def select_rows_to_fit(
@@ -1184,9 +1197,33 @@ def build(cfg: Config) -> None:
                 ent_jitter = (draw_entity_jitter(df["entity"].to_list(),
                                                  cfg.entity_jitter_sigma, rng)
                               if cfg.entity_col and cfg.entity_jitter_sigma > 0 else None)
-                cand = sample_candidate_rows(df, need, rng, weights, ent_jitter)
-                kept = cand if record_mode else select_rows_to_fit(
-                    cand, target, count_tokens, cfg.separator)
+                order = rank_candidate_rows(df, rng, weights, ent_jitter)
+                if record_mode:
+                    kept = df[order[: min(need, df.height)]]
+                else:
+                    kept = select_rows_to_fit(df[order[:need]], target,
+                                              count_tokens, cfg.separator)
+                    # `need` is estimated from the POOL's mean record length. On a
+                    # heavy-tailed length distribution the sampled subset runs
+                    # shorter than the mean, so every candidate fits and the
+                    # haystack lands far under budget: tr_oolong shipped a "100K"
+                    # haystack of 53K tokens and a "500K" one of 381K.
+                    # rank_candidate_rows returns the FULL ranking, so deepening
+                    # the slice extends the same weighted selection -- a haystack
+                    # that already fit is untouched.
+                    grow = 0
+                    while kept.height == min(need, df.height) < df.height and grow < 12:
+                        grow += 1
+                        need = min(df.height, int(need * 1.6) + 64)
+                        kept = select_rows_to_fit(df[order[:need]], target,
+                                                  count_tokens, cfg.separator)
+                    got = sum(count_tokens(t) for t in kept["text"]) + \
+                        count_tokens(cfg.separator) * max(0, kept.height - 1)
+                    if got < 0.95 * target:
+                        print(f"[short-haystack] {cfg.language}-{target}-{ki}: {got:,} of "
+                              f"{target:,} tokens ({got/target:.2f}x) -- the pool cannot "
+                              f"fill this tier; lower the tier or enlarge the source.",
+                              file=sys.stderr)
 
                 # Drift: try eligible targets (strongest first); keep the first that
                 # yields a DETECTABLE shift. Otherwise build driftless and flag it.
@@ -1238,10 +1275,42 @@ def build(cfg: Config) -> None:
 
                 hs_summary.append({"haystack_id": hs_id, "n_examples": meta.height,
                                    "n_tokens": count_tokens(hay),
+                                   # every length in this benchmark is measured with ONE
+                                   # tokenizer; n_chars lets a reader re-derive lengths
+                                   # for a model whose tokenizer differs (for Turkish the
+                                   # difference is large -- see README limitations)
+                                   "n_chars": len(hay),
+                                   "row_ids": sorted(meta["row_id"].to_list()),
+                                   "_tier": target,
                                    "drift_target": drift_target, "drift_ok": drift_ok,
                                    "n_questions": len(questions)})
                 print(f"built {hs_id}: {meta.height} examples, {len(questions)} questions"
                       + (f" (drift={drift_target})" if drift_target else " (no drift)"))
+
+    # Overlap between the haystacks of one tier. They are drawn independently
+    # from the same pool, so at the longest tiers they necessarily share records
+    # and are NOT independent samples: per-tier variance is understated. Ground
+    # truth is unaffected (it is computed from the actual haystack), but the
+    # figure belongs in the manifest so a reader can weight the evidence.
+    tier_overlap: dict[str, dict] = {}
+    by_tier: dict[int, list[set]] = {}
+    for h in hs_summary:
+        by_tier.setdefault(h["_tier"], []).append(set(h["row_ids"]))
+    for tier, groups in sorted(by_tier.items()):
+        pairs = [(a, b) for i, a in enumerate(groups) for b in groups[i + 1:]]
+        if not pairs:
+            continue
+        jac = [len(a & b) / max(1, len(a | b)) for a, b in pairs]
+        tier_overlap[str(tier)] = {
+            "n_haystacks": len(groups),
+            "mean_jaccard": round(sum(jac) / len(jac), 4),
+            "max_jaccard": round(max(jac), 4),
+            "pool_fraction_per_haystack": round(
+                sum(len(g) for g in groups) / len(groups) / df.height, 4),
+        }
+    for h in hs_summary:
+        h.pop("row_ids", None)
+        h.pop("_tier", None)
 
     manifest = {
         "version": VERSION,
@@ -1256,6 +1325,7 @@ def build(cfg: Config) -> None:
         "rows_after_cleaning": df.height,
         "cleaning": clean_stats,
         "ranking_feasibility": ceiling_info,
+        "tier_overlap": tier_overlap,
         "label_space": n_label_space,
         "proportion_unit": unit,
         "top_k_k": k,

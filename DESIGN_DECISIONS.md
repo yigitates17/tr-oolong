@@ -109,8 +109,7 @@ easier and the wording ("among the following labels…") harder to defend.
 
 ## D4 — Pair-level filtering keeps the matched twin controlled
 
-**Problem.** The intent axis is a matched twin: tr-TR and en-US are the *same*
-utterances, professionally translated. That is the thesis's cross-lingual
+**Problem.** The intent axis is a matched twin: tr-TR and en-US are the same utterance IDs, translated and localized per locale. That is the thesis's cross-lingual
 control, so any filter applied to one language must be applied to the other.
 
 **Evidence of the failure mode.** Applying D1 and D3 per locale produced **48
@@ -467,6 +466,50 @@ Two lessons are built into it, both learned by getting them wrong first:
 
 `manifests/quality_audit.json` is the committed record; the script exits non-zero
 if any family beats chance.
+
+---
+
+## D14 — Haystacks must actually reach their advertised length
+
+**Problem.** The benchmark's headline axis is context length, and the lengths were
+wrong.
+
+**Evidence.** Measured actual-vs-target tokens per haystack:
+
+| set | tier | mean actual/target | worst |
+|---|---|---|---|
+| `tr_oolong` | 100K | 0.820 | **0.531** |
+| `tr_oolong` | 250K | 0.897 | 0.708 |
+| `tr_oolong` | 500K | 0.849 | 0.763 |
+| `en_twin` | 50K | 0.961 | 0.929 |
+| all others | — | ≥0.986 | ≥0.983 |
+
+A haystack advertised as 100K tokens contained **53K**; a 500K one contained
+381K. Worse than the average error is its *variance* — 0.53 to 0.90 within one
+tier — which puts noise directly on the axis the thesis measures.
+
+**Cause.** The candidate count was estimated once from the pool's *mean* record
+length (`need = target / mean_tokens * 1.05`). On a heavy-tailed length
+distribution the sampled subset runs shorter than the pool mean, so every
+candidate fits inside the budget and the haystack simply runs out of records.
+The 1.05 safety factor covers a mild miss, not a heavy tail. It bit `tr_oolong`
+(reviews, 3–400 words) and spared MASSIVE (utterances, near-uniform length) and
+the stratified Amazon pool.
+
+**Change.** `rank_candidate_rows` now returns the *full* A-Res ranking, and
+`build()` deepens the slice until the token budget is met or the pool is
+exhausted. Because one key is drawn per pool row regardless of how many rows are
+wanted, the rankings for different depths are **nested** — deepening extends the
+same weighted selection rather than resampling, so a haystack that already fit is
+untouched. If the pool genuinely cannot fill a tier, the build prints
+`[short-haystack]` with the shortfall.
+
+**Result.** `tr_oolong` 0.531–0.897 → **0.972–0.986**, in line with every other
+set.
+
+**Why it went undetected.** Nothing compared the realized length to the target.
+The manifest recorded `n_examples` but not `n_tokens`, so a haystack half its
+advertised size looked identical to a correct one. Both are recorded now.
 
 ---
 

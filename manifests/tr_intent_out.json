@@ -58,6 +58,20 @@
     "binding": false,
     "ranking_length_ceiling_tokens": 0
   },
+  "tier_overlap": {
+    "50000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.1408,
+      "max_jaccard": 0.1805,
+      "pool_fraction_per_haystack": 0.202
+    },
+    "100000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.2794,
+      "max_jaccard": 0.3203,
+      "pool_fraction_per_haystack": 0.4033
+    }
+  },
   "label_space": 48,
   "proportion_unit": "per_mille",
   "top_k_k": 3,
@@ -76,6 +90,7 @@
       "haystack_id": "tr-50000-0",
       "n_examples": 3091,
       "n_tokens": 49981,
+      "n_chars": 146514,
       "drift_target": "qa_currency",
       "drift_ok": true,
       "n_questions": 12
@@ -84,6 +99,7 @@
       "haystack_id": "tr-50000-1",
       "n_examples": 3004,
       "n_tokens": 49982,
+      "n_chars": 147593,
       "drift_target": "takeaway_order",
       "drift_ok": true,
       "n_questions": 12
@@ -92,6 +108,7 @@
       "haystack_id": "tr-50000-2",
       "n_examples": 3049,
       "n_tokens": 49999,
+      "n_chars": 146680,
       "drift_target": "recommendation_locations",
       "drift_ok": true,
       "n_questions": 12
@@ -100,6 +117,7 @@
       "haystack_id": "tr-50000-3",
       "n_examples": 3030,
       "n_tokens": 49998,
+      "n_chars": 147295,
       "drift_target": "transport_query",
       "drift_ok": true,
       "n_questions": 12
@@ -108,6 +126,7 @@
       "haystack_id": "tr-50000-4",
       "n_examples": 3050,
       "n_tokens": 49990,
+      "n_chars": 146030,
       "drift_target": "general_quirky",
       "drift_ok": true,
       "n_questions": 12
@@ -116,6 +135,7 @@
       "haystack_id": "tr-100000-0",
       "n_examples": 6007,
       "n_tokens": 99995,
+      "n_chars": 294767,
       "drift_target": "calendar_query",
       "drift_ok": true,
       "n_questions": 12
@@ -124,6 +144,7 @@
       "haystack_id": "tr-100000-1",
       "n_examples": 6065,
       "n_tokens": 99995,
+      "n_chars": 296555,
       "drift_target": "recommendation_events",
       "drift_ok": true,
       "n_questions": 12
@@ -132,6 +153,7 @@
       "haystack_id": "tr-100000-2",
       "n_examples": 6143,
       "n_tokens": 99989,
+      "n_chars": 292813,
       "drift_target": "datetime_query",
       "drift_ok": true,
       "n_questions": 12
@@ -140,6 +162,7 @@
       "haystack_id": "tr-100000-3",
       "n_examples": 6013,
       "n_tokens": 99998,
+      "n_chars": 294950,
       "drift_target": "email_query",
       "drift_ok": true,
       "n_questions": 12
@@ -148,6 +171,7 @@
       "haystack_id": "tr-100000-4",
       "n_examples": 6169,
       "n_tokens": 99996,
+      "n_chars": 291372,
       "drift_target": "calendar_query",
       "drift_ok": true,
       "n_questions": 12

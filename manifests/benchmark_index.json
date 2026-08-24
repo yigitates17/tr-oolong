@@ -2,7 +2,7 @@
   "version": "0.4.0",
   "date": "2026-08-25",
   "n_sets": 8,
-  "total_questions": 1231,
+  "total_questions": 1234,
   "languages": [
     "en",
     "tr"
@@ -115,18 +115,18 @@
       "language": "tr",
       "source": "datasets/turkish_review_sentiment.csv",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 171,
+      "questions": 174,
       "kind_distribution": {
-        "count": 38,
-        "entity_argmax": 10,
+        "count": 37,
+        "entity_argmax": 11,
         "entity_count": 15,
-        "least_common": 11,
-        "most_common": 13,
-        "pairwise": 13,
-        "proportion": 38,
-        "second_most": 10,
+        "least_common": 12,
+        "most_common": 14,
+        "pairwise": 14,
+        "proportion": 36,
+        "second_most": 11,
         "shift": 15,
-        "top_k": 8
+        "top_k": 9
       }
     },
     {

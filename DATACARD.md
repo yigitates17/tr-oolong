@@ -22,8 +22,24 @@ is no manual answer annotation.
   `datetime_convert`, `email_addcontact`, `general_greet`, `iot_hue_lighton`,
   `iot_hue_lightdim`, `iot_wemo_off`, `iot_wemo_on`, `music_dislikeness`,
   `music_settings`.
-- Cross-lingual control: TR and EN are the *same* utterances, professionally
-  parallel-translated. Both the leakage filter and the support floor are applied
+- Cross-lingual control: TR and EN share utterance IDs — each pair is the same
+  source utterance rendered in each locale, carrying the same intent label.
+
+  **They are translated *and localized*, not literally translated, and the
+  distinction should be stated rather than glossed.** Measured over all 15,075
+  pairs: digits are preserved in 100% of them and the EN/TR word-count ratio has
+  a median of 1.25 (IQR 1.00–1.50), so the pairs are close. But 1.8% differ in
+  length by more than 2×, and inspection shows why — culturally substituted named
+  entities, e.g. TR *"r.t.e başkan"* against EN *"abdul k. a. l. a. m.
+  president"*, or TR *"lütfen bana pırlantayı dinlet"* (a Turkish song) against
+  EN *"please let me hear six hundred and sixty six the number of the beast"*.
+
+  **Impact on the benchmark: none.** Every answer is derived from the *label*,
+  which is identical across the pair, so the counting task and its ground truth
+  are genuinely the same in both languages. **Impact on the morphology claim:
+  small but real** — the measured 1.30–1.34× token ratio reflects localization as
+  well as agglutination, so it is an upper bound on the pure morphology effect,
+  not a clean estimate of it. Both the leakage filter and the support floor are applied
   as a **union over the locale pair** (drop the utterance/class from both if it
   fails in either), so the twin retains an identical label space and an identical
   source row set. Applying either filter per locale would have left TR and EN with
