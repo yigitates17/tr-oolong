@@ -70,6 +70,19 @@ def fig_examples_vs_length(hay: pd.DataFrame, out: Path):
     plt.close()
 
 
+def _discover():
+    """Every config whose out_dir has been built (mirrors quality_audit.py)."""
+    out = []
+    for c in sorted(Path(__file__).resolve().parents[1].joinpath("configs").glob("*.json")):
+        try:
+            d = json.loads(c.read_text(encoding="utf-8")).get("out_dir")
+        except json.JSONDecodeError:
+            continue
+        if d and Path(d, "manifest.json").exists():
+            out.append(d)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sets", nargs="+", required=True, help="output directories")
@@ -77,7 +90,7 @@ def main():
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    dist, hay = load_sets(args.sets)
+    dist, hay = load_sets((args.sets or _discover()))
     fig_family_counts(dist, out)
     fig_examples_vs_length(hay, out)
     print(f"wrote {out/'family_counts.png'} and {out/'examples_vs_length.png'}")

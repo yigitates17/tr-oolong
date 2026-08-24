@@ -147,6 +147,6 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 
 - The benchmark's core validity claim is the **dual-path ground truth**: every
   answer is computed twice by independent code and asserted equal.
-- The **matched twin** (identical pipeline, parallel-translated intent utterances)
+- The **matched twin** (identical pipeline, parallel corpus intent utterances)
   isolates Turkish-vs-English degradation from pipeline artifacts.
 - No fine-tuning anywhere in the thesis; hardware constraint is a single V100 16 GB.

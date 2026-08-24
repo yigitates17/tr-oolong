@@ -72,36 +72,58 @@
     "binding": true,
     "ranking_length_ceiling_tokens": 567825
   },
+  "tier_overlap": {
+    "100000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0523,
+      "max_jaccard": 0.0785,
+      "pool_fraction_per_haystack": 0.0833
+    },
+    "250000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.1096,
+      "max_jaccard": 0.1531,
+      "pool_fraction_per_haystack": 0.1836
+    },
+    "500000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.2811,
+      "max_jaccard": 0.3548,
+      "pool_fraction_per_haystack": 0.3792
+    }
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
-  "questions_written": 171,
+  "questions_written": 174,
   "kind_distribution": {
-    "count": 38,
-    "entity_argmax": 10,
+    "count": 37,
+    "entity_argmax": 11,
     "entity_count": 15,
-    "least_common": 11,
-    "most_common": 13,
-    "pairwise": 13,
-    "proportion": 38,
-    "second_most": 10,
+    "least_common": 12,
+    "most_common": 14,
+    "pairwise": 14,
+    "proportion": 36,
+    "second_most": 11,
     "shift": 15,
-    "top_k": 8
+    "top_k": 9
   },
   "haystacks": [
     {
       "haystack_id": "tr-100000-0",
-      "n_examples": 1616,
-      "n_tokens": 53139,
+      "n_examples": 2902,
+      "n_tokens": 97220,
+      "n_chars": 307032,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-1",
-      "n_examples": 1616,
-      "n_tokens": 89663,
+      "n_examples": 1784,
+      "n_tokens": 98590,
+      "n_chars": 303509,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 11
@@ -110,38 +132,43 @@
       "haystack_id": "tr-100000-2",
       "n_examples": 1531,
       "n_tokens": 98960,
+      "n_chars": 300360,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-100000-3",
-      "n_examples": 1616,
-      "n_tokens": 81177,
+      "n_examples": 1973,
+      "n_tokens": 98315,
+      "n_chars": 301317,
       "drift_target": "nötr",
       "drift_ok": true,
-      "n_questions": 9
+      "n_questions": 10
     },
     {
       "haystack_id": "tr-100000-4",
-      "n_examples": 1616,
-      "n_tokens": 86892,
+      "n_examples": 1830,
+      "n_tokens": 98528,
+      "n_chars": 301731,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 10
     },
     {
       "haystack_id": "tr-250000-0",
-      "n_examples": 4040,
-      "n_tokens": 202163,
+      "n_examples": 4854,
+      "n_tokens": 246072,
+      "n_chars": 751936,
       "drift_target": "olumlu",
       "drift_ok": true,
-      "n_questions": 11
+      "n_questions": 12
     },
     {
       "haystack_id": "tr-250000-1",
       "n_examples": 3942,
       "n_tokens": 247185,
+      "n_chars": 751995,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
@@ -150,6 +177,7 @@
       "haystack_id": "tr-250000-2",
       "n_examples": 3859,
       "n_tokens": 247226,
+      "n_chars": 746937,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
@@ -158,54 +186,61 @@
       "haystack_id": "tr-250000-3",
       "n_examples": 4023,
       "n_tokens": 247042,
+      "n_chars": 747789,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 11
     },
     {
       "haystack_id": "tr-250000-4",
-      "n_examples": 4040,
-      "n_tokens": 177088,
-      "drift_target": "olumsuz",
+      "n_examples": 5425,
+      "n_tokens": 245312,
+      "n_chars": 760984,
+      "drift_target": "olumlu",
       "drift_ok": true,
-      "n_questions": 11
+      "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-0",
       "n_examples": 7796,
       "n_tokens": 494505,
+      "n_chars": 1497029,
       "drift_target": "nötr",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-1",
-      "n_examples": 8080,
-      "n_tokens": 423722,
+      "n_examples": 9123,
+      "n_tokens": 492849,
+      "n_chars": 1511598,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-2",
-      "n_examples": 8080,
-      "n_tokens": 399092,
+      "n_examples": 9643,
+      "n_tokens": 492234,
+      "n_chars": 1509623,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-3",
-      "n_examples": 8080,
-      "n_tokens": 381440,
+      "n_examples": 9873,
+      "n_tokens": 491933,
+      "n_chars": 1509434,
       "drift_target": "olumsuz",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "tr-500000-4",
-      "n_examples": 8080,
-      "n_tokens": 424170,
+      "n_examples": 9208,
+      "n_tokens": 492799,
+      "n_chars": 1507985,
       "drift_target": "olumlu",
       "drift_ok": true,
       "n_questions": 12

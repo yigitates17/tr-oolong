@@ -278,6 +278,62 @@ def certify(sets: list[str], cfgs: dict, draws: int) -> None:
         print()
 
 
+def verify_pairs(sets: list[str], cfgs: dict) -> int:
+    """Machine-check the record-matched twin claim.
+
+    "110 of 120 questions share a gold answer across languages" is a headline
+    result, and until now it was verified by hand exactly once. Any future change
+    to seeding, cleaning or sampling could break it silently -- the sets would
+    still build, still pass every other gate, and simply stop being a matched
+    pair. This asserts it on every run.
+    """
+    paired: dict[tuple, list[str]] = {}
+    for name in sets:
+        cfg = B.Config.load(cfgs[name])
+        if cfg.pair_seed and cfg.haystack_target_records:
+            paired.setdefault((tuple(cfg.haystack_target_records),
+                               cfg.haystacks_per_length), []).append(name)
+    problems = 0
+    for key, group in sorted(paired.items()):
+        if len(group) < 2:
+            continue
+        print(f"=== PAIR CHECK: {' <-> '.join(group)} ===")
+        a, b = group[0], group[1]
+        ma = sorted(Path(a).glob("meta_*.parquet"))
+        mb = sorted(Path(b).glob("meta_*.parquet"))
+        if len(ma) != len(mb):
+            print(f"  MISMATCH: {len(ma)} vs {len(mb)} haystacks")
+            problems += 1
+            continue
+        bad = 0
+        for fa, fb in zip(ma, mb):
+            da, db = pl.read_parquet(fa), pl.read_parquet(fb)
+            if (da["row_id"].to_list() != db["row_id"].to_list()
+                    or da["label"].to_list() != db["label"].to_list()
+                    or da["half"].to_list() != db["half"].to_list()
+                    or da["drift_target"][0] != db["drift_target"][0]):
+                bad += 1
+        qa = [json.loads(l) for l in Path(a, "questions.jsonl").read_text(encoding="utf-8").splitlines()]
+        qb = [json.loads(l) for l in Path(b, "questions.jsonl").read_text(encoding="utf-8").splitlines()]
+        same = sum(1 for x, y in zip(qa, qb)
+                   if x["id"].split("-", 1)[1] == y["id"].split("-", 1)[1]
+                   and x["kind"] == y["kind"] and x.get("label") == y.get("label")
+                   and json.dumps(x["answer"], ensure_ascii=False)
+                   == json.dumps(y["answer"], ensure_ascii=False))
+        # `shift` is language-mapped (arttı / rose), so it can never match verbatim
+        shifts = sum(1 for x in qa if x["kind"] == "shift")
+        print(f"  haystacks record-identical : {len(ma) - bad}/{len(ma)}")
+        print(f"  questions w/ same gold     : {same}/{len(qa)}"
+              f"  (+{shifts} `shift`, language-mapped by design)")
+        if bad or same + shifts < len(qa):
+            print("  [!] the pair is NOT fully matched -- paired tests are invalid")
+            problems += 1
+        else:
+            print("  OK: paired tests (e.g. McNemar) are valid on this pair")
+        print()
+    return problems
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sets", nargs="+", default=None,
@@ -331,10 +387,15 @@ def main() -> None:
         print(f"{r['set']:19s} {'== ALL':15s} {r['n_questions']:4d} {r['pct_ok']:4d}%")
         print()
     Path(args.json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    pair_problems = verify_pairs(sets, cfgs)
     if args.certify:
         print()
         certify(sets, cfgs, args.certify)
     print(f"report -> {args.json}")
+    if pair_problems:
+        print(f"\nFAIL: {pair_problems} record-matched pair(s) are not actually matched.",
+              file=sys.stderr)
+        sys.exit(1)
     if broken:
         print(f"\nFAIL: {broken} family/set pairs are answerable above chance without the "
               f"context.", file=sys.stderr)

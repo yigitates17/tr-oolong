@@ -65,6 +65,20 @@
     "binding": false,
     "ranking_length_ceiling_tokens": 0
   },
+  "tier_overlap": {
+    "3000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.1384,
+      "max_jaccard": 0.165,
+      "pool_fraction_per_haystack": 0.199
+    },
+    "6000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.3245,
+      "max_jaccard": 0.4022,
+      "pool_fraction_per_haystack": 0.398
+    }
+  },
   "label_space": 48,
   "proportion_unit": "per_mille",
   "top_k_k": 3,
@@ -83,6 +97,7 @@
       "haystack_id": "en-r3000-0",
       "n_examples": 3000,
       "n_tokens": 37090,
+      "n_chars": 144378,
       "drift_target": "cooking_recipe",
       "drift_ok": true,
       "n_questions": 12
@@ -91,6 +106,7 @@
       "haystack_id": "en-r3000-1",
       "n_examples": 3000,
       "n_tokens": 36992,
+      "n_chars": 142197,
       "drift_target": "transport_taxi",
       "drift_ok": true,
       "n_questions": 12
@@ -99,6 +115,7 @@
       "haystack_id": "en-r3000-2",
       "n_examples": 3000,
       "n_tokens": 36701,
+      "n_chars": 140732,
       "drift_target": "music_likeness",
       "drift_ok": true,
       "n_questions": 12
@@ -107,6 +124,7 @@
       "haystack_id": "en-r3000-3",
       "n_examples": 3000,
       "n_tokens": 36250,
+      "n_chars": 139886,
       "drift_target": "iot_hue_lightoff",
       "drift_ok": true,
       "n_questions": 12
@@ -115,6 +133,7 @@
       "haystack_id": "en-r3000-4",
       "n_examples": 3000,
       "n_tokens": 36412,
+      "n_chars": 139371,
       "drift_target": "email_querycontact",
       "drift_ok": true,
       "n_questions": 12
@@ -123,6 +142,7 @@
       "haystack_id": "en-r6000-0",
       "n_examples": 6000,
       "n_tokens": 74131,
+      "n_chars": 287041,
       "drift_target": "lists_query",
       "drift_ok": true,
       "n_questions": 12
@@ -131,6 +151,7 @@
       "haystack_id": "en-r6000-1",
       "n_examples": 6000,
       "n_tokens": 74660,
+      "n_chars": 288635,
       "drift_target": "social_post",
       "drift_ok": true,
       "n_questions": 12
@@ -139,6 +160,7 @@
       "haystack_id": "en-r6000-2",
       "n_examples": 6000,
       "n_tokens": 75187,
+      "n_chars": 291739,
       "drift_target": "email_query",
       "drift_ok": true,
       "n_questions": 12
@@ -147,6 +169,7 @@
       "haystack_id": "en-r6000-3",
       "n_examples": 6000,
       "n_tokens": 75028,
+      "n_chars": 290276,
       "drift_target": "transport_query",
       "drift_ok": true,
       "n_questions": 12
@@ -155,6 +178,7 @@
       "haystack_id": "en-r6000-4",
       "n_examples": 6000,
       "n_tokens": 73028,
+      "n_chars": 279670,
       "drift_target": "lists_query",
       "drift_ok": true,
       "n_questions": 12

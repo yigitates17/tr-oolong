@@ -251,7 +251,7 @@
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.1,
+        "chance": 0.2,
         "p_value": 1.0,
         "prior_shortcut": false
       },
@@ -281,8 +281,8 @@
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.8,
-        "chance": 0.6,
-        "p_value": 0.16729,
+        "chance": 0.5,
+        "p_value": 0.05469,
         "prior_shortcut": false
       },
       "proportion": {
@@ -291,7 +291,7 @@
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.103,
+        "chance": 0.069,
         "p_value": 1.0,
         "prior_shortcut": false
       },
@@ -310,9 +310,9 @@
         "ok": 10,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.6,
+        "prior_acc": 0.4,
         "chance": 0.6,
-        "p_value": 0.6331,
+        "p_value": 0.94524,
         "prior_shortcut": false
       }
     }
@@ -453,27 +453,27 @@
   },
   {
     "set": "tr_oolong_out",
-    "n_questions": 171,
+    "n_questions": 174,
     "pct_ok": 100,
     "families": {
       "count": {
-        "n": 38,
-        "ok": 38,
+        "n": 37,
+        "ok": 37,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.026,
+        "chance": 0.027,
         "p_value": 1.0,
         "prior_shortcut": false
       },
       "entity_argmax": {
-        "n": 10,
-        "ok": 10,
+        "n": 11,
+        "ok": 11,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.1,
+        "prior_acc": 0.091,
         "chance": 0.2,
-        "p_value": 0.89263,
+        "p_value": 0.9141,
         "prior_shortcut": false
       },
       "entity_count": {
@@ -481,59 +481,59 @@
         "ok": 15,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.0,
+        "prior_acc": 0.067,
         "chance": 0.267,
-        "p_value": 1.0,
+        "p_value": 0.99046,
         "prior_shortcut": false
       },
       "least_common": {
+        "n": 12,
+        "ok": 12,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.583,
+        "chance": 0.583,
+        "p_value": 0.62023,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 14,
+        "ok": 14,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.643,
+        "chance": 0.643,
+        "p_value": 0.61883,
+        "prior_shortcut": false
+      },
+      "pairwise": {
+        "n": 14,
+        "ok": 14,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.5,
+        "chance": 0.5,
+        "p_value": 0.60474,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 36,
+        "ok": 36,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.056,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "second_most": {
         "n": 11,
         "ok": 11,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.545,
-        "chance": 0.545,
-        "p_value": 0.62137,
-        "prior_shortcut": false
-      },
-      "most_common": {
-        "n": 13,
-        "ok": 13,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.615,
-        "chance": 0.615,
-        "p_value": 0.61942,
-        "prior_shortcut": false
-      },
-      "pairwise": {
-        "n": 13,
-        "ok": 13,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.538,
-        "chance": 0.5,
-        "p_value": 0.5,
-        "prior_shortcut": false
-      },
-      "proportion": {
-        "n": 38,
-        "ok": 38,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.026,
-        "chance": 0.079,
-        "p_value": 0.95607,
-        "prior_shortcut": false
-      },
-      "second_most": {
-        "n": 10,
-        "ok": 10,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.3,
-        "chance": 0.4,
-        "p_value": 0.83271,
+        "prior_acc": 0.364,
+        "chance": 0.364,
+        "p_value": 0.61167,
         "prior_shortcut": false
       },
       "shift": {
@@ -541,18 +541,18 @@
         "ok": 15,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.4,
-        "chance": 0.6,
-        "p_value": 0.96617,
+        "prior_acc": 0.267,
+        "chance": 0.733,
+        "p_value": 0.99997,
         "prior_shortcut": false
       },
       "top_k": {
-        "n": 8,
-        "ok": 8,
+        "n": 9,
+        "ok": 9,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.125,
+        "chance": 0.111,
         "p_value": 1.0,
         "prior_shortcut": false
       }
@@ -578,9 +578,9 @@
         "ok": 23,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.087,
+        "prior_acc": 0.13,
         "chance": 0.2,
-        "p_value": 0.96016,
+        "p_value": 0.86681,
         "prior_shortcut": false
       },
       "entity_count": {
@@ -648,9 +648,9 @@
         "ok": 20,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.45,
-        "chance": 0.55,
-        "p_value": 0.86924,
+        "prior_acc": 0.5,
+        "chance": 0.5,
+        "p_value": 0.5881,
         "prior_shortcut": false
       }
     }

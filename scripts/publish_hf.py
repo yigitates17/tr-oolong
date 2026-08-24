@@ -169,6 +169,24 @@ def main() -> None:
         shutil.rmtree(out)
     out.mkdir(parents=True)
 
+    # An unregistered set must be a hard error, never a silent omission: POLICY is
+    # the only place a subset's license is declared, so a set missing from it
+    # would either ship unlicensed or vanish from the release without a word.
+    declared = set(POLICY)
+    configured = set()
+    for c in sorted((ROOT / "configs").glob("*.json")):
+        try:
+            out = json.loads(c.read_text(encoding="utf-8")).get("out_dir")
+        except json.JSONDecodeError:
+            continue
+        if out and (ROOT / out / "questions.jsonl").exists():
+            configured.add(out)
+    missing = sorted(configured - declared)
+    if missing:
+        sys.exit(f"refusing to package: {missing} are built but have no entry in "
+                 f"POLICY in this file. Declare each one's license and whether its "
+                 f"text may be redistributed before releasing it.")
+
     version, rows, cfg_lines, withheld, licenses = None, [], [], [], set()
     for name, pol in POLICY.items():
         src = ROOT / name

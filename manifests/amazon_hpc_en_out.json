@@ -75,6 +75,32 @@
     "binding": true,
     "ranking_length_ceiling_tokens": 2951771
   },
+  "tier_overlap": {
+    "100000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0177,
+      "max_jaccard": 0.0275,
+      "pool_fraction_per_haystack": 0.032
+    },
+    "250000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0352,
+      "max_jaccard": 0.0584,
+      "pool_fraction_per_haystack": 0.0788
+    },
+    "500000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0783,
+      "max_jaccard": 0.094,
+      "pool_fraction_per_haystack": 0.1571
+    },
+    "1000000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.2129,
+      "max_jaccard": 0.3529,
+      "pool_fraction_per_haystack": 0.3105
+    }
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
@@ -96,6 +122,7 @@
       "haystack_id": "en-100000-0",
       "n_examples": 1742,
       "n_tokens": 98631,
+      "n_chars": 419676,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -104,6 +131,7 @@
       "haystack_id": "en-100000-1",
       "n_examples": 1834,
       "n_tokens": 98584,
+      "n_chars": 416159,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 10
@@ -112,6 +140,7 @@
       "haystack_id": "en-100000-2",
       "n_examples": 1791,
       "n_tokens": 98574,
+      "n_chars": 419161,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
@@ -120,6 +149,7 @@
       "haystack_id": "en-100000-3",
       "n_examples": 1749,
       "n_tokens": 98589,
+      "n_chars": 417459,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -128,6 +158,7 @@
       "haystack_id": "en-100000-4",
       "n_examples": 1745,
       "n_tokens": 98629,
+      "n_chars": 417259,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 9
@@ -136,6 +167,7 @@
       "haystack_id": "en-250000-0",
       "n_examples": 4441,
       "n_tokens": 246562,
+      "n_chars": 1042213,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -144,6 +176,7 @@
       "haystack_id": "en-250000-1",
       "n_examples": 4534,
       "n_tokens": 246523,
+      "n_chars": 1041985,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
@@ -152,6 +185,7 @@
       "haystack_id": "en-250000-2",
       "n_examples": 4373,
       "n_tokens": 246504,
+      "n_chars": 1046524,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
@@ -160,6 +194,7 @@
       "haystack_id": "en-250000-3",
       "n_examples": 4439,
       "n_tokens": 246459,
+      "n_chars": 1046847,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -168,6 +203,7 @@
       "haystack_id": "en-250000-4",
       "n_examples": 4042,
       "n_tokens": 246754,
+      "n_chars": 1054843,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
@@ -176,6 +212,7 @@
       "haystack_id": "en-500000-0",
       "n_examples": 8746,
       "n_tokens": 493105,
+      "n_chars": 2091764,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
@@ -184,6 +221,7 @@
       "haystack_id": "en-500000-1",
       "n_examples": 8513,
       "n_tokens": 493361,
+      "n_chars": 2091275,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
@@ -192,6 +230,7 @@
       "haystack_id": "en-500000-2",
       "n_examples": 8372,
       "n_tokens": 493252,
+      "n_chars": 2097615,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 11
@@ -200,6 +239,7 @@
       "haystack_id": "en-500000-3",
       "n_examples": 8759,
       "n_tokens": 492986,
+      "n_chars": 2087830,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
@@ -208,6 +248,7 @@
       "haystack_id": "en-500000-4",
       "n_examples": 9121,
       "n_tokens": 492980,
+      "n_chars": 2081451,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -216,6 +257,7 @@
       "haystack_id": "en-1000000-0",
       "n_examples": 17519,
       "n_tokens": 986245,
+      "n_chars": 4186529,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -224,6 +266,7 @@
       "haystack_id": "en-1000000-1",
       "n_examples": 16814,
       "n_tokens": 986533,
+      "n_chars": 4210004,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
@@ -232,6 +275,7 @@
       "haystack_id": "en-1000000-2",
       "n_examples": 17623,
       "n_tokens": 986326,
+      "n_chars": 4172717,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -240,6 +284,7 @@
       "haystack_id": "en-1000000-3",
       "n_examples": 16990,
       "n_tokens": 986507,
+      "n_chars": 4208079,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
@@ -248,6 +293,7 @@
       "haystack_id": "en-1000000-4",
       "n_examples": 17064,
       "n_tokens": 986473,
+      "n_chars": 4207004,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12

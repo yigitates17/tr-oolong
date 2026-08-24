@@ -32,7 +32,7 @@ Two axes:
 | Axis | Source | Label (classes) | Entity axis | Purpose |
 |---|---|---|---|---|
 | **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
-| **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel-translated) | intent (48) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
+| **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel corpus) | intent (48) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
 
 The intent axis is built **twice**, in two matching regimes, because they answer
 different questions:
@@ -130,8 +130,22 @@ It is derived per brand by Turkish vowel harmony (`soru_eki`), not hardcoded.
 - `shift` — *"Kayıtların ikinci yarısında 'qa_currency' etiketli kayıtların oranı ilk yarıya göre arttı mı azaldı mı? 'arttı' veya 'azaldı' yaz."* → **arttı**
 - `least_common` — *"Bu kayıtlarda en az görülen etiket hangisi? Etiketler: 'alarm_query', 'iot_coffee', 'iot_hue_lightoff', 'play_game', 'social_query'. …"* → **social_query**
 
-**The record-matched twin**, showing what "matched" now means — the same question
-over the same records, and therefore *the same gold answer*:
+**The record-matched twin.** The two sets contain **different text** — Turkish
+utterances and their English counterparts. What is identical is *which* records
+are present, in *what order*, with *what labels*. Because every answer is derived
+from the labels, the gold answer is therefore the same in both languages:
+
+```
+row 13050  [iot_coffee]   TR: "biraz kahve yapar mısın"
+                          EN: "can you make some coffee"
+row  9651  [social_query] TR: "facebook bilgisi"
+                          EN: "facebook info"
+```
+
+That is what makes the comparison paired: a model sees a genuinely Turkish
+haystack and a genuinely English one, is asked the same question, and the correct
+answer is the same number. Any difference in score is a difference in language,
+not in what was being counted:
 
 | | Turkish (`tr_intent_paired`) | English (`en_intent_paired`) |
 |---|---|---|
@@ -139,6 +153,12 @@ over the same records, and therefore *the same gold answer*:
 | answer | **iot_hue_lightoff** | **iot_hue_lightoff** |
 | `count` | *"…kaç tane 'transport_taxi' etiketli kayıt var?"* | *"How many utterances have the intent 'transport_taxi'?"* |
 | answer | **18** | **18** |
+
+By contrast the **token-matched** pair (`tr_intent` / `en_intent`) gives each
+language an equal token budget, so they hold *different numbers of different
+records* and their answers do not correspond. That pair answers "at equal cost";
+the paired sets answer "at equal content". Both are shipped because they are
+different questions — only the paired one supports a paired test.
 
 A real sample question set is committed at `examples/sample_questions_review.jsonl`.
 
@@ -232,12 +252,14 @@ Qwen3-8B. This separates "harder to tokenize" from "harder to reason about."
 | `en_intent` | en | 48 | 50K / 100K | 10 | 120 | 99,871 |
 | `tr_intent_paired` | tr | 48 | 3K rec / 6K rec | 10 | 120 | 99,057 |
 | `en_intent_paired` | en | 48 | 3K rec / 6K rec | 10 | 120 | 75,187 |
-| `tr_oolong` | tr | 3 | 100K / 250K / 500K | 15 | 171 | 494,505 |
+| `tr_oolong` | tr | 3 | 100K / 250K / 500K | 15 | 174 | 494,505 |
 | `en_twin` | en | 3 | 50K / 100K | 10 | 111 | 98,321 |
 | `vitamins_tr` | tr | 3 | 100K / 250K / 500K / 750K | 20 | 235 | 744,132 |
 | `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 20 | 234 | 986,533 |
 
-**1231 questions over 105 haystacks**, eight instance sets.
+**1234 questions over 105 haystacks**, eight instance sets. Realized
+haystack lengths are within 0.97–1.00 of target on every set (D14); each
+manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
 
 `tr_intent_paired` / `en_intent_paired` are sized in **records**, not tokens —
 that is what makes them record-identical across languages (§1). Their token
@@ -280,13 +302,21 @@ counts therefore differ by language, and that difference is the measurement.
       --index manifests/benchmark_index.json
   ```
 
-- **Acceptance gates** — a rebuild is not accepted until both pass:
+- **Acceptance gates** — a rebuild is not accepted until all four pass:
 
   ```bash
-  python scripts/trivial_baseline.py --sets *_out --out manifests/baseline_report.json
-  python scripts/quality_audit.py            # exits non-zero if any family beats chance
-  python tests/test_golden.py                # or: pytest tests/
+  python tests/test_golden.py                        # build is deterministic
+  python scripts/trivial_baseline.py --sets *_out    # leakage + majority baselines
+  python scripts/quality_audit.py                    # prior oracle, depth/margin, pair check
+  python scripts/verify_release.py                   # the written files are what they claim
   ```
+
+  `verify_release.py` is deliberately independent of the builder: it re-reads the
+  shipped `questions.jsonl` and meta parquets and **recomputes every answer with
+  an implementation that shares no code path with `src/`**, then compares
+  byte-for-byte. It also re-searches the shipped haystack text for label leakage,
+  checks char offsets, and refuses stale or orphaned files. The build-time
+  dual-path check cannot catch a serialization bug; this can.
 
 ## 7. Scaling to many datasets (N Turkish + M English)
 
@@ -422,11 +452,26 @@ writes a 200-row slice per set for exactly this; the numbers belong in
 `DATACARD.md` and are not there yet. **This is the benchmark's largest open
 weakness.**
 
-**Haystacks within a length tier are not independent.** At the longest tiers a
-haystack consumes 15–35% of its pool, so the five haystacks at a tier share
-records (Jaccard 0.2–0.35). Ground truth is unaffected — it is computed from the
-actual haystack — but per-tier variance is understated and the effective sample
-size is below five.
+**Haystacks within a length tier are not independent.** They are drawn
+independently from the same pool, so at the longest tiers — where one haystack
+consumes 15–35% of the pool — they necessarily share records. Ground truth is
+unaffected (it is computed from the actual haystack), but per-tier variance is
+understated and the effective sample size is below five. Rather than assert this,
+every manifest records `tier_overlap`: the mean and max Jaccard between the
+haystacks of each tier, and the pool fraction each one consumes. Measured at each
+set's worst tier:
+
+| set | worst tier | mean Jaccard | pool consumed per haystack |
+|---|---|---|---|
+| `vitamins_tr` | 750K | 0.378 | 0.536 |
+| `tr_oolong` | 500K | 0.281 | 0.379 |
+| `tr_intent` | 100K | 0.279 | 0.403 |
+| `amazon_hpc_en` | 1M | 0.213 | 0.310 |
+| `en_twin` | 100K | 0.110 | 0.221 |
+
+Overlap is negligible at the shortest tiers (`tr_oolong` 100K: J=0.052) and grows
+with length, so treat long-tier variance as understated. Prefer more haystacks
+over more questions per haystack when adding statistical power.
 
 **Per-family n is 7–20.** The *generator* is certified at high power
 (`quality_audit.py --certify` draws hundreds of deduplicated candidate
@@ -436,8 +481,10 @@ making the comparison paired rather than between two independent samples.
 
 **Lengths are measured with one tokenizer.** All tiers are sized under
 Qwen3-8B. A "500K-token" haystack is not 500K tokens for a model with a
-different tokenizer, and for Turkish the discrepancy is large (§4). Report the
-tokenizer alongside any length claim.
+different tokenizer, and for Turkish the discrepancy is large (§4). Every
+haystack therefore records `n_chars` alongside `n_tokens`, so lengths can be
+re-derived for another tokenizer without rebuilding. Always report the tokenizer
+alongside a length claim.
 
 **The haystack is a concatenation, not a document.** Records are joined by a
 separator, so the text has no discourse structure. This is inherited from
