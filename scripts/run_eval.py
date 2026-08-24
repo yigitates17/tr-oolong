@@ -104,7 +104,7 @@ def run_set(d: Path, args) -> dict:
     for line in pred_path.read_text(encoding="utf-8").splitlines():
         r = json.loads(line)
         preds[r["id"]] = r
-    ex, pa = defaultdict(list), defaultdict(list)
+    ex, pa, rl = defaultdict(list), defaultdict(list), defaultdict(list)
     errors = 0
     for q in questions:
         r = preds.get(q["id"])
@@ -115,12 +115,16 @@ def run_set(d: Path, args) -> dict:
             continue
         ex[q["kind"]].append(r["exact"])
         pa[q["kind"]].append(r["partial"])
-    fam = {k: {"n": len(v), "exact": sum(v) / len(v), "partial": sum(pa[k]) / len(pa[k])}
+        rl[q["kind"]].append(r.get("relative", r["exact"]))
+    fam = {k: {"n": len(v), "exact": sum(v) / len(v),
+               "partial": sum(pa[k]) / len(pa[k]), "relative": sum(rl[k]) / len(rl[k])}
            for k, v in sorted(ex.items())}
     all_ex = [v for vs in ex.values() for v in vs]
+    n = max(1, len(all_ex))
     return {"set": d.name, "model": args.model, "n_scored": len(all_ex), "n_errors": errors,
-            "exact": sum(all_ex) / max(1, len(all_ex)),
-            "partial": sum(v for vs in pa.values() for v in vs) / max(1, len(all_ex)),
+            "exact": sum(all_ex) / n,
+            "partial": sum(v for vs in pa.values() for v in vs) / n,
+            "relative": sum(v for vs in rl.values() for v in vs) / n,
             "families": fam, "predictions": str(pred_path)}
 
 
@@ -131,7 +135,8 @@ def main():
     ap.add_argument("--base-url", default="http://localhost:11434/v1")
     ap.add_argument("--api-key", default="")
     ap.add_argument("--max-questions", type=int, default=0, help="pilot cap, 0 = all")
-    ap.add_argument("--max-tokens", type=int, default=64)
+    ap.add_argument("--max-tokens", type=int, default=2048,
+                    help="reasoning models need headroom; the answer is parsed from the tail")
     ap.add_argument("--timeout", type=int, default=300, help="per-query ceiling, seconds")
     ap.add_argument("--out", default="eval_report.json")
     args = ap.parse_args()
@@ -141,9 +146,10 @@ def main():
         report.append(run_set(Path(d), args))
     for r in report:
         print(f"\n== {r['set']}  scored={r['n_scored']} errors={r['n_errors']}  "
-              f"exact={r['exact']:.3f} partial={r['partial']:.3f}")
+              f"exact={r['exact']:.3f} partial={r['partial']:.3f} relative={r['relative']:.3f}")
         for k, v in r["families"].items():
-            print(f"   {k:<14} n={v['n']:<4} exact={v['exact']:.3f} partial={v['partial']:.3f}")
+            print(f"   {k:<14} n={v['n']:<4} exact={v['exact']:.3f} "
+                  f"partial={v['partial']:.3f} relative={v['relative']:.3f}")
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nreport -> {args.out}")
 

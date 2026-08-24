@@ -22,9 +22,15 @@
     "count": "How many reviews are labeled '{label}'? Answer with the number only.",
     "proportion": "What percentage of reviews are labeled '{label}'? Round to the nearest integer, answer with the number only.",
     "entity_count": "How many reviews about the brand '{entity}' are labeled '{label}'? Answer with the number only.",
-    "entity_argmax": "Which brand received the most '{label}' reviews? Answer with the brand name only.",
+    "entity_argmax": "Which of these brands received the most '{label}' reviews: {candidates}? Answer with the brand name only.",
     "shift": "Did the share of '{label}' reviews rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
-    "top_k": "Which {k} brands received the most '{label}' reviews? List them from most to fewest, separated by ' > '.",
-    "pairwise": "Which brand has more '{label}' reviews: '{entity_a}' or '{entity_b}'? Answer with the brand name only."
-  }
+    "top_k": "Among these brands, which {k} received the most '{label}' reviews: {candidates}? List them from most to fewest, separated by ' > '.",
+    "pairwise": "Which brand has more '{label}' reviews: '{entity_a}' or '{entity_b}'? Answer with the brand name only.",
+    "most_common": "Which label is the most common among these reviews? Labels: {labels}. Answer with the label name only.",
+    "least_common": "Which label is the least common among these reviews? Labels: {labels}. Answer with the label name only.",
+    "second_most": "Which label is the second most common among these reviews? Labels: {labels}. Answer with the label name only."
+  },
+  "families_disabled": [
+    "top_k"
+  ]
 }

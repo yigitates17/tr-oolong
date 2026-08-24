@@ -132,10 +132,16 @@ locale pair, joined on `(partition, id)`:
 **Result.** Both locales: exactly **15,075 rows, 48 intents**. The twin is now
 row-identical, not approximately parallel.
 
-**Why it matters for the thesis.** Any Turkish-vs-English performance gap can now
-be attributed to language rather than to a difference in what the two haystacks
-contain. Without this, a reviewer can ask whether the gap is a sampling artifact,
-and the honest answer would have been "partly, and we cannot say how much."
+**Why it matters for the thesis.** The two locales now draw from an identical
+*pool*: same utterances, same label space, same row count.
+
+> **Corrected in v0.4.0 — see D11.** This entry originally claimed that a
+> Turkish-vs-English gap "can now be attributed to language rather than to a
+> difference in what the two haystacks contain." That was **false as written**.
+> Pool-level parity is not haystack-level parity: `language` was part of the RNG
+> seed, so each locale sampled its own records (2,735 tr vs 3,478 en at 50K
+> tokens), with different drift targets and different questions. D11 adds the
+> record-matched build that makes the original claim true.
 
 ---
 
@@ -156,8 +162,18 @@ answer), the number of distinct gold answers, and a `degenerate` flag
   its score *equals* the majority baseline by construction — which is exactly
   what is observed now, and is the signature of a clean set.
 
-**This is the acceptance gate** for any future rebuild. `manifests/baseline_report.json`
-is the committed record.
+**Read `leak` against the right reference.** "Leakage score above majority
+baseline" is the rule for families with *few* distinct gold answers. On a family
+with many distinct answers the majority baseline is near zero and the rule
+misfires: `tr_oolong` `pairwise` reports `leak=0.600 majority=0.133`, which looks
+alarming until you note that pairwise has 14 distinct answers over 15 questions
+and its **chance** rate is 0.5 — a filtered leakage solver degenerates to a
+constant, and a constant scores ~0.5 on a binary family. Compare against
+`max(majority, chance)`; both columns are reported for exactly this reason.
+
+**This is the acceptance gate** for any future rebuild, alongside
+`scripts/quality_audit.py` (D13). `manifests/baseline_report.json` is the
+committed record.
 
 ---
 
@@ -256,12 +272,217 @@ together with any builder change.
 
 ---
 
+## D9 — Entity-relational questions ask about a NAMED, prior-neutral candidate set
+
+**Problem.** The three entity families (`entity_argmax`, `top_k`, `pairwise`) were
+supposed to be the review axis's distinctive contribution. They were the most
+broken part of the benchmark.
+
+**Evidence.** A **context-free prior oracle** — a solver that answers every
+question from source-corpus statistics and never reads the haystack — scored:
+
+| set | `pairwise` | `entity_argmax` | `top_k` |
+|---|---|---|---|
+| `tr_oolong` | 0.733 | 0.867 | 0.077 |
+| `en_twin` | 0.900 | 0.700 | 0.300 |
+| `vitamins_tr` | **1.000** | 0.800 | 0.900 |
+| `amazon_hpc_en` | 0.850 | 0.550 | 0.188 |
+
+`vitamins_tr` `pairwise` was 20/20 correct with no context at all. And it got
+*worse with length* — at 250K–1M tokens the haystack converges on corpus
+proportions, so the biggest brand wins ever more reliably. Exactly backwards for
+a long-context benchmark.
+
+Separately, the questions were **thin**: the median `tr_oolong` `pairwise`
+question was decided by **8 records out of a 3,919-record haystack**, with a
+margin of 2. That is needle-in-a-haystack retrieval with a coin-flip tiebreak —
+the task OOLONG exists to replace.
+
+**Cause.** `draw_label_weights` gave every haystack a fresh random *label* prior,
+but nothing perturbed the *entity* axis, so every haystack inherited the corpus's
+brand ranking. D6's length ceiling protects the label axis only. The defect was
+invisible to both existing baselines: the leakage solver saw no label strings,
+and the majority baseline saw well-spread gold answers.
+
+**Change.** Three parts, all needed:
+
+1. **`draw_entity_jitter`** — a per-haystack log-normal perturbation (σ = 1.0) of
+   the entity distribution, multiplied into the A-Res sampling weights. Big
+   brands stay big (support survives) but the ordering among comparable brands
+   becomes a property of *this haystack*.
+2. **`pick_entity_candidates`** — the question names its candidates, and they are
+   matched on their **pool count for the asked label** to within 5%. Matching on
+   total brand *size* is not enough: label counts are roughly proportional to
+   size, so the biggest candidate still wins. With the corpus-level counts
+   near-identical, the corpus cannot rank them.
+3. **Depth and margin floors in both GT paths** (`_margin_ok`, `min_answer`): the
+   winner needs a real count and a real lead, so no answer rests on a handful of
+   records or on a gap of one.
+
+**Result** (measured on ~200–900 *distinct* questions per family, not on the
+~15 that ship — a Monte Carlo that redraws the same question learns nothing):
+
+| set | family | prior | chance | z |
+|---|---|---|---|---|
+| `tr_oolong` | `entity_argmax` | 0.221 | 0.200 | +0.9 |
+| `tr_oolong` | `pairwise` | 0.528 | 0.500 | +0.8 |
+| `tr_oolong` | `top_k` | 0.017 | 0.017 | +0.0 |
+| `vitamins_tr` | `entity_argmax` | 0.209 | 0.200 | +0.3 |
+| `vitamins_tr` | `pairwise` | 0.475 | 0.500 | −1.5 |
+
+**Cost.** Fewer entity questions (the constraints reject many draws), and two
+sets lose a family outright:
+
+- **`en_twin` loses `entity_argmax` and `top_k`.** Six airlines cannot form a
+  prior-neutral 5-way candidate set. Stated plainly rather than papered over.
+- **`vitamins_tr` and `amazon_hpc_en` lose `top_k`** (`families_disabled`).
+  Certified at power, *exact ordering* stayed prior-correlated on both
+  (vitamins 0.113 vs 0.017 chance, z = +5.5; amazon 0.107, z = +3.7) even after
+  the jitter. `top_k` therefore ships on **`tr_oolong` only** (0.040 vs 0.017,
+  z = +1.3), whose 1,430 brands are long-tailed enough (top-1 share 1.5%) that
+  the ordering is genuinely contested.
+
+  Note the asymmetry, which is the interesting part: `entity_argmax` decorrelates
+  easily on every set (z = +0.5 to +1.4) because the jitter readily flips the top
+  entry, but the *full ordering* retains rank correlation — flipping one position
+  is easy, permuting three independently is not. **Exact ordering is intrinsically
+  the hardest family to make prior-neutral**, and where it cannot be, it does not
+  ship. This is also why the defect was invisible before `--certify`: `top_k`
+  ships 6-8 questions per set, and no test on 8 samples can see z = +3.7.
+
+**The generalisable finding.** D1 established that leakage *rate* does not
+predict exploitability. D9 is its sibling: **prior-randomising one axis while
+leaving a correlated second axis untouched reopens the shortcut you just
+closed.** Anti-shortcut work has to cover every axis a question ranges over.
+
+---
+
+## D10 — The label-ranking families also name their candidates
+
+**Problem.** Two separate defects, one fix.
+
+**Evidence.** (a) `most_common` over the 48-class intent axis asks a model to
+produce `iot_hue_lightoff` with no indication that such a label space exists —
+the question is not well posed. (b) On that axis the ranking is decided by its
+tail: in a 6,000-record haystack the rarest label has **~7 records** and adjacent
+ranks differ by **1**, so `least_common` over all 48 labels is a coin flip.
+
+**Change.** These families name their candidate labels, exactly as D9 does for
+entities: `min(K, label_candidates)` labels, matched on pool counts when the
+label space is larger than the candidate set. When `K <= label_candidates` the
+candidate set *is* the whole label space, so the 3-class review axis keeps its
+original semantics and wording.
+
+**Result.** The question is self-contained (no dependence on a harness prompt to
+inject the inventory), and `least_common` compares well-supported labels with a
+real margin instead of ranking noise.
+
+**Cost.** Chance rises from 1/48 to 1/5 on the intent axis, and is reported.
+A well-posed question with a known chance rate is worth more than an unanswerable
+one with a nominal chance of 2%.
+
+---
+
+## D11 — The matched twin is built in two regimes, and the difference is the finding
+
+**Problem.** D4 made the intent twin row-identical *in the pool*. It was never
+identical *in the haystack*: the RNG seed was `{seed}-{lang}-{target}-{k}`, so
+each locale sampled its own records. At 50K tokens Turkish held 2,735 utterances
+and English 3,478 — different records, different drift targets, different
+questions. The claim in D4 that "any Turkish-vs-English gap can be attributed to
+language rather than to a difference in what the two haystacks contain" was
+**false as written**.
+
+Fixing the seed alone is not enough, because an equal *token* budget necessarily
+buys different numbers of records in the two languages.
+
+**Change.** Two knobs, and both sets are built:
+
+- `pair_seed` drops `language` from the RNG seed.
+- `haystack_target_records` fixes the **record count** instead of the token
+  budget.
+
+Together they give a **record-matched twin**: `tr_intent_paired` and
+`en_intent_paired`. Verified — identical `row_id` order, identical labels,
+identical halves, identical drift target, and **110 of 120 questions identical
+including the gold answer**. The 10 that differ are `shift`, where the same fact
+is expressed in each language (`arttı` / `rose`).
+
+**Why it matters.** The comparison becomes *paired*: the same question, over the
+same records, differing only in language. That admits McNemar's test on matched
+pairs instead of comparing two independent samples at n = 10, which was never
+going to support a cross-lingual claim.
+
+**And it yields a measurement.** At identical record counts, Turkish costs
+
+> **1.30–1.34× the tokens of English** (Qwen3-8B), stable across every haystack.
+
+That ratio *is* the morphology tax, isolated from any model. The two regimes now
+answer two different questions: token-matched asks "at equal budget", and
+record-matched asks "at equal content". The gap between them is attributable to
+tokenization rather than to reasoning.
+
+---
+
+## D12 — Turkish that a Turkish speaker would accept
+
+Small, and the cheapest credibility in the project.
+
+- **Vowel harmony.** `pairwise` hardcoded `'{a}' mı yoksa '{b}' mi`, so
+  *'akbank mı yoksa mng kargo mi'* — which should be **mu**. `soru_eki()` now
+  derives the particle (mı/mi/mu/mü) from the last vowel, falling back to `mi`
+  for vowelless acronyms (every Turkish consonant letter-name ends in *e*).
+- **Orthography.** `artti`/`azaldi` → `arttı`/`azaldı`.
+- **Label consistency.** `vitamins_tr` labelled neutral `notr` while `tr_oolong`
+  used `nötr`; a model answering `nötr` on the vitamins set scored **0**. Fixed at
+  the source, and `scoring.py` now accepts an ASCII-folded fallback so an
+  orthographic artifact never costs a correct answer.
+- **Separator.** `<<<KAYIT>>>` — a Turkish word — separated records inside the
+  **English** haystacks, and tokenizes differently in each language. Replaced with
+  the language-neutral `<<<###>>>`, which costs the same tokens in both.
+
+---
+
+## D13 — The acceptance gate now includes a context-free prior oracle
+
+**Problem.** D5 added a second baseline because one had hidden D3. Two were still
+not enough: both were blind to D9.
+
+**Change.** `scripts/quality_audit.py` is a third gate, and reports per family:
+
+- **thin** — how many questions are decided by fewer than N records;
+- **knife-edge** — how many rest on a margin below the configured threshold;
+- **prior accuracy vs chance**, with a one-sided binomial test.
+
+Two lessons are built into it, both learned by getting them wrong first:
+
+1. **Chance must be modelled correctly.** Scoring `top_k` against chance = 0
+   flagged an at-chance family as broken; ordering 3 of 5 named candidates has
+   chance 1/60. For free-form numeric families the reference is the majority
+   baseline, not zero.
+2. **Certify the generator, not the shipped sample.** At n = 10–20 a family
+   cannot be certified: `tr_oolong` `pairwise` measured 0.85 on the 13 shipped
+   questions and 0.53 on 235 distinct draws. And a Monte Carlo must **deduplicate**
+   — redrawing the same question 400 times measures nothing.
+
+`manifests/quality_audit.json` is the committed record; the script exits non-zero
+if any family beats chance.
+
+---
+
 ## Open items, stated as risks
 
-- **`shift` skew.** Binary family; majority baselines of 0.65–0.80 on some sets at
-  n=10–20. Consistent with binomial noise at these counts, but the ranking
-  families are underpowered for any strong per-family cross-lingual claim.
-  Fix if needed: more haystacks per length, not more questions per haystack.
+- **Per-family n is still small.** 7–20 questions per family per set. The prior
+  audit is run on hundreds of *candidate* draws so the generator is certified at
+  adequate power, but the shipped sample cannot support a strong per-family
+  cross-lingual claim on its own. Fix: more haystacks per length, not more
+  questions per haystack. The record-matched twin (D11) partly compensates by
+  making the comparison paired.
+- **Source label noise is unmeasured.** Every gold answer is exact with respect
+  to the haystack, but the haystack's labels come from the source corpus. If
+  those are 90% accurate, a model that classifies *better* than the annotators is
+  marked wrong. This is the benchmark's real accuracy ceiling and it is not yet
+  quantified; the 200-row slices written by `--audit` exist for exactly this.
 - **Haystack overlap at the longest tiers.** At 500K–1M a haystack consumes
   15–35% of its pool, so the five haystacks at a tier share records and are not
   independent samples. Ground truth is unaffected (it is computed from the actual

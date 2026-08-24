@@ -61,11 +61,53 @@ assume earlier ones are done.
       (amazon 1M, vitamins 750K, tr_oolong 500K, airline 50K/100K); 900 → 1,020 questions
 - [x] `DESIGN_DECISIONS.md` — rationale + evidence for every construction choice
 
+
+## Phase 1.6 — v0.4.0 question-quality overhaul  ✅ done
+
+Driven by a per-question audit that v0.3.0 had no gate for. The headline: a
+**context-free prior oracle** (answers from corpus statistics, never reads the
+haystack) solved `pairwise` 0.73–1.00 and `entity_argmax` 0.55–0.87, and the
+median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**.
+
+- [x] `scripts/quality_audit.py` — third acceptance gate: per-question depth and
+      margin, plus a prior oracle tested against **correctly modelled chance**
+      (1/60 for ordering 3 of 5, majority baseline for numeric families)
+- [x] Certify the **generator**, not the shipped sample — hundreds of deduplicated
+      draws per family (at n=13, `tr_oolong` pairwise measured 0.85; at n=235, 0.53)
+- [x] `draw_entity_jitter` — per-haystack log-normal perturbation of the entity
+      distribution (the label axis had this since v0.2.0; the entity axis did not)
+- [x] `pick_entity_candidates` — entity questions name a candidate set matched on
+      the **pool count for the asked label** to within 5%
+- [x] Label-ranking families name their candidates too — well-posed on a 48-class
+      axis, and no longer decided by a 7-record tail
+- [x] Depth + margin floors enforced in **both** GT paths (`_margin_ok`)
+- [x] `families_disabled` — a set drops a family that fails its gate
+      (`vitamins_tr` loses `top_k`; `en_twin` cannot form a prior-neutral 5-set)
+- [x] **Record-matched twin** (`pair_seed` + `haystack_target_records`):
+      `tr_intent_paired` / `en_intent_paired` are record-identical, 110/120
+      questions share a gold answer → paired tests (McNemar)
+- [x] Morphology tax measured directly: Turkish costs **1.30–1.34×** the tokens
+      of English at identical record counts
+- [x] Turkish correctness: vowel-harmony question particle (mı/mi/mu/mü),
+      `arttı`/`azaldı`, `notr`→`nötr`, language-neutral `<<<###>>>` separator
+- [x] `scoring.py`: added scale-free `relative` metric — OOLONG's `0.75^|y-ŷ|`
+      is degenerate at counts of ~1,000 (kept unchanged for comparability)
+- [x] `pytest tests/` collected **zero** tests; added a real test function
+- [x] Builder clears `out_dir` (a removed 250K tier was still shipping in `en_twin_out`)
+- [x] `scripts/publish_hf.py` — per-subset licensing, text withheld where the
+      source forbids redistribution
+- [x] Source licenses **resolved** (see DATACARD): MASSIVE CC-BY-4.0, We-Bears
+      Apache-2.0, vitamins CC-BY-SA-4.0, airline CC-BY-NC-SA-4.0 (text withheld),
+      Amazon governed by Amazon's terms (text withheld). No permission emails needed.
+- [x] `DESIGN_DECISIONS.md` D9–D13; D4's overstated claim corrected in place
+
 ## Phase 2 — Baselines and pilot
 
 - [x] `trivial_baseline.py` (regex/lexicon over label-token leakage) on all four sets
 - [x] Report the shortcut floor per set; quantify the EN label-leakage asymmetry
-- [ ] Align the frozen metric to OOLONG's `src/eval/` scoring script (provable parity)
+- [x] Metric parity with OOLONG confirmed from the paper: they use
+      `score = 0.75^|y-ŷ|`, which `partial` implements unchanged. (Their scoring
+      script is not released, so the paper is the reference.)
 - [ ] Optionally add OOLONG's validated English splits as extra anchor sets (jsonl configs)
 - [ ] Frontier reference point: one haystack per axis via a **pinned API model**
       (record model string + access date); chat-UI runs are informal only
@@ -86,13 +128,20 @@ assume earlier ones are done.
 - [ ] Evaluation harness with the **frozen** dual metric (exact match + `0.75^|y−ŷ|`)
 - [ ] Freeze the metric *before* any model runs
 
-## Open questions (decide before Phase 1 rebuild)
+## Open questions
 
-- [ ] We-Bears review-dataset license clarification — status?
+- [x] We-Bears license — **Apache-2.0**, distributable (verified 2026-08-24)
 - [ ] Confirm this repo is the public release repo (assumed yes)
-- [ ] `top_k` k value — default 3; keep?
-- [ ] Whether to add a `TR-OOLONG-Pairs` (quadratic-complexity) extension later,
-      to slot into the RLM paper's constant/linear/quadratic ladder
+- [x] `top_k` k value — kept at 3, but the family now ships only where it passes
+      the prior gate (`tr_oolong`, `amazon_hpc_en`)
+- [ ] **`TR-OOLONG-Pairs`** — the RLM paper uses OOLONG-Pairs as one of its four
+      evaluation tasks, so a quadratic-complexity family would let Turkish results
+      sit on the same constant/linear/quadratic ladder as the published numbers.
+      Recommended. Note the naming clash: the current `pairwise` family is *not*
+      OOLONG-Pairs and should probably be renamed to avoid confusion.
+- [ ] **Source label noise** — the unmeasured accuracy ceiling. `--audit` writes a
+      200-row slice per set; needs a native speaker (i.e. you). Highest-value
+      open item: it is the first thing a jury will ask about label-derived truth.
 
 ## Notes for the supervisor
 

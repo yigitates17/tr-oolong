@@ -45,6 +45,20 @@ def build_to(out_dir: Path) -> None:
     b.build(cfg)
 
 
+def test_golden() -> None:
+    """pytest entry point. Without this, `pytest tests/` collects ZERO tests and
+    a CI run reports green while checking nothing."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "out"
+        build_to(out)
+        for name in FILES:
+            assert (out / name).read_bytes() == (GOLDEN / name).read_bytes(), (
+                f"{name} differs from tests/golden/ -- if intentional, bump VERSION "
+                f"and rerun `python tests/test_golden.py --regen`")
+        assert normalized_manifest(out / "manifest.json") == \
+            normalized_manifest(GOLDEN / "manifest.json"), "manifest.json differs"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--regen", action="store_true")

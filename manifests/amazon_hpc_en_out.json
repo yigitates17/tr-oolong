@@ -1,6 +1,6 @@
 {
-  "version": "0.3.0",
-  "date": "2026-08-10",
+  "version": "0.4.0",
+  "date": "2026-08-25",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -23,22 +23,38 @@
       500000,
       1000000
     ],
+    "haystack_target_records": [],
     "haystacks_per_length": 5,
     "questions_per_haystack": 12,
-    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "separator": "\n\n<<<###>>>\n\n",
     "drift_mode": true,
-    "min_entity_examples": 8,
+    "min_entity_examples": 15,
     "dirichlet_alpha": 1.0,
     "proportion_unit": "auto",
     "top_k_k": 3,
+    "min_answer_count": 20,
+    "min_entity_answer": 10,
+    "min_rank_margin": 0.1,
+    "entity_candidates": 5,
+    "label_candidates": 5,
+    "families_disabled": [
+      "top_k"
+    ],
+    "entity_band_tol": 0.05,
+    "label_band_tol": 0.15,
+    "entity_jitter_sigma": 1.0,
+    "pair_seed": false,
     "question_templates": {
       "count": "How many reviews are labeled '{label}'? Answer with the number only.",
       "proportion": "What percentage of reviews are labeled '{label}'? Round to the nearest integer, answer with the number only.",
       "entity_count": "How many reviews about the brand '{entity}' are labeled '{label}'? Answer with the number only.",
-      "entity_argmax": "Which brand received the most '{label}' reviews? Answer with the brand name only.",
+      "entity_argmax": "Which of these brands received the most '{label}' reviews: {candidates}? Answer with the brand name only.",
       "shift": "Did the share of '{label}' reviews rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
-      "top_k": "Which {k} brands received the most '{label}' reviews? List them from most to fewest, separated by ' > '.",
-      "pairwise": "Which brand has more '{label}' reviews: '{entity_a}' or '{entity_b}'? Answer with the brand name only."
+      "top_k": "Among these brands, which {k} received the most '{label}' reviews: {candidates}? List them from most to fewest, separated by ' > '.",
+      "pairwise": "Which brand has more '{label}' reviews: '{entity_a}' or '{entity_b}'? Answer with the brand name only.",
+      "most_common": "Which label is the most common among these reviews? Labels: {labels}. Answer with the label name only.",
+      "least_common": "Which label is the least common among these reviews? Labels: {labels}. Answer with the label name only.",
+      "second_most": "Which label is the second most common among these reviews? Labels: {labels}. Answer with the label name only."
     },
     "reference_tokenizer": "Qwen/Qwen3-8B",
     "chars_per_token": 3.4,
@@ -57,162 +73,181 @@
     "min_class_pool": 17806,
     "max_records": 53418,
     "binding": true,
-    "ranking_length_ceiling_tokens": 3058607
+    "ranking_length_ceiling_tokens": 2951771
   },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
-  "questions_written": 240,
+  "questions_written": 234,
   "kind_distribution": {
-    "count": 44,
-    "entity_argmax": 20,
-    "entity_count": 20,
-    "least_common": 20,
-    "most_common": 20,
-    "pairwise": 20,
-    "proportion": 40,
-    "second_most": 20,
-    "shift": 20,
-    "top_k": 16
+    "count": 56,
+    "entity_argmax": 18,
+    "entity_count": 22,
+    "least_common": 17,
+    "most_common": 17,
+    "pairwise": 15,
+    "proportion": 55,
+    "second_most": 14,
+    "shift": 20
   },
   "haystacks": [
     {
       "haystack_id": "en-100000-0",
-      "n_examples": 1657,
+      "n_examples": 1742,
+      "n_tokens": 98631,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-1",
-      "n_examples": 1750,
+      "n_examples": 1834,
+      "n_tokens": 98584,
       "drift_target": "positive",
       "drift_ok": true,
-      "n_questions": 12
+      "n_questions": 10
     },
     {
       "haystack_id": "en-100000-2",
-      "n_examples": 1710,
+      "n_examples": 1791,
+      "n_tokens": 98574,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-3",
-      "n_examples": 1688,
-      "drift_target": "negative",
+      "n_examples": 1749,
+      "n_tokens": 98589,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 1655,
-      "drift_target": "negative",
+      "n_examples": 1745,
+      "n_tokens": 98629,
+      "drift_target": "positive",
       "drift_ok": true,
-      "n_questions": 12
+      "n_questions": 9
     },
     {
       "haystack_id": "en-250000-0",
-      "n_examples": 4285,
-      "drift_target": "negative",
+      "n_examples": 4441,
+      "n_tokens": 246562,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-1",
-      "n_examples": 4302,
+      "n_examples": 4534,
+      "n_tokens": 246523,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-2",
-      "n_examples": 4053,
-      "drift_target": "neutral",
+      "n_examples": 4373,
+      "n_tokens": 246504,
+      "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-3",
-      "n_examples": 4045,
-      "drift_target": "negative",
+      "n_examples": 4439,
+      "n_tokens": 246459,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-250000-4",
-      "n_examples": 4100,
-      "drift_target": "negative",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-500000-0",
-      "n_examples": 8495,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-500000-1",
-      "n_examples": 8441,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-500000-2",
-      "n_examples": 8187,
-      "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-500000-3",
-      "n_examples": 8335,
-      "drift_target": "negative",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-500000-4",
-      "n_examples": 8779,
+      "n_examples": 4042,
+      "n_tokens": 246754,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
+      "haystack_id": "en-500000-0",
+      "n_examples": 8746,
+      "n_tokens": 493105,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-1",
+      "n_examples": 8513,
+      "n_tokens": 493361,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-2",
+      "n_examples": 8372,
+      "n_tokens": 493252,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-500000-3",
+      "n_examples": 8759,
+      "n_tokens": 492986,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-500000-4",
+      "n_examples": 9121,
+      "n_tokens": 492980,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
       "haystack_id": "en-1000000-0",
-      "n_examples": 16672,
+      "n_examples": 17519,
+      "n_tokens": 986245,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-1000000-1",
-      "n_examples": 16218,
+      "n_examples": 16814,
+      "n_tokens": 986533,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-1000000-2",
-      "n_examples": 17146,
-      "drift_target": "positive",
+      "n_examples": 17623,
+      "n_tokens": 986326,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-1000000-3",
-      "n_examples": 16142,
-      "drift_target": "negative",
+      "n_examples": 16990,
+      "n_tokens": 986507,
+      "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-1000000-4",
-      "n_examples": 16279,
+      "n_examples": 17064,
+      "n_tokens": 986473,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12

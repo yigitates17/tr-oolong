@@ -59,8 +59,9 @@ maximum length is derived from its smallest class). Proportion unit: percent.
   Aggregate counts are still exact with respect to the *built* haystack, which
   is what every question asks about — but the pool is not representative of
   Turkish review text in general.
-- License: **pending clarification** for the We-Bears text. Until it clears, this
-  pair ships as code + configs + manifests only; text not distributed.
+- License: We-Bears is **Apache-2.0** — distributable. The airline twin is
+  **CC-BY-NC-SA-4.0** — non-commercial and share-alike, so its text is withheld
+  from the release and rebuilt locally. See the licensing table below.
 
 **Pair (b) — supplement reviews (same-domain twin)**
 - Source (TR): turkish-nlp-suite/vitamins-supplements-reviews (Vitaminler.com).
@@ -70,11 +71,65 @@ maximum length is derived from its smallest class). Proportion unit: percent.
 - EN brand attached by joining the review shard to the metadata shard on
   `parent_asin` (`store` field = brand).
 - Domain-matched twin (both supplement/health reviews), tighter than pair (a).
-- License: TR set is CC-BY-SA-4.0 (distributable). EN Amazon-Reviews-2023 is
-  academic/non-commercial provenance — **verify redistribution terms before
-  shipping**; until cleared, distribute the TR set and ship the EN pair as
-  code + configs + manifests.
+- License: TR set is **CC-BY-SA-4.0** — distributable, but share-alike, so this
+  subset and anything derived from it must remain CC-BY-SA-4.0. EN
+  Amazon-Reviews-2023 review text is governed by **Amazon's Conditions of Use**,
+  not by the repository license: its text is **withheld** from the release. See
+  the licensing table below.
 - Label noise: [ ] to be measured.
+
+
+## Licensing — verified 2026-08-24
+
+**The six source corpora do not share a license, and two of them must not have
+their text redistributed.** `scripts/publish_hf.py` enforces this: each set is
+packaged as its own Hugging Face config with its own license tag, and the two
+restricted sets ship as questions-and-answers only, with the haystack text
+withheld and rebuilt locally from the public source.
+
+| Set | Source | License | Redistribute text? | Obligation |
+|---|---|---|---|---|
+| `tr_intent`, `en_intent` (+ paired) | AmazonScience/massive | **CC-BY-4.0** | yes | attribute; state changes |
+| `tr_oolong` | We-Bears/Turkish-Review-Sentiment-Data | **Apache-2.0** | yes | include license + notice of modification |
+| `vitamins_tr` | turkish-nlp-suite/vitamins-supplements-reviews (Vitaminler.com) | **CC-BY-SA-4.0** | yes | **share-alike**: this subset and derivatives stay CC-BY-SA-4.0; cite Altinok (ACL 2023) |
+| `en_twin` | Twitter US Airline Sentiment (CrowdFlower / Kaggle) | **CC-BY-NC-SA-4.0** | **no** | non-commercial **and** share-alike — text withheld |
+| `amazon_hpc_en` | McAuley-Lab/Amazon-Reviews-2023 (Health & Personal Care) | repo MIT-style, **text governed by Amazon's Conditions of Use** | **no** | text withheld |
+
+**No email or permission request is needed for any of these** — they are all
+publicly licensed. The two restrictions are handled by construction, not by
+correspondence:
+
+- **`en_twin`** is CC-BY-NC-SA. Non-commercial is a restriction on *use*, not a
+  bar to release, but combined with share-alike it would infect the whole
+  release if shipped as one dataset. It ships text-free.
+- **`amazon_hpc_en`** is the one genuine hazard. The Hugging Face repo's license
+  covers the *packaging*; the review text remains subject to Amazon's terms,
+  which do not grant redistribution. Withholding the text is the safe reading,
+  and it costs nothing: the build is deterministic, so a user who runs
+  `scripts/health.py` + the committed config gets byte-identical haystacks.
+
+**Two things to do before release.** (1) The repository `LICENSE` is MIT and
+covers *code only* — add a line saying so, since the data subsets carry their
+own terms. (2) Re-check each source's license page at release time and record
+the access date; license fields on Hugging Face do change.
+
+> Earlier drafts of this datacard listed the We-Bears license as "pending
+> clarification" and the Amazon set as "verify before shipping". Both are now
+> resolved: We-Bears is Apache-2.0 (distributable), Amazon is not.
+
+## Family availability per set
+
+Not every family is meaningful on every source, and a family that fails the
+prior-oracle gate is switched off rather than shipped. This is recorded here so
+the per-set question counts are not mistaken for a bug.
+
+| Set | Omitted | Why |
+|---|---|---|
+| `tr_intent`, `en_intent` (+paired) | the four entity families | `scenario` is *nested* in `intent`, so entity questions are trivial or impossible (detected automatically) |
+| `en_twin` | `entity_argmax`, `top_k` | 6 airlines cannot form a prior-neutral 5-candidate set |
+| `vitamins_tr` | `top_k` | exact ordering stayed prior-correlated (z=+5.5) |
+| `amazon_hpc_en` | `top_k` | exact ordering stayed prior-correlated (z=+3.7) |
+| `tr_oolong` | — | all ten families ship |
 
 ## Construction summary
 

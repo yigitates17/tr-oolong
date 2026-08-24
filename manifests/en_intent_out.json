@@ -1,6 +1,6 @@
 {
-  "version": "0.3.0",
-  "date": "2026-08-10",
+  "version": "0.4.0",
+  "date": "2026-08-25",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -21,14 +21,25 @@
       50000,
       100000
     ],
+    "haystack_target_records": [],
     "haystacks_per_length": 5,
     "questions_per_haystack": 12,
-    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "separator": "\n\n<<<###>>>\n\n",
     "drift_mode": true,
-    "min_entity_examples": 8,
+    "min_entity_examples": 15,
     "dirichlet_alpha": 5.0,
     "proportion_unit": "auto",
     "top_k_k": 3,
+    "min_answer_count": 10,
+    "min_entity_answer": 10,
+    "min_rank_margin": 0.03,
+    "entity_candidates": 5,
+    "label_candidates": 5,
+    "families_disabled": [],
+    "entity_band_tol": 0.05,
+    "label_band_tol": 0.15,
+    "entity_jitter_sigma": 1.0,
+    "pair_seed": true,
     "question_templates": {
       "count": "How many utterances have the intent '{label}'? Answer with the number only.",
       "proportion": "What percentage of utterances have the intent '{label}'? Round to the nearest integer, answer with the number only.",
@@ -67,71 +78,81 @@
   "haystacks": [
     {
       "haystack_id": "en-50000-0",
-      "n_examples": 3478,
-      "drift_target": "news_query",
+      "n_examples": 4073,
+      "n_tokens": 49938,
+      "drift_target": "qa_definition",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-1",
-      "n_examples": 3467,
-      "drift_target": "social_post",
+      "n_examples": 4028,
+      "n_tokens": 49926,
+      "drift_target": "calendar_remove",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-2",
-      "n_examples": 3476,
-      "drift_target": "weather_query",
+      "n_examples": 3982,
+      "n_tokens": 49929,
+      "drift_target": "takeaway_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-3",
-      "n_examples": 3490,
-      "drift_target": "qa_factoid",
+      "n_examples": 3997,
+      "n_tokens": 49921,
+      "drift_target": "alarm_query",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-50000-4",
-      "n_examples": 3498,
-      "drift_target": "alarm_set",
+      "n_examples": 4034,
+      "n_tokens": 49926,
+      "drift_target": "general_quirky",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-0",
-      "n_examples": 6983,
+      "n_examples": 7929,
+      "n_tokens": 99799,
       "drift_target": "calendar_remove",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-1",
-      "n_examples": 6925,
-      "drift_target": "calendar_query",
+      "n_examples": 7999,
+      "n_tokens": 99871,
+      "drift_target": "recommendation_events",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-2",
-      "n_examples": 6962,
-      "drift_target": "calendar_query",
+      "n_examples": 8031,
+      "n_tokens": 99826,
+      "drift_target": "qa_factoid",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-3",
-      "n_examples": 6949,
-      "drift_target": "datetime_query",
+      "n_examples": 7929,
+      "n_tokens": 99830,
+      "drift_target": "calendar_set",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 6962,
-      "drift_target": "general_quirky",
+      "n_examples": 8122,
+      "n_tokens": 99837,
+      "drift_target": "cooking_recipe",
       "drift_ok": true,
       "n_questions": 12
     }
