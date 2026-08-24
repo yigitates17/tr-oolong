@@ -7,7 +7,11 @@
   "min_words": 3,
   "seed": 42,
   "dirichlet_alpha": 1.0,
-  "haystack_target_tokens": [100000, 250000, 500000],
+  "haystack_target_tokens": [
+    100000,
+    250000,
+    500000
+  ],
   "haystacks_per_length": 5,
   "questions_per_haystack": 12,
   "proportion_unit": "auto",
@@ -17,9 +21,12 @@
     "count": "Bu yorumlardan kaç tanesi '{label}' etiketli? Sadece sayıyı yaz.",
     "proportion": "Yorumların yüzde kaçı '{label}' etiketli? En yakın tam sayıya yuvarla, sadece sayıyı yaz.",
     "entity_count": "'{entity}' markası hakkındaki yorumlardan kaç tanesi '{label}'? Sadece sayıyı yaz.",
-    "entity_argmax": "En çok '{label}' yorumu alan marka hangisi? Sadece marka adını yaz.",
-    "shift": "Yorumların ikinci yarısında '{label}' oranı ilk yarıya göre arttı mı azaldı mı? 'artti' veya 'azaldi' yaz.",
-    "top_k": "En çok '{label}' yorumu alan ilk {k} marka hangileri? Çoktan aza doğru, aralarına ' > ' koyarak yaz.",
-    "pairwise": "'{label}' yorumu hangisinde daha çok: '{entity_a}' mı yoksa '{entity_b}' mi? Sadece marka adını yaz."
+    "entity_argmax": "Şu markalardan hangisi en çok '{label}' yorum aldı: {candidates}? Sadece marka adını yaz.",
+    "shift": "Yorumların ikinci yarısında '{label}' oranı ilk yarıya göre arttı mı azaldı mı? 'arttı' veya 'azaldı' yaz.",
+    "top_k": "Şu markalar arasında en çok '{label}' yorum alan ilk {k} marka hangileri: {candidates}? Çoktan aza doğru, aralarına ' > ' koyarak yaz.",
+    "pairwise": "'{label}' yorumu hangisinde daha çok: '{entity_a}' {soru_a} yoksa '{entity_b}' {soru_b}? Sadece marka adını yaz.",
+    "most_common": "Bu yorumlarda en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
+    "least_common": "Bu yorumlarda en az görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
+    "second_most": "Bu yorumlarda ikinci en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz."
   }
 }

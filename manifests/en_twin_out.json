@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1",
-  "date": "2026-07-17",
+  "version": "0.4.0",
+  "date": "2026-08-25",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -14,119 +14,156 @@
     "language": "en",
     "min_words": 3,
     "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
     "seed": 42,
     "haystack_target_tokens": [
-      100000,
-      250000
+      50000,
+      100000
     ],
+    "haystack_target_records": [],
     "haystacks_per_length": 5,
     "questions_per_haystack": 12,
-    "separator": "\n\n<<<KAYIT>>>\n\n",
+    "separator": "\n\n<<<###>>>\n\n",
     "drift_mode": true,
-    "min_entity_examples": 8,
+    "min_entity_examples": 15,
     "dirichlet_alpha": 1.0,
     "proportion_unit": "auto",
     "top_k_k": 3,
+    "min_answer_count": 20,
+    "min_entity_answer": 10,
+    "min_rank_margin": 0.1,
+    "entity_candidates": 3,
+    "label_candidates": 5,
+    "families_disabled": [],
+    "entity_band_tol": 0.05,
+    "label_band_tol": 0.15,
+    "entity_jitter_sigma": 1.0,
+    "pair_seed": false,
     "question_templates": {
       "count": "How many tweets are labeled '{label}'? Answer with the number only.",
       "proportion": "What percentage of tweets are labeled '{label}'? Round to the nearest integer, answer with the number only.",
       "entity_count": "How many tweets about '{entity}' are labeled '{label}'? Answer with the number only.",
-      "entity_argmax": "Which airline received the most '{label}' tweets? Answer with the airline name only.",
+      "entity_argmax": "Which of these airlines received the most '{label}' tweets: {candidates}? Answer with the airline name only.",
       "shift": "Did the share of '{label}' tweets rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
-      "top_k": "Which {k} airlines received the most '{label}' tweets? List them from most to fewest, separated by ' > '.",
-      "pairwise": "Which airline has more '{label}' tweets: '{entity_a}' or '{entity_b}'? Answer with the airline name only."
+      "top_k": "Among these airlines, which {k} received the most '{label}' tweets: {candidates}? List them from most to fewest, separated by ' > '.",
+      "pairwise": "Which airline has more '{label}' tweets: '{entity_a}' or '{entity_b}'? Answer with the airline name only.",
+      "most_common": "Which label is the most common among these tweets? Labels: {labels}. Answer with the label name only.",
+      "least_common": "Which label is the least common among these tweets? Labels: {labels}. Answer with the label name only.",
+      "second_most": "Which label is the second most common among these tweets? Labels: {labels}. Answer with the label name only."
     },
     "reference_tokenizer": "Qwen/Qwen3-8B",
     "chars_per_token": 3.4,
     "out_dir": "en_twin_out"
   },
-  "source_hash_first1000": "7c0c35600c5cdcda",
-  "rows_after_cleaning": 14295,
+  "source_hash_first1000": "e32cfd4e13f9d79e",
+  "rows_after_cleaning": 14280,
+  "cleaning": {
+    "rows_dropped_label_leakage": 15,
+    "label_leakage_rate": 0.001049,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
+  "ranking_feasibility": {
+    "n_classes": 3,
+    "min_class_pool": 2219,
+    "max_records": 6657,
+    "binding": true,
+    "ranking_length_ceiling_tokens": 211492
+  },
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "Qwen/Qwen3-8B",
-  "questions_written": 120,
+  "questions_written": 111,
   "kind_distribution": {
-    "count": 20,
-    "entity_argmax": 10,
+    "count": 29,
     "entity_count": 10,
-    "least_common": 10,
-    "most_common": 10,
+    "least_common": 8,
+    "most_common": 8,
     "pairwise": 10,
-    "proportion": 20,
-    "second_most": 10,
-    "shift": 10,
-    "top_k": 10
+    "proportion": 29,
+    "second_most": 7,
+    "shift": 10
   },
   "haystacks": [
     {
-      "haystack_id": "en-100000-0",
-      "n_examples": 2959,
+      "haystack_id": "en-50000-0",
+      "n_examples": 1597,
+      "n_tokens": 49107,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 10
+    },
+    {
+      "haystack_id": "en-50000-1",
+      "n_examples": 1653,
+      "n_tokens": 46433,
       "drift_target": "negative",
       "drift_ok": true,
       "n_questions": 12
     },
     {
-      "haystack_id": "en-100000-1",
-      "n_examples": 2827,
+      "haystack_id": "en-50000-2",
+      "n_examples": 1523,
+      "n_tokens": 49184,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
+      "haystack_id": "en-50000-3",
+      "n_examples": 1653,
+      "n_tokens": 47152,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 7
+    },
+    {
+      "haystack_id": "en-50000-4",
+      "n_examples": 1653,
+      "n_tokens": 48416,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 10
+    },
+    {
+      "haystack_id": "en-100000-0",
+      "n_examples": 3199,
+      "n_tokens": 98293,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
+      "haystack_id": "en-100000-1",
+      "n_examples": 2999,
+      "n_tokens": 98321,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 12
+    },
+    {
       "haystack_id": "en-100000-2",
-      "n_examples": 2965,
+      "n_examples": 3194,
+      "n_tokens": 98233,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-3",
-      "n_examples": 2937,
+      "n_examples": 3072,
+      "n_tokens": 98300,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     },
     {
       "haystack_id": "en-100000-4",
-      "n_examples": 3024,
+      "n_examples": 3305,
+      "n_tokens": 97629,
       "drift_target": "neutral",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-0",
-      "n_examples": 7398,
-      "drift_target": "positive",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-1",
-      "n_examples": 7140,
-      "drift_target": "negative",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-2",
-      "n_examples": 7559,
-      "drift_target": "positive",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-3",
-      "n_examples": 7559,
-      "drift_target": "positive",
-      "drift_ok": true,
-      "n_questions": 12
-    },
-    {
-      "haystack_id": "en-250000-4",
-      "n_examples": 7396,
-      "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 12
     }

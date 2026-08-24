@@ -16,7 +16,7 @@ import argparse
 import json
 import math
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -144,11 +144,27 @@ def run_set(d: Path) -> dict:
         ex[q["kind"]].append(s["exact"])
         pa[q["kind"]].append(s["partial"])
 
+    # Majority-class baseline: the score of always emitting the single most
+    # frequent gold answer in the family. This is the acceptance gate, not the
+    # leakage score -- a leakage solver whose label masks are all zero degrades
+    # to a CONSTANT predictor, so its score measures gold-answer skew rather
+    # than any exploitable shortcut. The two must be read together: only a
+    # leakage score meaningfully above the majority baseline is real leakage.
+    gold = defaultdict(list)
+    for q in questions:
+        a = q["answer"]
+        gold[q["kind"]].append(tuple(a) if isinstance(a, list) else a)
+
     fam = {}
     for k in sorted(ex):
         chance = CHANCE.get(k, 1 / len(labels) if k in ("most_common", "least_common", "second_most") else 0.0)
+        counts = Counter(gold[k])
+        majority = max(counts.values()) / len(gold[k])
         fam[k] = {"n": len(ex[k]), "exact": sum(ex[k]) / len(ex[k]),
-                  "partial": sum(pa[k]) / len(pa[k]), "chance_floor": round(chance, 3)}
+                  "partial": sum(pa[k]) / len(pa[k]), "chance_floor": round(chance, 3),
+                  "majority_baseline": round(majority, 3),
+                  "distinct_answers": len(counts),
+                  "degenerate": bool(majority >= 0.9 and len(gold[k]) >= 5)}
     all_ex = [v for vs in ex.values() for v in vs]
     all_pa = [v for vs in pa.values() for v in vs]
     return {"set": d.name, "n_questions": len(all_ex),
@@ -168,8 +184,10 @@ def main():
         print(f"\n== {r['set']}  ({r['n_questions']} q)  "
               f"exact={r['exact']:.3f}  partial={r['partial']:.3f}")
         for k, v in r["families"].items():
-            print(f"   {k:<14} n={v['n']:<4} exact={v['exact']:.3f} "
-                  f"partial={v['partial']:.3f} chance={v['chance_floor']}")
+            flag = "  <== DEGENERATE" if v["degenerate"] else ""
+            print(f"   {k:<14} n={v['n']:<4} leak={v['exact']:.3f} "
+                  f"majority={v['majority_baseline']:.3f} distinct={v['distinct_answers']:<3} "
+                  f"chance={v['chance_floor']}{flag}")
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nreport -> {args.out}")
 

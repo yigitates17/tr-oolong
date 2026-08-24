@@ -4,7 +4,7 @@ from datasets import load_dataset
 PER_CLASS_CAP = 20000  # rows kept per sentiment class; lower = more balanced, smaller
 
 # match these EXACTLY to the label strings already in your existing Turkish review set
-STAR_TO_LABEL = {1: "olumsuz", 2: "olumsuz", 3: "notr", 4: "olumlu", 5: "olumlu"}
+STAR_TO_LABEL = {1: "olumsuz", 2: "olumsuz", 3: "nötr", 4: "olumlu", 5: "olumlu"}
 
 ds = load_dataset("turkish-nlp-suite/vitamins-supplements-reviews", split="train")
 df = (

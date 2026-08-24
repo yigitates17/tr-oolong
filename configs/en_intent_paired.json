@@ -8,15 +8,11 @@
   "min_class_support": 0,
   "seed": 42,
   "dirichlet_alpha": 5.0,
-  "haystack_target_tokens": [
-    50000,
-    100000
-  ],
   "haystacks_per_length": 5,
   "questions_per_haystack": 12,
   "proportion_unit": "auto",
   "reference_tokenizer": "Qwen/Qwen3-8B",
-  "out_dir": "en_intent_out",
+  "out_dir": "en_intent_paired_out",
   "question_templates": {
     "count": "How many utterances have the intent '{label}'? Answer with the number only.",
     "proportion": "What percentage of utterances have the intent '{label}'? Round to the nearest integer, answer with the number only.",
@@ -24,5 +20,9 @@
   },
   "pair_seed": true,
   "min_rank_margin": 0.03,
-  "min_answer_count": 10
+  "min_answer_count": 10,
+  "haystack_target_records": [
+    3000,
+    6000
+  ]
 }

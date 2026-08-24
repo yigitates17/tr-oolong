@@ -6,3 +6,14 @@ predictions_*.jsonl
 datasets/
 data/
 __pycache__/
+# Session handoff + private thesis material (public repo — keep these local)
+HANDOFF.md
+NEXT_SESSION.md
+thesis/
+proposal*.md
+*_proposal.md
+notes/
+scratch/
+
+# thesis proposal (private)
+thesis_proposal*.md

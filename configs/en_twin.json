@@ -7,7 +7,10 @@
   "min_words": 3,
   "seed": 42,
   "dirichlet_alpha": 1.0,
-  "haystack_target_tokens": [100000, 250000],
+  "haystack_target_tokens": [
+    50000,
+    100000
+  ],
   "haystacks_per_length": 5,
   "questions_per_haystack": 12,
   "proportion_unit": "auto",
@@ -17,9 +20,13 @@
     "count": "How many tweets are labeled '{label}'? Answer with the number only.",
     "proportion": "What percentage of tweets are labeled '{label}'? Round to the nearest integer, answer with the number only.",
     "entity_count": "How many tweets about '{entity}' are labeled '{label}'? Answer with the number only.",
-    "entity_argmax": "Which airline received the most '{label}' tweets? Answer with the airline name only.",
+    "entity_argmax": "Which of these airlines received the most '{label}' tweets: {candidates}? Answer with the airline name only.",
     "shift": "Did the share of '{label}' tweets rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
-    "top_k": "Which {k} airlines received the most '{label}' tweets? List them from most to fewest, separated by ' > '.",
-    "pairwise": "Which airline has more '{label}' tweets: '{entity_a}' or '{entity_b}'? Answer with the airline name only."
-  }
+    "top_k": "Among these airlines, which {k} received the most '{label}' tweets: {candidates}? List them from most to fewest, separated by ' > '.",
+    "pairwise": "Which airline has more '{label}' tweets: '{entity_a}' or '{entity_b}'? Answer with the airline name only.",
+    "most_common": "Which label is the most common among these tweets? Labels: {labels}. Answer with the label name only.",
+    "least_common": "Which label is the least common among these tweets? Labels: {labels}. Answer with the label name only.",
+    "second_most": "Which label is the second most common among these tweets? Labels: {labels}. Answer with the label name only."
+  },
+  "entity_candidates": 3
 }
