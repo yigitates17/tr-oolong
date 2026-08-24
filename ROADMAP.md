@@ -18,7 +18,8 @@ assume earlier ones are done.
 - [x] Nested-entity detection (entity families auto-omitted on the intent axis)
 - [x] Label-distribution families `most_common` / `least_common` / `second_most` (OOLONG typology)
 - [x] Multi-dataset build: `--config *.json` + combined `benchmark_index.json`
-- [x] `.jsonl` source support (OOLONG validated English splits usable directly)
+- [x] `.jsonl` source support (any {text, label} lines; ready for OOLONG's splits
+      if they are released)
 
 ## Phase 1 — v0.2.1 fixes and full rebuild
 
@@ -105,10 +106,12 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 
 - [x] `trivial_baseline.py` (regex/lexicon over label-token leakage) on all four sets
 - [x] Report the shortcut floor per set; quantify the EN label-leakage asymmetry
-- [x] Metric parity with OOLONG confirmed from the paper: they use
-      `score = 0.75^|y-ŷ|`, which `partial` implements unchanged. (Their scoring
-      script is not released, so the paper is the reference.)
-- [ ] Optionally add OOLONG's validated English splits as extra anchor sets (jsonl configs)
+- [x] Metric parity with OOLONG taken from the paper: they use `score = 0.75^|y-ŷ|`,
+      which `partial` implements unchanged. Their scoring script is **not released**,
+      so parity rests on the published formula, not on running their code. Say so.
+- [ ] Add OOLONG's validated English splits as extra anchor sets — **blocked**: not
+      released yet (their repo lists the splits, construction code and scoring
+      scripts as pending, checked 2026-08-25). The `.jsonl` loader is ready for them.
 - [ ] Frontier reference point: one haystack per axis via a **pinned API model**
       (record model string + access date); chat-UI runs are informal only
 

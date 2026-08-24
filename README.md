@@ -352,9 +352,10 @@ The leakage filter, nesting detection, proportion unit, length ceiling, entity
 jitter, and prior-neutral candidate selection are all automatic and need no
 per-source configuration.
 
-Sources may be `.parquet`, `.csv`, **or `.jsonl`** — which means OOLONG's own
-validated English splits (`{"input","label"}` lines) are usable directly as part
-of your M, giving their datasets plus your controls:
+Sources may be `.parquet`, `.csv`, **or `.jsonl`**, i.e. any file with a text
+column and a label column. Should OOLONG release its validated English splits
+(`{"input","label"}` lines), they would drop straight in as extra anchor sets with
+no code change:
 
 ```json
 { "source_path": "oolong/.../validated_data/agnews_validated.jsonl",
@@ -362,11 +363,8 @@ of your M, giving their datasets plus your controls:
   "language": "en", "reference_tokenizer": "Qwen/Qwen3-8B", "out_dir": "agnews_out" }
 ```
 
-By contrast, OOLONG requires a hand-written `EvalDataset` subclass, a validated
-split, and two hardcoded per-example token constants **per dataset**, registered
-in a `supported` list — so N+M datasets means N+M Python classes. The config-driven
-design is why "I don't want a small benchmark" is a scaling knob here, not a
-rewrite.
+Adding a source is a config file, so "more datasets" is a scaling knob rather than
+a rewrite.
 
 ## 8. Extending: adding a question type
 
@@ -388,14 +386,29 @@ A question family is logic, not data, so a new one is a small, localized change 
 The `most_common` / `least_common` / `second_most` families were added exactly this
 way. The invariant to preserve: every answer is computed twice and asserted equal.
 
-## What TR-OOLONG reuses from OOLONG
+## What TR-OOLONG takes from OOLONG, and what it does not
 
-TR-OOLONG *inherits* the OOLONG-synth recipe and *keeps its own generator* (which
-adds the Turkish handling, matched twin, entity axis, per-string Qwen length,
-dual-path ground truth, and reproducible manifests). From the OOLONG repo we reuse:
-its **validated English splits** as ready-made anchor datasets, its **scoring
-script** so the frozen metric provably matches theirs, and its **question typology**
-as the skeleton our families extend.
+**Checked against the OOLONG repository, 2026-08-25.** Its release checklist still
+lists the Oolong-synth construction code, the validated source splits, the scoring
+scripts and the analysis scripts as *not yet released*; the repo currently ships an
+example inference script. So there is no upstream pipeline to call, and nothing of
+theirs is vendored here.
+
+What is taken is **from the paper**:
+
+- the **construction principle** — build a long context by concatenating records
+  from an existing labelled dataset, and derive every answer from the labels, so
+  ground truth needs no annotation;
+- the **question typology** — counting and label-distribution questions
+  (`most_common`, `least_common`, `second_most`), which our ten families extend
+  with a proportion, a temporal-shift and four entity-relational types;
+- the **numeric metric** — `0.75^|y-ŷ|`, implemented from its definition in the
+  paper. Because their scoring script is unreleased, parity rests on the published
+  formula rather than on running their code, and this is stated rather than glossed.
+
+Everything else — the generator, Turkish handling, the matched twin, the entity
+axis, per-string tokenizer measurement, dual-path ground truth, the four
+acceptance gates and the reproducible manifests — is built here.
 
 ## 9. Repository layout
 
