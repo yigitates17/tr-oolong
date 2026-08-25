@@ -1,7 +1,12 @@
 # TR-OOLONG
 
 The first Turkish long-context **aggregation** benchmark, with a matched English
-twin built by the identical pipeline. It follows the OOLONG-synth construction
+twin built by the identical pipeline. The nearest multilingual long-context
+benchmark, ONERULER (arXiv:2503.01996), covers 26 languages and **Turkish is not
+one of them**; its two aggregation tasks are also lexical (most-frequent-word
+extraction), answerable by counting strings rather than by classifying each
+record. The claim here is therefore two gaps wide: the language, and
+latent-label aggregation rather than word counting. It follows the OOLONG-synth construction
 principle (Bertsch et al., 2025): concatenate examples from an existing *labeled*
 dataset into a 50K–1M-token haystack, then auto-generate distributional
 questions whose ground truth is computed exactly from the source labels — no
@@ -103,9 +108,11 @@ alone. Flipping one position is easy to randomize; permuting three independently
 is not — so exact ordering is intrinsically the hardest family to make
 prior-neutral. All of this is recorded, not hidden.
 
-The `most_common` / `least_common` / `second_most` family mirrors the OOLONG-synth
-counting typology (`most_common_label`, `least_common_label`, `second_most_freq`),
-so the "we implement their typology and extend it" claim is concrete. Each is a
+The `most_common` / `least_common` family mirrors the OOLONG-synth counting
+typology; their actual task identifiers are `MOST_FREQ`, `LEAST_FREQ`,
+`RELATIVE_FREQ`, `NUMERIC_ONE_CLASS` and `REPRESENTED_N_TIMES`. `second_most` is
+an **extension, not a mirror** — OOLONG has second-most *user* and second-most
+*date*, but no second-most *label*. Each is a
 single-question-per-haystack family (like `shift`): asking twice adds nothing.
 
 ## 3. Example questions (produced by the actual builder)
@@ -203,8 +210,82 @@ Every `vitamins_tr` `pairwise` question was answerable with no context at all,
 because the entity axis inherited the corpus's brand ranking while only the
 *label* axis was prior-randomized — and it got **worse with length**, since a
 longer haystack converges on corpus proportions. Fixed by per-haystack entity
-jitter plus prior-matched candidate sets (D9); all eight sets now pass, with no
-family above chance. `manifests/quality_audit.json` is the committed record.
+jitter plus prior-matched candidate sets (D9); all entity families now pass. One
+flag remains in the committed record and is stated rather than buried:
+`en_intent` `most_common` scores a prior of 0.50 against a chance of 0.20
+(p = 0.033, n = 10). By this section's own rule — per-family samples of 10–20
+cannot certify a family — that is a small-sample flag, not a demonstrated
+shortcut, and the `--certify` run at n in the hundreds is the governing test.
+`manifests/quality_audit.json` is the committed record.
+
+**(d) Surface style — the format solver** *(added 2026-08-25)*. A classifier using
+**only** text length, whether the record ends in a period, and whether it contains
+`!`/`?` — no words, no comprehension. It exists because the corpus, not the
+builder, can encode the label in formatting:
+
+| corpus | style-solver lift over majority |
+|---|---|
+| Turkish brand reviews (We-Bears) | **+12.0 pts** |
+| Airline tweets (en twin) | +1.7 pts |
+| `vitamins_tr` | +4.8 pts |
+| `amazon_hpc_en` | +6.8 pts |
+
+In We-Bears, `olumlu` records end in a period 99.2% of the time and average 9.2
+words; `olumsuz` records 45.2% and 33.1 words. Note also that **0 of 262
+duplicate-text groups carry conflicting labels**, against 17.1% for the
+human-annotated airline twin — the signature of programmatic rather than human
+labelling.
+
+This does not make the benchmark grep-solvable: aggregation is still required.
+What it breaks is the **cross-lingual** comparison, because the shortcut is
+7× stronger on the Turkish half than on its English twin, so a model could score
+well on Turkish by measuring sentence lengths instead of reading Turkish.
+**Consequence:** the supplement pair (`vitamins_tr` ↔ `amazon_hpc_en`) is the
+primary cross-lingual review pair — same domain, author-assigned star labels,
+style-matched (+4.8 vs +6.8). The We-Bears pair ships as a secondary robustness
+check with this caveat attached.
+
+**(d) Surface format — the style solver** (`scripts/style_solver.py`). Classifies
+every record using **only** length, whether it ends in a period, and whether it
+contains `!`/`?` — no words at all — then aggregates and answers the real
+questions with the frozen scorer. It exists because none of (a)–(c) can see a
+corpus that encodes its labels in *formatting*: the leakage solver looks for
+label words, the majority baseline at answer skew, the prior oracle at corpus
+statistics.
+
+The classic case is "long review = negative". It is present, mildly, in most
+review corpora, and severely in one:
+
+| source | longest class | shortest class | spread |
+|---|---|---|---|
+| Turkish brand reviews | olumsuz 33.1 w | olumlu 9.1 w | **3.6x** |
+| `vitamins_tr` | olumsuz 15.0 w | olumlu 9.8 w | 1.5x |
+| Airline tweets | negative 19.8 w | positive 14.1 w | 1.4x |
+| `amazon_hpc_en` | **positive** 46.9 w | negative 41.8 w | 1.1x |
+
+A format-solvable corpus still yields a valid aggregation task — the model must
+classify every record and add up the results either way. What it stops being is a
+test of reading the *language*. So the number to watch is not either half's lift
+but **the gap between the twin's halves**, because an asymmetric bias means a
+model can score on the Turkish half by measuring sentence lengths:
+
+| pair | asymmetry |
+|---|---|
+| intent, record-matched | **0.015** |
+| review pair (b), supplements | **0.017** |
+| intent, token-matched | 0.033 |
+| review pair (a), brand reviews / airline | **0.108** |
+
+Pair (b) and the record-matched intent pair are the clean ones; pair (a) is the
+outlier and is labelled as secondary in `DATACARD.md` for this reason. All eight
+sets pass the gate (no set exceeds +0.15 mean lift over majority), and
+`manifests/style_audit.json` is the committed record.
+
+**One family fails this solver everywhere.** `shift` is the only family with a
+positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
+`vitamins_tr`), +0.100 (`en_intent`). Its majority baseline is already the
+highest in the suite (mean 0.61; 0.73 on `tr_oolong`). A binary rose/fell over
+positional halves is simply too coarse. See §10.
 
 **Questions must be answerable only by aggregating.** The same audit measures how
 much of the haystack determines each answer. The median `tr_oolong` `pairwise`
@@ -386,31 +467,157 @@ A question family is logic, not data, so a new one is a small, localized change 
 The `most_common` / `least_common` / `second_most` families were added exactly this
 way. The invariant to preserve: every answer is computed twice and asserted equal.
 
-## What TR-OOLONG takes from OOLONG, and what it does not
+## 9. OOLONG vs TR-OOLONG — a full comparison
 
-**Checked against the OOLONG repository, 2026-08-25.** Its release checklist still
-lists the Oolong-synth construction code, the validated source splits, the scoring
-scripts and the analysis scripts as *not yet released*; the repo currently ships an
-example inference script. So there is no upstream pipeline to call, and nothing of
-theirs is vendored here.
+**Checked against the OOLONG paper and repository, 2026-08-25.** Its release
+checklist still lists the Oolong-synth construction code, the validated source
+splits, the scoring scripts and the analysis scripts as not yet released; the
+repo currently ships an example inference script. So there is no upstream
+pipeline to call, and nothing of theirs is vendored here. What is taken is from
+the paper.
 
-What is taken is **from the paper**:
+### Scale and shape
 
-- the **construction principle** — build a long context by concatenating records
-  from an existing labelled dataset, and derive every answer from the labels, so
-  ground truth needs no annotation;
-- the **question typology** — counting and label-distribution questions
-  (`most_common`, `least_common`, `second_most`), which our ten families extend
-  with a proportion, a temporal-shift and four entity-relational types;
-- the **numeric metric** — `0.75^|y-ŷ|`, implemented from its definition in the
-  paper. Because their scoring script is unreleased, parity rests on the published
-  formula rather than on running their code, and this is stated rather than glossed.
+| | OOLONG | TR-OOLONG |
+|---|---|---|
+| languages | English | **Turkish + record-matched English** |
+| splits | `oolong-synth` (6.5K q), `oolong-real` (10.8K q) | 8 sets, **1,234 questions**, 105 haystacks |
+| sources | 10 classification datasets (Spam, TREC-QC, AGNews, App Reviews, Pavlick Formality, IMDB, HiTZ Negation, Yahoo Topics, MultiNLI, Metaphors) + CRD3 D&D transcripts | 6 corpora over 2 axes (MASSIVE intent; four review/sentiment sets) |
+| label space | 2–10 classes | **3 and 48** |
+| context lengths | synth: powers of 2, 1K–4M (reporting focused at 8K–128K); real: 55K–1.3M | **50K / 100K / 250K / 500K / 750K / 1M** |
+| largest built haystack | — | **986,533 tokens** (`amazon_hpc_en`), 22,259 records |
+| records per haystack | not reported | 1,523 – 22,259 |
+| entity axis | synthetic user IDs attached to records | **real brands and airlines**, orthogonality measured (normalised MI 0.022 on `vitamins_tr`) |
+| temporal axis | **real dates, month/year granularity** | positional halves only |
+| numeric metric | `0.75^\|y-ŷ\|` | same, **plus** `relative` = `max(0, 1 - \|y-ŷ\|/max(y,1))` |
+| shortcut auditing | not reported | **4 solvers, committed manifests** |
+| ground truth | derived from source labels | same, **computed twice by independent code paths and asserted equal** |
 
-Everything else — the generator, Turkish handling, the matched twin, the entity
-axis, per-string tokenizer measurement, dual-path ground truth, the four
-acceptance gates and the reproducible manifests — is built here.
+### Question families, one by one
 
-## 9. Repository layout
+`✓` implemented, `✗` absent, `≈` present in weaker form, `+` ours only.
+
+| OOLONG-synth template | TR-OOLONG family | | note |
+|---|---|:---:|---|
+| **Counting** | | | |
+| Which label is the most common? | `most_common` | ✓ | candidates always named, so the question is well posed |
+| Which label is the least common? | `least_common` | ✓ | needed a class-support floor to de-trivialise (D3) |
+| How many points have label X? | `count` | ✓ | counts here are ~1,000 vs ~100 in OOLONG |
+| Is label A more/less/equally common than B? | — | ✗ | **gap**: our `pairwise` compares *entities*, not labels |
+| **User** | | | |
+| Among these users, who has most of label X? | `entity_argmax` | ✓ | entity is a real brand, not synthetic metadata |
+| Who has more of label X, A or B? | `pairwise` | ✓ | |
+| Filter by user subset | `entity_count` | ✓ | |
+| Which user appears most / second-most often? | — | ✗ | **gap**: no label-free entity-frequency family |
+| **Timeline** (OOLONG's hardest group) | | | |
+| Was label X more common before or after date T? | `shift` | ≈ | **weaker**: positional halves, not real dates |
+| Which date appears most / second-most often? | — | ✗ | **gap**: no date field in any source |
+| How many dates appear exactly *n* times? | — | ✗ | **gap** |
+| In which month did label A first exceed B? | — | ✗ | **gap** |
+| For how many months is A more frequent than B? | — | ✗ | **gap** |
+| For how many months is X the single most frequent? | — | ✗ | **gap** |
+| **Ours only** | | | |
+| — | `proportion` | + | normalised share (percent, or per-mille when >10 classes) |
+| — | `second_most` | + | OOLONG has second-most *user* and *date*, not *label* |
+| — | `top_k` | + | ordered top-*k* entities; chance 1/60 |
+
+Their task identifiers are `MOST_FREQ`, `LEAST_FREQ`, `RELATIVE_FREQ`,
+`NUMERIC_ONE_CLASS`, `REPRESENTED_N_TIMES`. `second_most` is an **extension, not
+a mirror**.
+
+### Where TR-OOLONG is harder, and where it is easier
+
+Harder on three axes. The label space reaches **48 classes** against their 2–10.
+Haystacks reach **1M tokens and 22,259 records** against a reporting focus at
+128K. And counts are large enough that their partial-credit metric degenerates:
+with a median `count` answer near 1,000 and a maximum of 12,225, `0.75^50 ≈ 6e-7`,
+so `partial` collapses to exact match and a model off by 2% scores the same as
+one off by 100%. That is why `relative` was added, and why both are reported.
+
+**Easier on one axis, and it is the one they say matters most.** OOLONG reports
+timeline questions as consistently their hardest type. TR-OOLONG reduces that
+whole group to a single binary `shift` over positional halves, which has the
+weakest floor in the suite (mean majority baseline 0.61, 0.73 on `tr_oolong`) and
+is the only family the format solver beats (§4d). **Closing this is the single
+highest-value extension.** It is blocked on data, not on code: `app_reviews` and
+Amazon-Reviews-2023 carry real dates, but no Turkish source examined does, so a
+*parallel* timeline axis is not currently buildable. See `PAIRING_SEARCH.md`.
+
+## 10. How the pipeline was built
+
+The order below is the actual order, and each step exists because the previous
+one turned out to be insufficient. The method generalises to any language pair.
+
+1. **Pick a labelled corpus, not a text corpus.** The whole design rests on
+   ground truth being derivable, so a raw corpus (Havadis, 745K Turkish news
+   articles) is useless no matter how large. The label *is* the answer key.
+2. **Screen the source before building anything.** `--audit` reports class
+   balance, the entity axis, the derived length ceiling, and the surface shape
+   per class. A source that fails here cannot be rescued later.
+3. **Derive the ceiling, do not choose it.** With *K* classes, a class can top a
+   ranking only if the pool can supply more than *R/K* of it, so
+   `R_max = smallest_class × K` records. Exceeding it makes ranking families
+   unanswerable. The builder computes it, warns above 0.85x, and records it.
+4. **Drop the tail.** Classes below `min_class_support` are removed, because a
+   class too small to be sampled competitively is deterministically rarest in
+   every haystack and `least_common` becomes free (D3).
+5. **Filter leakage as enforcement, not assumption.** Any record containing any
+   label's surface form is dropped, over the whole label space. The assumption
+   that this was unnecessary was false: 0.84% leaking records were enough to
+   give a substring solver 73% on `most_common` against 33% chance.
+6. **Randomise the prior.** Per-haystack label proportions are drawn from a
+   Dirichlet, and entity candidate sets are prior-matched and jittered, so the
+   answer cannot be recovered from corpus-level statistics.
+7. **Compute every answer twice.** Two independent code paths, asserted equal.
+   This is what makes "no manual annotation" safe rather than merely cheap.
+8. **Run four solvers and ship only what survives.** Leakage, majority skew,
+   corpus priors, surface format. Each was added *after* a version of the
+   benchmark was found solvable by it. A family that fails on a given source is
+   switched off for that source and the omission is recorded, not hidden.
+9. **Certify the generator, not the sample.** At n = 13 the `tr_oolong`
+   `pairwise` prior measured 0.85; at n = 235 it measured 0.53. Per-family
+   samples of 10–20 cannot certify anything, so `--certify` runs on hundreds of
+   deduplicated draws.
+10. **Freeze the scorer before any model runs**, and make every build
+    byte-identical from a single seed, with a full manifest.
+
+**For a new language pair, steps 1–2 are the entire difficulty.** The code is
+language-agnostic; finding two corpora that match on task, label provenance,
+record length and surface shape is the work.
+
+## 11. Choosing a twin: what a good pairing looks like
+
+The cross-lingual claim is only as good as the pairing. Four criteria, in order
+of how often they are the binding constraint:
+
+1. **Same label provenance.** Both halves' labels must be produced the same way.
+   Author-assigned star ratings on both sides is the strongest available option,
+   because the person who wrote the text assigned the label.
+2. **Comparable record length.** A 4x length mismatch changes what "one chunk"
+   means and interacts with every compression measurement.
+3. **Comparable surface shape.** Measured by §4d. The *gap* matters, not the level.
+4. **Both halves reach the same length tiers.** `R_max = smallest_class × K`.
+
+### Worked examples
+
+| pairing | provenance | length | style gap | verdict |
+|---|---|---|---|---|
+| **MASSIVE tr-TR ↔ en-US** | identical, same utterances | identical by construction | **0.017** | **best available.** The only true record-matched twin; 110/120 questions share a gold answer |
+| **`vitamins_tr` ↔ `amazon_hpc_en`** | author's stars, both | 12.1 vs 44.8 w (3.7x) | **0.015** | **ships as primary review pair.** Length mismatch is its one weakness |
+| Turkish brand reviews ↔ airline tweets | undocumented vs CrowdFlower humans | 24.2 vs 15.7 w | **0.108** | **secondary only.** Mismatched provenance and a 7x surface-shape asymmetry |
+| MüşteriYorumları ↔ Amazon Home & Kitchen | author's stars, both | 13.2 vs 71.8 w (5.4x) | 0.106 | rejected: no Amazon category is terse enough |
+| `vitamins_tr` ↔ `app_reviews` | author's stars, both | 12.1 vs 18.8 w (1.6x) | 0.021 | best length match found, but no better than the pair in use |
+| SIB-200 tur ↔ eng | identical, parallel | identical | — | **structurally dead**: 1,004 rows total, ~14K token ceiling |
+| XNLI tr ↔ en | identical, parallel | identical | — | **structurally dead**: 7,500 human-translated rows; the 393K train split is machine-translated |
+
+**The lesson from the last two rows is worth stating plainly.** Parallel corpora
+give a record-matched twin for free, which is the strongest possible design, but
+human translation is expensive so they are all small, and this benchmark needs a
+large pool for independent draws at 100K–1M tokens. MASSIVE, at 16.5K parallel
+utterances, is the largest such Turkish resource in existence and it is already
+used here. Full search in `PAIRING_SEARCH.md`.
+
+## 12. Repository layout
 
 ```
 tr-oolong/
@@ -444,7 +651,7 @@ haystacks are rebuilt locally from the public source, byte-identically. Full
 table in `DATACARD.md`. `LICENSE` (MIT) covers **code only**.
 
 
-## 10. Limitations, stated before anyone asks
+## 13. Limitations, stated before anyone asks
 
 **Contamination resistance (a strength, stated because it will be questioned).**
 Every source corpus is public and almost certainly in the pretraining data of any
@@ -457,13 +664,38 @@ model nothing about how many `play_music` utterances landed in haystack
 contamination-resistant by construction — unlike a QA benchmark, where the answer
 is a corpus fact.
 
-**Source label noise is the real accuracy ceiling, and it is not yet measured.**
-Every answer is exact *with respect to the haystack*, but the haystack's labels
-come from the source corpus. If those labels are ~90% accurate, a model whose
-classification is *better* than the annotators' will be scored wrong. `--audit`
-writes a 200-row slice per set for exactly this; the numbers belong in
-`DATACARD.md` and are not there yet. **This is the benchmark's largest open
-weakness.**
+**Source label noise is a per-family ceiling, and the rate itself is still
+unmeasured.** Every answer is exact *with respect to the haystack*, but the
+haystack's labels come from the source corpus, so a model classifying *better*
+than the annotators is scored wrong. What has been settled is how much that
+matters, which turns out to be family-dependent. Under the OOLONG metric
+`0.75^|y-ŷ|`, with symmetric flips at rate ε, a semantically perfect oracle scores:
+
+| family | ε=2% | ε=5% | ε=10% |
+|---|---|---|---|
+| `count`, N=3,919 (100K tier) | 0.36 | 0.25 | 0.19 |
+| `count`, N=9,873 (500K tier) | 0.26 | 0.18 | 0.13 |
+| `proportion` (percent), N=3,919 | — | 0.95 | 0.92 |
+| `most_common` / `pairwise` / `top_k` | P(answer flips) < 1e-6 at every N and ε tested |
+
+Ranking families are effectively immune: the builder enforces a 10% gold margin
+while noise drift grows only as √(Nε). `proportion` is robust. **Raw `count` is
+not** — at the 100K tier even 2% noise caps a perfect model at 0.36, which is a
+second, independent reason to read `relative` rather than `partial`. So the open
+item is narrower than before: measure ε per corpus (n = 400 gives ±3 pts at
+ε ≈ 0.10) and record it in `DATACARD.md`. Headline results are reported on
+ranking and `proportion`.
+
+**`shift` is the weakest family and should be read with that in mind.** It is a
+binary rose/fell over positional halves, so its floor is the highest in the suite
+(mean majority baseline 0.61; 0.73 on `tr_oolong`), and it is the only family the
+surface-format solver beats: +0.400 on `amazon_hpc_en`, +0.300 on `en_twin` and
+`vitamins_tr`, +0.100 on `en_intent` (§4d). Length correlates with label, and
+length also correlates with position once drift is injected, so format alone
+partly recovers the direction. The fix is a real dated timeline axis of the kind
+OOLONG has, which is blocked on data rather than code: no Turkish source examined
+carries dates (see §9 and `PAIRING_SEARCH.md`). **Until then, do not report
+`shift` as a headline result.**
 
 **Haystacks within a length tier are not independent.** They are drawn
 independently from the same pool, so at the longest tiers — where one haystack

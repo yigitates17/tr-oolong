@@ -534,3 +534,81 @@ advertised size looked identical to a correct one. Both are recorded now.
   class in stream order rather than sampling with a seed. Reproducible in
   practice — the rebuild matched byte-for-byte — and guarded by
   `source_hash_first1000` in the manifest, but it is not a *guaranteed* sample.
+
+
+## D15 — A fourth solver, because formatting can hand over the label
+
+**Problem.** Solvers (a)–(c) look for the label in the *words* (leakage), in the
+*answer distribution* (majority skew), and in *corpus statistics* (prior oracle).
+None of them can see a corpus that encodes its label in **shape**. The classic
+case is "long review = negative", and it is real: in the Turkish brand-review set
+`olumsuz` averages 33.1 words and ends in a period 48% of the time, while
+`olumlu` averages 9.1 words and ends in a period 99% of the time — a 3.6x length
+spread.
+
+**Why it matters, and why it is not a validity failure.** A format-solvable
+corpus still yields a genuine aggregation task: the model must classify every
+record and combine the results either way. What it stops being is a test of
+reading the *language*. That is fatal only for the cross-lingual claim, and only
+when the effect is **asymmetric across the twin** — then a model can score on the
+Turkish half by measuring sentence lengths rather than by understanding Turkish.
+
+**Decision.** `scripts/style_solver.py` classifies each record from three
+features — word-count bucket, ends-with-period, contains `!`/`?` — learned on the
+source pool and never on the haystack, then aggregates and answers with the
+frozen scorer. It reports lift over each family's majority baseline, and the
+per-pair asymmetry. The builder's `--audit` reports the per-class surface shape
+so a source is screened before it is ever built, warning above a 2.0x spread.
+
+**Measured.** All eight sets pass (no set exceeds +0.15 mean lift). Asymmetries:
+record-matched intent 0.015, supplement pair 0.017, token-matched intent 0.033,
+brand-reviews/airline pair **0.108**.
+
+**The finding that cost the most to learn.** Source-level style lift does **not**
+predict question-level exploitability. The brand-review set has a +0.120
+source-level lift against its twin's +0.017, a 7x gap, yet its question-level
+mean lift is −0.008 — because prior-randomised sampling (D9) absorbs it. A
+replacement pair was built and tested on the strength of the source-level number
+alone, and it moved the asymmetry from 0.108 to 0.106, i.e. not at all
+(`MUSTERI_TRIAL.md`). **Always run a solver against the built questions.**
+
+**Consequence for `shift`.** It is the only family the solver beats anywhere:
++0.400 on `amazon_hpc_en`, +0.300 on `en_twin` and `vitamins_tr`, +0.100 on
+`en_intent`. Length correlates with label, and length correlates with position
+once drift is injected, so format partly recovers the direction. `shift` is
+therefore not a headline family until a real dated timeline axis replaces it.
+
+## D16 — Choosing a twin, and why the search stopped where it did
+
+**Criteria, in order of how often they bind:** identical label provenance;
+comparable record length; comparable surface shape (D15), judged on the *gap*
+rather than the level; and both halves reaching the same length tiers
+(`R_max = smallest_class × K`).
+
+**What was searched** (`PAIRING_SEARCH.md`): eight Amazon-Reviews-2023
+categories, three terse English review corpora, two parallel multilingual
+corpora, and five Turkish candidate sources from `ytu-ce-cosmos` and
+`turkish-nlp-suite`.
+
+**Result: the pair in use needs no replacement.** `vitamins_tr` ↔
+`amazon_hpc_en` sits at an asymmetry of 0.015, which is noise. Every Amazon
+category is 3.5–6.5x too long against Turkish review sets and carries +0.05 to
++0.10 of source-level style signal, because "long review = negative" is universal
+on Amazon. `sealuzh/app_reviews` is the best-matched English corpus found (18.8
+mean words, +0.000 style lift, 392 apps at entity MI 0.044, reaches 750K, and it
+is one of OOLONG's own ten sources) but substituting it moves the asymmetry to
+0.021, marginally worse.
+
+**Why parallel corpora were rejected, and why this is structural.** SIB-200
+(Turkish/English, 7 classes, FLORES-parallel) has 1,004 rows in total, a ceiling
+near 14K tokens. XNLI's human-translated portion is 7,500 rows, which one 250K
+haystack would consume entirely; its 392,702-row training split is
+machine-translated, the exact confound the morphology claim must avoid. Human
+translation is expensive, so parallel corpora are small, and this benchmark needs
+a large pool for independent draws. **MASSIVE, at 16.5K parallel utterances, is
+the largest parallel Turkish resource that exists, and it is already the intent
+axis.** This is a ceiling on the design, not a gap in the search.
+
+**Where `app_reviews` is still worth taking.** It carries a real `date` column
+(2014–2017), which is the substrate for the timeline axis TR-OOLONG lacks. That
+build is blocked on a *Turkish* dated source, which no examined corpus provides.

@@ -50,7 +50,9 @@ is no manual answer annotation.
   README §4.
 - License: MASSIVE is CC-BY-4.0. Verify at release time.
 - Proportion unit: per-mille (label space > 10).
-- Label noise: [ ] to be measured on the 200-row self-annotation slice.
+- Label noise: [ ] rate still to be measured on the 200-row self-annotation slice,
+  but its *consequence* is now bounded — see "Label noise is a per-family ceiling"
+  below. MASSIVE is professionally annotated, so the expected rate is low.
 
 ## Review / sentiment axis (built, not yet distributed)
 
@@ -92,7 +94,9 @@ maximum length is derived from its smallest class). Proportion unit: percent.
   Amazon-Reviews-2023 review text is governed by **Amazon's Conditions of Use**,
   not by the repository license: its text is **withheld** from the release. See
   the licensing table below.
-- Label noise: [ ] to be measured.
+- Label noise: [ ] rate still to be measured; both halves are author-assigned
+  star ratings, which is the strongest provenance available (the person who wrote
+  the text chose the label). See the per-family ceiling below.
 
 
 ## Licensing — verified 2026-08-24
@@ -161,3 +165,70 @@ the per-set question counts are not mistaken for a bug.
 - Drift: one label is over-represented in the second half so `shift` questions
   have detectable signal; the target and a detectability flag are recorded.
 - Reproducibility: single string seed; byte-identical rebuilds; full manifest.
+
+## Label noise is a per-family ceiling, not a global one
+
+Ground truth is the source label, so a wrong label does not make an answer wrong
+with respect to the haystack. What it does is cap the score a semantically
+perfect model could reach. That cap is strongly family-dependent. Under the
+OOLONG metric `0.75^|y-ŷ|`, with symmetric flips at rate ε, an oracle that
+classifies every record correctly by human judgement but disagrees with the
+dataset label at rate ε scores:
+
+| family | ε=2% | ε=5% | ε=10% | ε=20% |
+|---|---|---|---|---|
+| `count`, N=1,531 (smallest tier) | 0.46 | 0.35 | 0.27 | 0.20 |
+| `count`, N=3,919 (100K tier) | 0.36 | 0.25 | 0.19 | 0.14 |
+| `count`, N=9,873 (500K tier) | 0.26 | 0.18 | 0.13 | 0.09 |
+| `proportion` (percent), N=3,919 | — | 0.95 | 0.92 | — |
+| `most_common` / `pairwise` / `top_k` | P(answer flips) < 1e-6 at every N and ε tested | | | |
+
+Ranking families are effectively immune: the builder enforces a 10% gold margin
+while noise drift grows only as √(Nε). Normalised `proportion` is robust. Raw
+`count` is not — at the 100K tier even 2% noise caps a perfect model at 0.36,
+which is a second and independent reason to read `relative` rather than
+`partial`. **Headline results should be reported on ranking and `proportion`.**
+
+Measuring ε itself remains open. n = 400 per corpus gives ±3 points at ε ≈ 0.10.
+
+## Surface shape per source
+
+Measured by `scripts/style_solver.py` (README §4d). "Spread" is the ratio of the
+longest class's mean word count to the shortest's.
+
+| source | label provenance | length spread | mean style lift |
+|---|---|---|---|
+| MASSIVE tr-TR / en-US | professional annotation, parallel | — | −0.121 / −0.088 |
+| `vitamins_tr` | author's own 1–5 stars | 1.5x | **+0.007** |
+| `amazon_hpc_en` | author's own 1–5 stars | 1.1x | −0.008 |
+| Turkish brand reviews | **undocumented** | **3.6x** | −0.008 |
+| Airline tweets | CrowdFlower human annotation | 1.4x | −0.116 |
+
+Two notes on the brand-review set. Its 3.6x length spread is the largest of any
+source here (`olumsuz` averages 33.1 words and ends in a period 48% of the time;
+`olumlu` averages 9.1 words and ends in a period 99% of the time). And **0 of its
+262 duplicate-text groups carry conflicting labels**, against 17.1% for the
+human-annotated airline set — the signature of programmatic rather than human
+labelling. Its label provenance is undocumented upstream.
+
+Neither fact invalidates the set: at question level its mean style lift is
+−0.008, because prior-randomised sampling absorbs most of the source-level
+signal. But the **twin asymmetry** for that pair is 0.108, against 0.015 for the
+supplement pair and 0.017 for the record-matched intent pair. Source-level
+shortcut measurements do not predict question-level ones, and the pair-level gap
+is the figure that bears on the cross-lingual claim.
+
+## Which pair is primary, and why
+
+- **Primary cross-lingual review pair: `vitamins_tr` ↔ `amazon_hpc_en`.**
+  Same domain, author-assigned star labels on both sides, an orthogonal entity
+  axis on the Turkish half (normalised MI 0.022 after the `min_entity_examples`
+  filter), and a twin asymmetry of 0.015. Its one weakness is a 3.7x record
+  length mismatch.
+- **Secondary: Turkish brand reviews ↔ airline tweets.** Retained as a
+  cross-corpus robustness check, with the provenance and asymmetry caveats above
+  attached. It should not carry a cross-lingual claim on its own.
+- **Strongest twin overall is the intent axis**, where TR and EN are the same
+  utterances. Nothing in the review axis matches that, and nothing can: parallel
+  corpora large enough for 100K–1M-token haystacks do not exist for Turkish
+  beyond MASSIVE's 16.5K utterances. See `PAIRING_SEARCH.md` for the full search.

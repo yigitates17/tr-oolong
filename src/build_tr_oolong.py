@@ -419,6 +419,38 @@ def _audit_thresholds(df: pl.DataFrame, cfg: Config, count_tokens, tok_per_rec: 
         print(f"  [!] smallest class has {min(cnt)} rows -- set min_class_support to drop "
               f"the tail, or least_common becomes answerable from corpus priors (D3)")
 
+    # --- surface shape per class (D15) -----------------------------------
+    # A corpus can hand the label away through formatting alone -- the classic
+    # case being "long review = negative". None of the other three solvers sees
+    # this: the leakage solver looks for label words, the majority baseline at
+    # answer skew, the prior oracle at corpus statistics. Surfacing it here means
+    # a source is screened before it is ever built, and the twin's number is the
+    # one that matters, because an asymmetric bias confounds the cross-lingual
+    # comparison. Confirm with scripts/style_solver.py after --build.
+    shape = (
+        df.with_columns(pl.col("text").str.split(" ").list.len().alias("_w"))
+        .group_by("label")
+        .agg(
+            pl.col("_w").mean().alias("mean_w"),
+            pl.col("_w").median().alias("med_w"),
+            pl.col("text").str.contains(r"\.$").mean().alias("ends_period"),
+            pl.col("text").str.contains(r"[!?]").mean().alias("excl_q"),
+        )
+        .sort("mean_w", descending=True)
+    )
+    print("\n--- surface shape per class (does formatting give the label away?) ---")
+    print(f"  {'label':<24}{'mean_w':>8}{'med_w':>7}{'ends .':>8}{'!/?':>7}")
+    for r in shape.to_dicts():
+        print(f"  {str(r['label'])[:23]:<24}{r['mean_w']:8.1f}{r['med_w']:7.0f}"
+              f"{r['ends_period']:8.2f}{r['excl_q']:7.2f}")
+    mw = shape["mean_w"].to_list()
+    spread = max(mw) / min(mw) if min(mw) > 0 else float("inf")
+    print(f"  length spread (max/min)  : {spread:.1f}x")
+    if spread >= 2.0:
+        print(f"  [!] {spread:.1f}x length spread -- the label is partly readable from length "
+              f"alone. Run scripts/style_solver.py after --build, and compare the twin's "
+              f"figure: an ASYMMETRIC bias confounds the cross-lingual claim (D15)")
+
     if cfg.entity_col:
         ev = df.group_by("entity").len().sort("len", descending=True)
         ec = ev["len"].to_list()

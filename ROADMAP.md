@@ -142,7 +142,12 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       sit on the same constant/linear/quadratic ladder as the published numbers.
       Recommended. Note the naming clash: the current `pairwise` family is *not*
       OOLONG-Pairs and should probably be renamed to avoid confusion.
-- [ ] **Source label noise** — the unmeasured accuracy ceiling. `--audit` writes a
+- [x] **Source label noise — consequence bounded** (2026-08-25). It is a
+      *per-family* ceiling, not a global one: ranking families are effectively
+      immune, `proportion` scores 0.92 at ε=10%, and raw `count` is capped at
+      0.36 by even 2% noise at the 100K tier. Table in `DATACARD.md`. Headline
+      results go on ranking and `proportion`.
+- [ ] **Measure ε itself** — n=400 per corpus gives ±3 pts at ε≈0.10. `--audit` writes a
       200-row slice per set; needs a native speaker (i.e. you). Highest-value
       open item: it is the first thing a jury will ask about label-derived truth.
 
@@ -153,3 +158,21 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - The **matched twin** (identical pipeline, parallel corpus intent utterances)
   isolates Turkish-vs-English degradation from pipeline artifacts.
 - No fine-tuning anywhere in the thesis; hardware constraint is a single V100 16 GB.
+
+
+## Phase 5 — opened 2026-08-25
+
+- [x] Fourth acceptance gate: `scripts/style_solver.py` (D15). All 8 sets pass;
+      `manifests/style_audit.json` committed.
+- [x] Per-class surface-shape diagnostic in `--audit`, warning above 2.0x spread.
+- [x] Twin search completed and closed (D16, `PAIRING_SEARCH.md`). The primary
+      pair needs no replacement. **Do not re-run this search.**
+- [ ] **Dated timeline axis — the highest-value open item.** OOLONG has six
+      timeline families and reports them as its hardest type; TR-OOLONG has one
+      binary `shift`, which is also the only family the format solver beats.
+      Blocked on data: `app_reviews` and Amazon-Reviews-2023 carry dates, no
+      examined Turkish source does. **Finding a dated labelled Turkish corpus is
+      the unblocking step.**
+- [ ] Label-vs-label comparison family (`Is A more common than B?`) — a cheap
+      OOLONG family we do not implement; our `pairwise` compares entities.
+- [ ] Entity-frequency family (`which entity appears most often?`, label-free).
