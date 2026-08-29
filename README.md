@@ -12,6 +12,12 @@ dataset into a 50K–1M-token haystack, then auto-generate distributional
 questions whose ground truth is computed exactly from the source labels — no
 manual annotation.
 
+**Where to start.** [`COMPARISON.md`](COMPARISON.md) explains OOLONG and
+TR-OOLONG side by side with real questions from both, for a reader without the
+code. §3 below shows every data source with real rows and how its labels are
+derived. [`DATASET_REVIEW.md`](DATASET_REVIEW.md) records every Turkish source
+considered and why each was kept or rejected.
+
 > TR-OOLONG adopts the OOLONG-synth construction principle — distributional
 > questions computed exactly from source labels — and extends it cross-lingually
 > with a matched-twin design, a broader question typology, and a
@@ -115,7 +121,194 @@ an **extension, not a mirror** — OOLONG has second-most *user* and second-most
 *date*, but no second-most *label*. Each is a
 single-question-per-haystack family (like `shift`): asking twice adds nothing.
 
-## 3. Example questions (produced by the actual builder)
+## 3. The data sources, one by one
+
+Six corpora feed eight sets. This section shows what each one actually looks
+like, and exactly how its raw fields become the label the benchmark counts.
+Read it before anything else; every design decision downstream follows from
+these tables.
+
+**The rule that applies to all of them:** the label is never invented here. It is
+either already in the source, or derived from a rating the *writer of the text*
+supplied. Nothing is annotated by hand, and no model assigns any label.
+
+---
+
+### 3.1 `vitamins_tr` — Turkish supplement reviews
+
+Source: `turkish-nlp-suite/vitamins-supplements-reviews` (Vitaminler.com),
+CC-BY-SA-4.0, fetched by `scripts/vitamins.py`.
+
+**Raw rows as they arrive** (4 columns):
+
+| product_name | brand | star | text |
+|---|---|---|---|
+| Vitamin C 500 Mg Takviye Edici Gıda | Venatura | 5 | *güvenilir marka* |
+| Plus Efervesan 3'lü Paket | Sambucol | 5 | *Hızlı kargo. Güzel paketlenmiş. Orijinal ürünler.* |
+| Damla 30 ml | Sidefer | 5 | *Hızlı gönderi kaliteli paketleme* |
+
+**Raw star distribution** — heavily skewed, which is why we stratify:
+
+| star | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| rows | 10,359 | 3,950 | 8,734 | 19,321 | **156,226** |
+
+**How stars become labels.** A fixed map, applied identically to the English
+twin so the two halves stay comparable:
+
+| star | label |
+|---|---|
+| 1, 2 | `olumsuz` (negative) |
+| 3 | `nötr` (neutral) |
+| 4, 5 | `olumlu` (positive) |
+
+Then each class is capped at 20,000 rows, because 5-star reviews would otherwise
+be 73% of the pool. Final: 43,043 rows — `olumlu` 20,000, `olumsuz` 14,309,
+`nötr` 8,734.
+
+**After the fetch script** (3 columns — `entity` is the brand):
+
+| text | label | entity |
+|---|---|---|
+| *Indirim zamani buradan alinabilir gayet guzel paketlemesi de* | `olumlu` | Solgar |
+| *Başkası İçin aldım ama sürekli kullanıyor 🙏🏻* | `nötr` | Tab İlaç |
+| *kargo ve hizmet iyiydi. nutraxin ürünlerinden genel de memnun kaldık.* | `olumlu` | Nutraxin |
+
+**Why the 3-star → neutral mapping is the weak point.** A 3-star review is the
+most genuinely ambiguous case, and it is the whole `nötr` class. This is stated
+rather than hidden; it is also why the label-noise ceiling (§13) matters most for
+this class.
+
+---
+
+### 3.2 `amazon_hpc_en` — English twin of the above
+
+Source: `McAuley-Lab/Amazon-Reviews-2023`, `Health_and_Personal_Care` subset,
+fetched by `scripts/health.py`. Brand comes from joining the review shard to the
+metadata shard on `parent_asin` (the `store` field).
+
+**Same star map**, English names:
+
+| rating | label |
+|---|---|
+| 1, 2 | `negative` |
+| 3 | `neutral` |
+| 4, 5 | `positive` |
+
+Capped at 20,000 per class, so the pool is perfectly balanced at 60,000 rows.
+
+| text | label | entity |
+|---|---|---|
+| *This review is more to clarify someone else's review bc they didn't un…* | `positive` | Life Nutrition |
+| *Love these easy multitasking bleach tablets. Beats carrying home a big…* | `positive` | Evolve |
+| *I have been suffering a couple months with heel pain from plantar fasc…* | `positive` | Dr.Foot |
+
+**This is the primary cross-lingual pair.** Same domain (health/supplements),
+same label origin (the reviewer's own star), and an orthogonal brand axis on the
+Turkish half. Its one weakness is length: Amazon reviews average 44.8 words
+against the Turkish set's 12.1.
+
+**Licence.** The repository packaging is MIT-style but the review text remains
+under Amazon's Conditions of Use, so **the text is withheld from release** and
+rebuilt locally by the script. Questions and answers ship.
+
+---
+
+### 3.3 `tr_intent` / `en_intent` — Amazon MASSIVE, the parallel corpus
+
+Source: `AmazonScience/massive`, locales `tr-TR` and `en-US`, CC-BY-4.0,
+fetched by `scripts/massive.py`. **No mapping is needed** — the intent label is
+already in the data.
+
+**Raw rows, and the reason this axis is the strongest one here.** The same
+`pair_id` gives the same utterance in both languages with the same label:
+
+| pair_id | Turkish `utt` | English `utt` | intent | scenario |
+|---|---|---|---|---|
+| train:1 | *beni cuma günü sabah dokuzda uyandır* | *wake me up at nine am on friday* | `alarm_set` | alarm |
+| train:2 | *iki saat sonrasına alarm kur* | *set an alarm for two hours from now* | `alarm_set` | alarm |
+| train:4 | *olly sessiz ol* | *olly quiet* | `audio_volume_mute` | audio |
+
+**48 of 60 intents are kept.** Twelve have fewer than 100 rows and are dropped,
+because a class too small to be sampled competitively is the rarest one in every
+haystack, which makes `least_common` answerable without reading anything. The
+motivating case: `cooking_query` has 6 rows in 16.5K and was the gold answer in
+10 of 10 haystacks in **both** languages.
+
+**The entity column is unusable here** and this is detected automatically:
+`scenario` is *nested* inside `intent` (each intent belongs to exactly one
+scenario), so entity questions are either trivial or impossible. The intent axis
+therefore ships six families, not ten.
+
+**Two regimes, because they answer different questions:**
+
+| | matched on | asks |
+|---|---|---|
+| `tr_intent` / `en_intent` | equal **token** budget | at equal cost, which language degrades faster? |
+| `tr_intent_paired` / `en_intent_paired` | equal **record** count, same records, same order | at equal content, which language degrades faster? |
+
+The paired regime is what makes 110 of 120 questions share a byte-identical gold
+answer across languages, and what permits paired statistical tests.
+
+---
+
+### 3.4 `tr_oolong` — Turkish brand reviews (secondary)
+
+Source: `We-Bears/Turkish-Review-Sentiment-Data`, Apache-2.0, fetched by
+`scripts/webears.py`. Labels are native 3-class sentiment; no mapping needed.
+
+| review | sentiment | sirket |
+|---|---|---|
+| *kaira, müşteri memnuniyetini ön planda tutarak şık ve kullanışlı ürünl…* | `olumlu` | kaira |
+| *vodafone tarife pahalılığı ile ilgili sorun yaşamaktayım. en ucuz tari…* | `olumsuz` | vodafone |
+| *jbl'in şarj süresi genellikle yeterlidir, ancak bose'un şarj süresi da…* | **`olumlu,olumsuz`** | jbl,bose |
+
+**The third row shows the problem.** 15,411 of 40,597 rows (38%) carry
+comma-joined multi-aspect labels rather than one sentiment. Ground truth needs
+one label per record, so these are dropped. The retained subset therefore skews
+shorter, single-aspect, and negative.
+
+**This set is labelled secondary, and §4d explains why** (full source review in
+[`DATASET_REVIEW.md`](DATASET_REVIEW.md)). Its label provenance is
+undocumented upstream, its length spread is 3.6x (the largest here), and 0 of its
+262 duplicate-text groups carry conflicting labels — the signature of
+programmatic rather than human labelling. Aggregate answers remain exact with
+respect to the built haystack, which is all any question asks about.
+
+---
+
+### 3.5 `en_twin` — Twitter US Airline Sentiment
+
+Source: CrowdFlower (Feb 2015) via `osanseviero/twitter-airline-sentiment`,
+CC-BY-NC-SA-4.0, fetched by `scripts/airline.py`. Native 3-class labels, human
+annotated.
+
+| text | airline_sentiment | airline |
+|---|---|---|
+| *@VirginAmerica What @dhepburn said.* | `neutral` | Virgin America |
+| *@VirginAmerica plus you've added commercials to the experience... tack…* | `positive` | Virgin America |
+| *@VirginAmerica I didn't today... Must mean I need to take another trip…* | `neutral` | Virgin America |
+
+Only 6 airlines exist, which is too few to build a prior-neutral 5-candidate set,
+so this set emits no `entity_argmax` or `top_k`.
+
+**Licence.** Non-commercial **and** share-alike, which would infect the whole
+release if shipped as one dataset. **Text withheld**, rebuilt locally.
+
+---
+
+### 3.6 Summary — what each source contributes
+
+| set | source | label origin | classes | entity | ships |
+|---|---|---|---|---|---|
+| `tr_intent`, `en_intent` (+paired) | MASSIVE | already in the data, professional annotation | 48 | nested, unusable | 6 families |
+| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | 9 families |
+| `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 9 families |
+| `tr_oolong` | brand reviews | native labels, provenance undocumented | 3 | brand | **all 10** |
+| `en_twin` | airline tweets | CrowdFlower human annotation | 3 | airline, only 6 values | 8 families |
+
+
+### 3.7 Example questions (produced by the actual builder)
 
 Every answer below is computed from the source labels by two independent code
 paths and asserted equal (see §6).
@@ -467,81 +660,43 @@ A question family is logic, not data, so a new one is a small, localized change 
 The `most_common` / `least_common` / `second_most` families were added exactly this
 way. The invariant to preserve: every answer is computed twice and asserted equal.
 
-## 9. OOLONG vs TR-OOLONG — a full comparison
+## 9. OOLONG vs TR-OOLONG
 
-**Checked against the OOLONG paper and repository, 2026-08-25.** Its release
-checklist still lists the Oolong-synth construction code, the validated source
-splits, the scoring scripts and the analysis scripts as not yet released; the
-repo currently ships an example inference script. So there is no upstream
-pipeline to call, and nothing of theirs is vendored here. What is taken is from
-the paper.
+**Full side-by-side, with real questions from both benchmarks, is in
+[`COMPARISON.md`](COMPARISON.md).** That document is written for a reader with no
+access to the code. The short version:
 
-### Scale and shape
+OOLONG's question set is **task types × conditioning axes** — the same handful of
+shapes asked over everything, over a subset of users, and over a subset of dates.
+TR-OOLONG matches their counting group, replaces the user axis with a richer
+**entity** axis (real brands, prior-neutral candidate sets, plus ordered
+ranking), adds normalised **proportions**, and **lacks their timeline axis** —
+which their paper reports as the hardest of the three.
 
 | | OOLONG | TR-OOLONG |
 |---|---|---|
-| languages | English | **Turkish + record-matched English** |
-| splits | `oolong-synth` (6.5K q), `oolong-real` (10.8K q) | 8 sets, **1,234 questions**, 105 haystacks |
-| sources | 10 classification datasets (Spam, TREC-QC, AGNews, App Reviews, Pavlick Formality, IMDB, HiTZ Negation, Yahoo Topics, MultiNLI, Metaphors) + CRD3 D&D transcripts | 6 corpora over 2 axes (MASSIVE intent; four review/sentiment sets) |
+| languages | English | **Turkish + matched English** |
+| questions | 6,500 synth + 10,810 real | 1,234 |
+| haystacks | not reported per split | **105**, 24.8M tokens total |
+| context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 236K) |
 | label space | 2–10 classes | **3 and 48** |
-| context lengths | synth: powers of 2, 1K–4M (reporting focused at 8K–128K); real: 55K–1.3M | **50K / 100K / 250K / 500K / 750K / 1M** |
-| largest built haystack | — | **986,533 tokens** (`amazon_hpc_en`), 22,259 records |
-| records per haystack | not reported | 1,523 – 22,259 |
-| entity axis | synthetic user IDs attached to records | **real brands and airlines**, orthogonality measured (normalised MI 0.022 on `vitamins_tr`) |
-| temporal axis | **real dates, month/year granularity** | positional halves only |
-| numeric metric | `0.75^\|y-ŷ\|` | same, **plus** `relative` = `max(0, 1 - \|y-ŷ\|/max(y,1))` |
-| shortcut auditing | not reported | **4 solvers, committed manifests** |
-| ground truth | derived from source labels | same, **computed twice by independent code paths and asserted equal** |
+| entity axis | synthetic user IDs | **real brands**, MI 0.022 on `vitamins_tr` |
+| **timeline axis** | **6 families over real dates** | 1 binary family over positional halves |
+| ordered ranking | — | **`top_k`, chance 1/60** |
+| numeric metric | `0.75^\|y-ŷ\|` | same **+ `relative`** (theirs degenerates at our counts) |
+| shortcut audit | not reported | **4 solvers, committed manifests** |
 
-### Question families, one by one
+**The timeline gap is the one real deficit, and it is blocked on data, not code.**
+It needs a labelled corpus with real dates in *both* languages. English has
+several; no Turkish source examined carries dates. See
+[`PAIRING_SEARCH.md`](PAIRING_SEARCH.md).
 
-`✓` implemented, `✗` absent, `≈` present in weaker form, `+` ours only.
-
-| OOLONG-synth template | TR-OOLONG family | | note |
-|---|---|:---:|---|
-| **Counting** | | | |
-| Which label is the most common? | `most_common` | ✓ | candidates always named, so the question is well posed |
-| Which label is the least common? | `least_common` | ✓ | needed a class-support floor to de-trivialise (D3) |
-| How many points have label X? | `count` | ✓ | counts here are ~1,000 vs ~100 in OOLONG |
-| Is label A more/less/equally common than B? | — | ✗ | **gap**: our `pairwise` compares *entities*, not labels |
-| **User** | | | |
-| Among these users, who has most of label X? | `entity_argmax` | ✓ | entity is a real brand, not synthetic metadata |
-| Who has more of label X, A or B? | `pairwise` | ✓ | |
-| Filter by user subset | `entity_count` | ✓ | |
-| Which user appears most / second-most often? | — | ✗ | **gap**: no label-free entity-frequency family |
-| **Timeline** (OOLONG's hardest group) | | | |
-| Was label X more common before or after date T? | `shift` | ≈ | **weaker**: positional halves, not real dates |
-| Which date appears most / second-most often? | — | ✗ | **gap**: no date field in any source |
-| How many dates appear exactly *n* times? | — | ✗ | **gap** |
-| In which month did label A first exceed B? | — | ✗ | **gap** |
-| For how many months is A more frequent than B? | — | ✗ | **gap** |
-| For how many months is X the single most frequent? | — | ✗ | **gap** |
-| **Ours only** | | | |
-| — | `proportion` | + | normalised share (percent, or per-mille when >10 classes) |
-| — | `second_most` | + | OOLONG has second-most *user* and *date*, not *label* |
-| — | `top_k` | + | ordered top-*k* entities; chance 1/60 |
-
-Their task identifiers are `MOST_FREQ`, `LEAST_FREQ`, `RELATIVE_FREQ`,
-`NUMERIC_ONE_CLASS`, `REPRESENTED_N_TIMES`. `second_most` is an **extension, not
-a mirror**.
-
-### Where TR-OOLONG is harder, and where it is easier
-
-Harder on three axes. The label space reaches **48 classes** against their 2–10.
-Haystacks reach **1M tokens and 22,259 records** against a reporting focus at
-128K. And counts are large enough that their partial-credit metric degenerates:
-with a median `count` answer near 1,000 and a maximum of 12,225, `0.75^50 ≈ 6e-7`,
-so `partial` collapses to exact match and a model off by 2% scores the same as
-one off by 100%. That is why `relative` was added, and why both are reported.
-
-**Easier on one axis, and it is the one they say matters most.** OOLONG reports
-timeline questions as consistently their hardest type. TR-OOLONG reduces that
-whole group to a single binary `shift` over positional halves, which has the
-weakest floor in the suite (mean majority baseline 0.61, 0.73 on `tr_oolong`) and
-is the only family the format solver beats (§4d). **Closing this is the single
-highest-value extension.** It is blocked on data, not on code: `app_reviews` and
-Amazon-Reviews-2023 carry real dates, but no Turkish source examined does, so a
-*parallel* timeline axis is not currently buildable. See `PAIRING_SEARCH.md`.
+**What is taken from OOLONG** (from the paper — their construction, scoring and
+analysis code are all still listed as unreleased): the construction principle,
+the counting typology (`most_common`/`least_common` mirror `MOST_FREQ`/`LEAST_FREQ`;
+`second_most` is an extension, since they have second-most *user* and *date* but
+no second-most *label*), and the `0.75^|y-ŷ|` metric implemented from its
+published definition. Everything else is built here.
 
 ## 10. How the pipeline was built
 
@@ -625,6 +780,10 @@ tr-oolong/
 ├── ROADMAP.md          # tracked checklist — this is where progress lives
 ├── DESIGN_DECISIONS.md # why the benchmark is built this way, with the evidence
 ├── DATACARD.md         # per-axis source, license, label-noise, construction
+├── COMPARISON.md       # OOLONG vs TR-OOLONG, for a reader without the code
+├── DATASET_REVIEW.md   # every Turkish source considered, and why each verdict
+├── PAIRING_SEARCH.md   # the twin search: what was tried, what was rejected
+├── MUSTERI_TRIAL.md    # a swap that was built, tested, and not adopted
 ├── LICENSE             # MIT (code); data licenses in DATACARD
 ├── CHEATSHEET.md       # vocabulary, workflows, and what the golden test is for
 ├── src/build_tr_oolong.py
