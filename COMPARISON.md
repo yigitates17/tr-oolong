@@ -272,7 +272,7 @@ a labelled corpus with real dates in **both** languages. English has several
 (`app_reviews` carries dates 2014–2017; Amazon-Reviews-2023 carries `timestamp`).
 **No Turkish source examined carries dates** — `vitamins-supplements-reviews` is
 `product_name, brand, text, star`, and MüşteriYorumları is `text, label`. Finding
-a dated labelled Turkish corpus is the unblocking step. See `PAIRING_SEARCH.md`.
+a dated labelled Turkish corpus is the unblocking step. See `DATASET_REVIEW.md`.
 
 ---
 

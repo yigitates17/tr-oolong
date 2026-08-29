@@ -165,7 +165,7 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [x] Fourth acceptance gate: `scripts/style_solver.py` (D15). All 8 sets pass;
       `manifests/style_audit.json` committed.
 - [x] Per-class surface-shape diagnostic in `--audit`, warning above 2.0x spread.
-- [x] Twin search completed and closed (D16, `PAIRING_SEARCH.md`). The primary
+- [x] Twin search completed and closed (D16, `DATASET_REVIEW.md`). The primary
       pair needs no replacement. **Do not re-run this search.**
 - [ ] **Dated timeline axis — the highest-value open item.** OOLONG has six
       timeline families and reports them as its hardest type; TR-OOLONG has one

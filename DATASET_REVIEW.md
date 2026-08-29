@@ -1,5 +1,8 @@
 # Turkish source review — the short version
 
+**One document for every source question.** Absorbs the former
+`PAIRING_SEARCH.md` and `MUSTERI_TRIAL.md`.
+
 **Question asked:** is We-Bears good enough, and is anything better available?
 **Answer:** We-Bears is the weakest source in the repo and is already labelled
 secondary. Nothing found beats the primary pair. One candidate would improve on
@@ -160,10 +163,99 @@ must be identical on both sides and must not be another LLM's judgement.
 2. **Optional, low-risk:** add MüşteriYorumları as a *third* Turkish review set
    alongside the existing ones rather than replacing We-Bears. It costs nothing,
    removes no families, and gives a clean 6-family set with the best surface
-   profile of any Turkish source measured. Its English twin needs picking — see
-   `PAIRING_SEARCH.md`, where every Amazon category was found 3.5–6.5x too long.
+   profile of any Turkish source measured. **Its English twin is `app_reviews`
+   and both halves are already built** — see §"The twin search" below.
 3. **Do not adopt guardrail-tr for the cross-lingual axis**, for the circularity
    reason above and the 259K ceiling. Reconsider it only if a monolingual
    label-space-difficulty axis is wanted.
 4. **We-Bears stays as a secondary robustness check**, with its caveats already
    recorded in `DATACARD.md` and README §4d.
+
+
+---
+
+# The twin search
+
+Every English corpus considered as a partner for a Turkish set, measured rather
+than assumed. Target: a Turkish review set averages 12–14 words with a style lift
+near zero.
+
+## Amazon-Reviews-2023 — no category works
+
+| category | mean words | style lift |
+|---|---|---|
+| Grocery_and_Gourmet_Food | 46.8 | +0.091 |
+| Appliances | 52.5 | +0.099 |
+| All_Beauty | 58.9 | +0.067 |
+| Office_Products | 59.7 | +0.072 |
+| Home_and_Kitchen | 71.8 | +0.062 |
+| Baby_Products | 72.3 | +0.051 |
+| Digital_Music | 79.0 | +0.091 |
+| Video_Games | 85.9 | +0.083 |
+
+3.5–6.5x too long and +0.05 to +0.10 of style signal in every one, because "long
+review = negative" is universal on Amazon. Home_and_Kitchen was near the **best**
+of the eight, so re-picking the category does not help.
+
+## Parallel corpora — dead on scale, not on quality
+
+These give a record-matched twin by construction, the strongest possible design.
+Both are far too small:
+
+- **SIB-200** (tur/eng, 7 topic classes, FLORES-parallel): **1,004 rows total**,
+  ceiling ≈ 14K tokens. Cannot reach even the 50K tier.
+- **XNLI** (tr/en, 3 classes): human-translated portion is **7,500 rows**, which
+  one 250K haystack would consume entirely. The 392,702-row train split is
+  **machine-translated**, the exact confound the morphology claim must avoid.
+
+**This is a ceiling on the design, not a gap in the search.** Human translation
+is expensive, so parallel corpora are small, and this benchmark needs a large
+pool for independent draws at 100K–1M tokens. MASSIVE, at 16.5K parallel
+utterances, is the largest parallel Turkish resource that exists and is already
+the intent axis.
+
+## `sealuzh/app_reviews` — the one strong hit
+
+F-Droid app reviews (Grano et al., 2017). 288,065 rows, 14.7 mean words, style
+lift +0.000, 392 apps at entity MI 0.044, reaches 750K, and **it is one of
+OOLONG's own ten source datasets**. Licence unstated upstream, so text is
+withheld and rebuilt locally, the same treatment `amazon_hpc_en` gets.
+
+**Its value is not as a replacement.** Substituted into the primary pair it gives
+an asymmetry of 0.021 against the current 0.015, i.e. marginally worse. Its value
+is (a) as MüşteriYorumları's twin, and (b) it carries a real **`date` column**
+(2014–2017), the substrate for the timeline axis TR-OOLONG lacks.
+
+## Measured pairings, all of them
+
+| pairing | length match | asymmetry | verdict |
+|---|---|---|---|
+| MASSIVE tr ↔ en | identical | **0.015** | best; true record-matched twin |
+| `vitamins_tr` ↔ `amazon_hpc_en` | 12.1 vs 44.8 w | **0.017** | ships as primary review pair |
+| **MüşteriYorumları ↔ `app_reviews`** | **13.8 vs 14.7 w** | **0.030** | **best length match measured** |
+| `vitamins_tr` ↔ `app_reviews` | 12.1 vs 14.7 w | 0.021 | no better than the pair in use |
+| MüşteriYorumları ↔ Amazon Home | 13.8 vs 67.3 w | 0.106 | rejected |
+| We-Bears ↔ airline tweets | 24.2 vs 15.7 w | **0.108** | ships as secondary, with caveats |
+| SIB-200 / XNLI | identical | — | structurally dead |
+
+---
+
+# A swap that was built, tested, and not adopted
+
+MüşteriYorumları was first paired with Amazon `Home_and_Kitchen`, built in full
+(138 questions each, 6 families, all gates passing), specifically to test whether
+replacing We-Bears would fix the cross-lingual confound.
+
+**It did not.** Twin asymmetry came out at 0.106 against the We-Bears pair's
+0.108 — unchanged.
+
+**The lesson, which cost the most to learn.** We-Bears has a +0.120 style lift at
+the **source** level against its twin's +0.017, a 7x gap. That does **not**
+propagate to question-level exploitability, because prior-randomised sampling
+(D9) absorbs it. The swap was proposed on the source-level number alone and the
+number that mattered did not move.
+
+**Always run a solver against the built questions, not the source pool.**
+
+The Amazon `Home_and_Kitchen` half also turned out to carry a `most_common` style
+lift of +0.250 on its own, which is how `app_reviews` was found.

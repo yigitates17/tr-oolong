@@ -231,4 +231,4 @@ is the figure that bears on the cross-lingual claim.
 - **Strongest twin overall is the intent axis**, where TR and EN are the same
   utterances. Nothing in the review axis matches that, and nothing can: parallel
   corpora large enough for 100K–1M-token haystacks do not exist for Turkish
-  beyond MASSIVE's 16.5K utterances. See `PAIRING_SEARCH.md` for the full search.
+  beyond MASSIVE's 16.5K utterances. See `DATASET_REVIEW.md` for the full search.

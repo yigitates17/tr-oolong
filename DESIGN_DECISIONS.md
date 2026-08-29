@@ -570,7 +570,7 @@ source-level lift against its twin's +0.017, a 7x gap, yet its question-level
 mean lift is −0.008 — because prior-randomised sampling (D9) absorbs it. A
 replacement pair was built and tested on the strength of the source-level number
 alone, and it moved the asymmetry from 0.108 to 0.106, i.e. not at all
-(`MUSTERI_TRIAL.md`). **Always run a solver against the built questions.**
+(`DATASET_REVIEW.md`). **Always run a solver against the built questions.**
 
 **Consequence for `shift`.** It is the only family the solver beats anywhere:
 +0.400 on `amazon_hpc_en`, +0.300 on `en_twin` and `vitamins_tr`, +0.100 on
@@ -585,7 +585,7 @@ comparable record length; comparable surface shape (D15), judged on the *gap*
 rather than the level; and both halves reaching the same length tiers
 (`R_max = smallest_class × K`).
 
-**What was searched** (`PAIRING_SEARCH.md`): eight Amazon-Reviews-2023
+**What was searched** (`DATASET_REVIEW.md`): eight Amazon-Reviews-2023
 categories, three terse English review corpora, two parallel multilingual
 corpora, and five Turkish candidate sources from `ytu-ce-cosmos` and
 `turkish-nlp-suite`.

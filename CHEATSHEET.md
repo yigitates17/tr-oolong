@@ -50,7 +50,7 @@ See §7 for how to say that in the paper.
 
 ---
 
-## 3. The five safety mechanisms, and what each one is defending against
+## 3. The safety mechanisms, and what each one is defending against
 
 These are the parts that make it a benchmark instead of a text dump. Each exists
 because a specific shortcut was found and measured. **Do not remove one without
@@ -292,8 +292,17 @@ Run all four before any release:
 python tests/test_golden.py           # the build is deterministic
 python scripts/quality_audit.py       # + pair check; add --certify 250 pre-release
 python scripts/trivial_baseline.py --sets *_out
+python scripts/style_solver.py --config configs/*.json   # gate (d), added 2026-08-25
 python scripts/verify_release.py      # the written files are what they claim
 ```
+
+> **Gate (d) is the newest and the least obvious.** It answers a question the
+> other three structurally cannot: can the label be recovered from a record's
+> *shape* — length, final period, `!`/`?` — with no words at all? A corpus can
+> hand its labels over through formatting and every other solver will pass it.
+> See `DESIGN_DECISIONS.md` D15. The number to read is not either half's lift but
+> **the gap between a twin's two halves**, since an asymmetric bias is what
+> confounds the cross-lingual claim.
 
 | Claim the benchmark makes | What proves it | Where |
 |---|---|---|

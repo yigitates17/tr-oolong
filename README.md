@@ -689,7 +689,7 @@ which their paper reports as the hardest of the three.
 **The timeline gap is the one real deficit, and it is blocked on data, not code.**
 It needs a labelled corpus with real dates in *both* languages. English has
 several; no Turkish source examined carries dates. See
-[`PAIRING_SEARCH.md`](PAIRING_SEARCH.md).
+[`DATASET_REVIEW.md`](DATASET_REVIEW.md).
 
 **What is taken from OOLONG** (from the paper — their construction, scoring and
 analysis code are all still listed as unreleased): the construction principle,
@@ -770,7 +770,7 @@ give a record-matched twin for free, which is the strongest possible design, but
 human translation is expensive so they are all small, and this benchmark needs a
 large pool for independent draws at 100K–1M tokens. MASSIVE, at 16.5K parallel
 utterances, is the largest such Turkish resource in existence and it is already
-used here. Full search in `PAIRING_SEARCH.md`.
+used here. Full search in `DATASET_REVIEW.md`.
 
 ## 12. Repository layout
 
@@ -781,9 +781,7 @@ tr-oolong/
 ├── DESIGN_DECISIONS.md # why the benchmark is built this way, with the evidence
 ├── DATACARD.md         # per-axis source, license, label-noise, construction
 ├── COMPARISON.md       # OOLONG vs TR-OOLONG, for a reader without the code
-├── DATASET_REVIEW.md   # every Turkish source considered, and why each verdict
-├── PAIRING_SEARCH.md   # the twin search: what was tried, what was rejected
-├── MUSTERI_TRIAL.md    # a swap that was built, tested, and not adopted
+├── DATASET_REVIEW.md   # every source considered, the twin search, and each verdict
 ├── LICENSE             # MIT (code); data licenses in DATACARD
 ├── CHEATSHEET.md       # vocabulary, workflows, and what the golden test is for
 ├── src/build_tr_oolong.py
@@ -853,7 +851,7 @@ surface-format solver beats: +0.400 on `amazon_hpc_en`, +0.300 on `en_twin` and
 length also correlates with position once drift is injected, so format alone
 partly recovers the direction. The fix is a real dated timeline axis of the kind
 OOLONG has, which is blocked on data rather than code: no Turkish source examined
-carries dates (see §9 and `PAIRING_SEARCH.md`). **Until then, do not report
+carries dates (see §9 and `DATASET_REVIEW.md`). **Until then, do not report
 `shift` as a headline result.**
 
 **Haystacks within a length tier are not independent.** They are drawn
