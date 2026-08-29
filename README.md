@@ -140,6 +140,82 @@ an **extension, not a mirror** — OOLONG has second-most *user* and second-most
 *date*, but no second-most *label*. Each is a
 single-question-per-haystack family (like `shift`): asking twice adds nothing.
 
+## 2.5 The pipeline, end to end
+
+How a pair of raw corpora becomes a set of scored questions. Every gate is a
+place where a candidate can be rejected, and most of them have rejected
+something — the rejections are recorded in
+[`DATASET_REVIEW.md`](DATASET_REVIEW.md).
+
+```
+┌─ STEP 1 ── FIND A TURKISH CORPUS ──────────────────────────────────┐
+│  Must be LABELLED. A raw text corpus is unusable no matter how      │
+│  large, because the label IS the answer key.                        │
+│  Record where the label came from:                                  │
+│     writer's own star rating  > professional annotation             │
+│     > crowd annotation        > undocumented   ← reject             │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              ▼
+┌─ STEP 2 ── SCREEN IT, BEFORE BUILDING ANYTHING  (`--audit`) ────────┐
+│  • class balance          imbalance ratio, normalised entropy       │
+│  • length ceiling         R_max = smallest_class × K records        │
+│                           if it cannot reach 500K, it cannot carry  │
+│                           the length gradient                       │
+│  • surface shape          mean words / period rate / !? rate per    │
+│                           class. Spread ≥ 2.0x is flagged           │
+│  • licence                redistributable? share-alike? unknown?    │
+│                           "unknown" means no grant, not no problem  │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              ▼
+┌─ STEP 3 ── FIND ITS ENGLISH TWIN ───────────────────────────────────┐
+│  Turkish is the scarce side, so never start from English.           │
+│  Match on, in order of how often each binds:                        │
+│     1. same label provenance   (stars↔stars, humans↔humans)         │
+│     2. comparable record length                                     │
+│     3. comparable surface shape — the GAP, not either level         │
+│     4. both halves reach the same length tiers                      │
+│     + licence veto: a closer match is not worth an unusable corpus  │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              ▼
+┌─ STEP 4 ── BUILD BOTH HALVES ───────────────────────────────────────┐
+│  drop records leaking any label's surface form  (enforced, not      │
+│     assumed — 0.84% leakage once gave a solver 73% vs 33% chance)   │
+│  drop classes below min_class_support                               │
+│  sample with a Dirichlet-randomised prior, per haystack             │
+│  inject drift into the second half so `shift` has signal            │
+│  concatenate to the token target, measured with a real tokenizer    │
+│  generate questions; compute every answer TWICE, by two             │
+│     independent code paths, and assert they agree                   │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              ▼
+┌─ STEP 5 ── FOUR ACCEPTANCE GATES ── all must FAIL to solve it ──────┐
+│  (a) leakage solver     can substring search answer it?             │
+│  (b) majority baseline  is one answer always right?                 │
+│  (c) prior oracle       answerable from corpus stats, no context?   │
+│  (d) format solver      answerable from length + punctuation alone? │
+│  + golden test          is the rebuild byte-identical?              │
+│                                                                     │
+│  A family that fails on a given source is switched OFF for that     │
+│  source and the omission is recorded, not hidden.                   │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              ▼
+┌─ STEP 6 ── COMPARE CANDIDATE PAIRS, KEEP THE BEST ──────────────────┐
+│  twin asymmetry = |mean style lift TR − mean style lift EN|         │
+│  lower is cleaner. Shipping pairs: 0.010, 0.015, 0.017, 0.033.      │
+│  A pair withdrawn in v0.5.0 sat at 0.108.                           │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              ▼
+                    SHIPS AS A MATCHED TWIN
+```
+
+**The one rule that is easy to get wrong.** Steps 2 and 5 measure different
+things and step 5 is the one that decides. A corpus can look disqualifying at the
+source level and be perfectly fine once built, because the Dirichlet
+prior-randomisation in step 4 absorbs source-level bias. This was learned the
+expensive way: a replacement pair was built and gate-tested on a source-level
+number, and the question-level number did not move (§4d). **Never accept or
+reject a pairing on step-2 numbers alone.**
+
 ## 3. The data sources, one by one
 
 Six corpora feed eight sets. This section shows what each one actually looks
@@ -278,6 +354,24 @@ scraped from Hepsiburada.com and Trendyol.com, CC-BY-SA-4.0. English:
 `SetFit/amazon_reviews_multi_en` (the Multilingual Amazon Reviews Corpus),
 Apache-2.0.
 
+**Raw rows as they arrive.** Both sources ship two columns, `text` and a
+zero-indexed star `label`:
+
+| | raw label | text |
+|---|---|---|
+| MüşteriYorumları | `1` | *Ürünleri 2025 olarak göndereceğiz dedikleri halde öyle gönderilmemiş* |
+| MüşteriYorumları | `2` | *Ürün görseldeki gibi. kalitelisini beğenmeedim. yumuşak ama çok ince…* |
+| MARC en | `0` | *Arrived broken. Manufacturer defect. Two of the legs of the ba…* |
+| MARC en | `0` | *the cabinet dot were all detached from backing... got me* |
+
+**Raw label distributions.** MARC ships exactly balanced; MüşteriYorumları does
+not, which is why it is capped:
+
+| star (0-indexed) | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| MüşteriYorumları | 9,053 | 8,099 | 12,883 | 22,142 | 21,743 |
+| MARC en | 40,000 | 40,000 | 40,000 | 40,000 | 40,000 |
+
 **Both labels are the customer's own 1–5 star rating**, mapped by the same rule
 used for `vitamins_tr`:
 
@@ -289,6 +383,15 @@ used for `vitamins_tr`:
 
 Each class is capped to the smallest, so **both pools are perfectly balanced**
 (normalised entropy 1.000): 12,883 per class in Turkish, 40,000 in English.
+
+**After the fetch scripts** (2 columns each — no entity, deliberately):
+
+| set | label | text |
+|---|---|---|
+| `musteri_tr` | `olumsuz` | *Ürün aşırı dandik. Görselde fırın ve bulaşık makinesinin orada ışıklı…* |
+| `musteri_tr` | `nötr` | *Ürün görseldeki gibi. kalitelisini beğenmeedim…* |
+| `marc_en` | `negative` | *Followed directions, did not work as advertised.* |
+| `marc_en` | `negative` | *Ordered 2 they shipped 1 promised by certain day, then the next day…* |
 
 **Neither half has a product or brand column**, so both emit the same six
 families. That symmetry is deliberate: a twin whose halves support different

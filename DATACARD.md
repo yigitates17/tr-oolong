@@ -212,6 +212,16 @@ from the seed. (A second such set, the CC-BY-NC-SA airline corpus, was withdrawn
 along with its Turkish partner in v0.5.0 — so the release no longer carries any
 non-commercial clause at all, which simplifies downstream use considerably.)
 
+**2b. The Amazon licence was checked exhaustively, 2026-08-30.** The conclusion
+is unchanged but it is now evidenced rather than assumed. There is **no licence
+anywhere**: no `license` tag, no `license` field in the card metadata, **no
+LICENSE file among the repository's 912 files**, no terms on the dataset card,
+and no terms on the project's own site (`amazon-reviews-2023.github.io`). The
+card gives a citation (Hou et al., arXiv:2403.03952) and a contact address, and
+nothing else. **Silence is not permission**, so withholding the text is the only
+safe reading, and it remains what we do. If a definitive answer is ever wanted,
+the card lists `yphou AT ucsd.edu` — but nothing in the release depends on it.
+
 **3. Aggregate answers are facts, not derivative text.** What we distribute for
 that set is a set of questions we wrote and integers computed from label counts.
 Counts over a dataset are not expressive content, so the questions-and-answers
@@ -235,3 +245,36 @@ text is redistributable, and it reached a *better* asymmetry anyway (0.010).
 2. Re-check every source's licence page at release time and record the access
    date. Licence fields on Hugging Face do change.
 3. Ship the per-source config split; do not flatten into one dataset.
+
+
+## Could this be published tomorrow? Blockers, ranked
+
+**Nothing legal blocks it.** Licences are resolved, the one unlicensed source
+ships text-free, and the per-source config split handles share-alike.
+
+**Two things would draw a reviewer's first question, and neither is fatal:**
+
+1. **No model has ever been run on it.** Every difficulty claim is a chance rate
+   or a solver ceiling; none is empirical. A datasets-track reviewer will ask for
+   at least one frontier model and one open model across the length gradient.
+   *This is the only item I would call a genuine blocker for a venue submission —
+   though not for a Hugging Face release, which can precede the paper.*
+2. **`--certify` has never been run at scale.** README §4 states the rule that
+   n = 10–20 per family certifies nothing, and the committed audit is exactly
+   that size. One family (`en_intent` `most_common`, p = 0.033, n = 10) is
+   flagged and unresolved in either direction.
+
+**Three that should be stated rather than fixed:**
+
+3. Label noise ε unmeasured on the annotated sets. The *consequence* is bounded
+   (see above) and five of eight sets have star-derived labels where classical
+   noise is near zero by construction, so this is a datacard gap, not a defect.
+4. No timeline axis, because no Turkish source carries dates. Name it as a
+   limitation before a reviewer finds it.
+5. Haystacks within a tier share 20–38% of records at the longest tiers, so
+   tier-level confidence intervals need clustered errors.
+
+**Recommended sequence:** release the dataset now with the datacard as it stands,
+run the baselines, then submit the paper. The release timestamp establishes
+priority and costs nothing, and item 1 is a paper blocker rather than a release
+blocker.
