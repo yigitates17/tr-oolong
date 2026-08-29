@@ -769,26 +769,52 @@ record length and surface shape is the work.
 
 ## 11. Choosing a twin: what a good pairing looks like
 
-The cross-lingual claim is only as good as the pairing. Four criteria, in order
-of how often they are the binding constraint:
+The cross-lingual claim is only as good as the pairing, so twins here are
+**selected by measurement, not by intuition**. The procedure below is the one
+actually followed; every rejected candidate in the table underneath was rejected
+by a number, and all of them are recorded in
+[`DATASET_REVIEW.md`](DATASET_REVIEW.md).
+
+**The procedure**
+
+1. **Shortlist Turkish corpora that are labelled, large, and permissively
+   licensed.** Searched: `ytu-ce-cosmos`, `turkish-nlp-suite`, `Trendyol`, plus
+   parallel multilingual corpora. A corpus with no labels (Havadis, 745K news
+   articles) is unusable regardless of size — the label *is* the answer key.
+2. **For each survivor, find the English corpus that matches it on the four
+   criteria below.** Not the other way round: Turkish is the scarce side.
+3. **Build both halves and run all four gates.** A pairing is only accepted on
+   question-level numbers, never on source-pool numbers — see §4d, where a
+   candidate that looked disqualifying at the source level turned out not to
+   matter at all once built.
+4. **Compare twin asymmetry across candidates and keep the lowest.**
+
+**The four criteria, in order of how often they bind**
 
 1. **Same label provenance.** Both halves' labels must be produced the same way.
    Author-assigned star ratings on both sides is the strongest available option,
-   because the person who wrote the text assigned the label.
-2. **Comparable record length.** A 4x length mismatch changes what "one chunk"
-   means and interacts with every compression measurement.
-3. **Comparable surface shape.** Measured by §4d. The *gap* matters, not the level.
+   because the person who wrote the text assigned the label — there is no
+   annotator to disagree with.
+2. **Comparable record length.** A 4x mismatch changes what "one chunk" means and
+   interacts with every compression measurement.
+3. **Comparable surface shape.** Measured by §4d. The **gap between the halves**
+   matters, not either half's level.
 4. **Both halves reach the same length tiers.** `R_max = smallest_class × K`.
+
+**And one veto: the licence.** A closer match is not worth an unredistributable
+corpus. This decided the pair that ships — see the `app_reviews` row below.
 
 ### Worked examples
 
 | pairing | provenance | length | style gap | verdict |
 |---|---|---|---|---|
 | **MASSIVE tr-TR ↔ en-US** | identical, same utterances | identical by construction | **0.017** | **best available.** The only true record-matched twin; 110/120 questions share a gold answer |
-| **`vitamins_tr` ↔ `amazon_hpc_en`** | author's stars, both | 12.1 vs 44.8 w (3.7x) | **0.015** | **ships as primary review pair.** Length mismatch is its one weakness |
+| **`musteri_tr` ↔ `marc_en`** | author's stars, both | 13.8 vs 34.1 w (2.5x) | **0.010** | **ships. Lowest asymmetry measured**; both halves redistributable; no entity column, so 6 families |
+| **`vitamins_tr` ↔ `amazon_hpc_en`** | author's stars, both | 12.1 vs 44.8 w (3.7x) | **0.015** | **ships as the primary review pair** — the only one with an orthogonal entity axis (MI 0.022) |
 | Turkish brand reviews ↔ airline tweets | undocumented vs CrowdFlower humans | 24.2 vs 15.7 w | **0.108** | **withdrawn in v0.5.0.** Mismatched provenance, 7x surface-shape asymmetry |
 | MüşteriYorumları ↔ Amazon Home & Kitchen | author's stars, both | 13.2 vs 71.8 w (5.4x) | 0.106 | rejected: no Amazon category is terse enough |
-| `vitamins_tr` ↔ `app_reviews` | author's stars, both | 12.1 vs 18.8 w (1.6x) | 0.021 | best length match found, but no better than the pair in use |
+| MüşteriYorumları ↔ `app_reviews` | author's stars, both | **13.8 vs 14.7 w (1.06x)** | 0.030 | **the closest length match of anything tested, and still rejected** — `sealuzh/app_reviews` is tagged `license:unknown`, which declares no known grant. MARC is Apache-2.0 and scored *better* anyway |
+| `vitamins_tr` ↔ `app_reviews` | author's stars, both | 12.1 vs 18.8 w (1.6x) | 0.021 | no better than the pair in use |
 | SIB-200 tur ↔ eng | identical, parallel | identical | — | **structurally dead**: 1,004 rows total, ~14K token ceiling |
 | XNLI tr ↔ en | identical, parallel | identical | — | **structurally dead**: 7,500 human-translated rows; the 393K train split is machine-translated |
 
