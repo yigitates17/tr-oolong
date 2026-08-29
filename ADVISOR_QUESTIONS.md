@@ -36,8 +36,7 @@ the question and is worth saying to the advisor directly:
 |---|---|---|
 | `vitamins_tr`, `musteri_tr`, `marc_en`, `amazon_hpc_en` | **the writer's own star rating** | **~0 by construction** — the label is a recorded fact about the record, not an estimate of a latent truth |
 | MASSIVE (`tr_intent`/`en_intent`) | professional annotation | low, unmeasured |
-| `en_twin` (airline) | crowd annotation | measurable: **17.1%** of duplicate-text rows carry conflicting labels |
-| `tr_oolong` (We-Bears) | **undocumented provenance** | unknown and unknowable |
+| ~~airline / We-Bears~~ | crowd annotation / **undocumented** | **both withdrawn 2026-08-30** — the We-Bears provenance problem is the one defect filtering cannot fix |
 
 For a star-derived set there is no annotator to disagree with. The benchmark asks
 "how many records carry label X", and that is exact. What varies is the
@@ -79,45 +78,76 @@ data — no Turkish source examined carries dates.
 
 ## 4. Fine-tuning on this data — would it help? Other uses?
 
-Not started before; here is the answer.
+**No. There is no OOLONG-fine-tuned model.** Nobody has trained a model on OOLONG
+data, and nobody has trained one on TR-OOLONG either, because it does not exist
+yet. What exists is a *precedent from adjacent work*, and the distinction matters
+because it is exactly what an advisor will probe.
 
-### Would fine-tuning on TR-OOLONG improve Turkish long-context ability?
+### What has actually been done, and by whom
 
-**There is a positive precedent, and it is close to this case.** Xiong et al.,
-*From Artificial Needles to Real Haystacks* (ICLR 2025), fine-tune GPT-3.5-Turbo
-and Mistral-7B on a **synthetic numerical key-value retrieval** task and report
-transfer to *real* long-context benchmarks — +10.5% on MDQA at 20 documents.
-Critically they also report that general-benchmark performance stays flat, while
-other long-context augmentation data **encouraged hallucination**. So synthetic,
-mechanically-generated long-context data can transfer without the usual damage.
+| work | trained on what | result |
+|---|---|---|
+| Xiong et al., *From Artificial Needles to Real Haystacks* (ICLR 2025) | **synthetic key-value retrieval** — made-up dictionaries like `{"2a8b": "9f1c", …}`, then "what is the value of key 2a8b?" | Fine-tuned GPT-3.5-Turbo and Mistral-7B improved **+10.5%** on a *real* long-context QA benchmark they never trained on. General benchmarks stayed flat, while other long-context augmentation data caused hallucination |
+| Zhang, Kraska & Khattab (2026) | 1,000 **recursion trajectories** distilled from a 480B coder, on LongBenchPro tasks | Produced `rlm-qwen3-8b-v0.1`, +28.3% over its base model |
+| Kim & Ahmad (2026) | **evidence-selection trajectories** over scientific papers, one shared policy for parent and child roles | A 4B model reached rubric 0.600 against Claude Sonnet's 0.607, at 7 s/query versus 60+ s |
 
-**Two caveats specific to us, and they are real.**
+Nobody in that table trained on an aggregation benchmark. Xiong is the closest,
+and their task is *retrieval*, not aggregation.
 
-1. **Their task is retrieval; ours is aggregation.** OOLONG's own result is that
-   giving models the gold labels for free improves scores only marginally — the
-   bottleneck is the *aggregation*, not the per-item classification. So the skill
-   being trained here is arithmetic-over-many-items, which is plausibly harder to
-   instil than "find the needle" and has no published transfer result.
-2. **Aggregation may be a tool-use problem, not a weights problem.** Counting
-   3,919 items is exactly what code does well and what next-token prediction does
-   badly. The recursive-language-model literature exists precisely because
-   offloading to a REPL beats asking the model to do it in-context. Fine-tuning a
-   model to count in its head may be optimising the wrong component.
+### Why that gap matters
 
-**The genuinely interesting version of the question**, and the one worth putting
-in the thesis: **does training on TR-OOLONG teach decomposition rather than
-counting?** Kim & Ahmad (2026) train 4B models into native recursive language
-models using one shared policy for parent and child roles. If TR-OOLONG
-trajectories were used the same way — not "predict the count" but "predict the
-decomposition that produces the count" — the target skill is planning, which is
-much more like chain-of-thought and much more likely to transfer.
+OOLONG's own headline result is that **giving models the gold labels for free
+improves scores only 0.79–10.9 points.** The bottleneck is not reading each item,
+it is combining thousands of them. So the skill TR-OOLONG would train is
+arithmetic-over-many-items, and there is no published evidence that skill
+transfers the way retrieval does.
 
-**Honest assessment: this is a follow-up paper, not part of this thesis.** It
-needs training compute, a held-out real Turkish long-context evaluation (which
-does not exist yet — that is partly what TR-OOLONG is for), and a control for
-whether gains come from Turkish exposure rather than from aggregation skill. But
-it is a strong "future work" paragraph and a good answer to "why does this
-dataset matter beyond a leaderboard."
+There is also a reason to think training it directly is the wrong move.
+Counting 3,919 records is what a `for` loop does perfectly and what next-token
+prediction does badly. The entire recursive-language-model literature exists
+because *offloading to code* beats doing it in-context. Fine-tuning a model to
+count in its head may be optimising the component that should have been replaced.
+
+### The version worth proposing to your advisor
+
+Do not train on **question → answer**. Train on **question → decomposition**.
+
+Concretely, one training example would not be:
+
+> *Bu yorumlardan kaç tanesi 'olumlu' etiketli?* → `1735`
+
+but rather the trajectory that produces it:
+
+> *Bu yorumlardan kaç tanesi 'olumlu' etiketli?*
+> → `chunks = split(ctx, 2000)`
+> → for each chunk, ask a child: *"how many of these are olumlu?"*
+> → `sum(child_answers)` → `1735`
+
+The first target teaches a model to guess a number. The second teaches
+**planning**, which is the same shape as chain-of-thought and is the thing that
+plausibly transfers. It is also exactly what Kim & Ahmad did, and it worked at 4B.
+
+TR-OOLONG can generate those trajectories mechanically, because the ground truth
+is computed by code that already decomposes the problem. That is a real asset:
+**the benchmark can emit its own training supervision at zero annotation cost.**
+
+### How to frame it in the thesis
+
+As **future work with a concrete design**, not as a claim. The honest statement:
+
+> The benchmark is constructed so that ground truth is computed by an explicit
+> decomposition. That makes it a source not only of evaluation items but of
+> *decomposition trajectories*, which prior work suggests are the effective
+> training signal for recursive scaffolds (Kim & Ahmad, 2026). Whether such
+> training transfers to Turkish long-context tasks generally is an open question
+> this resource makes answerable for the first time.
+
+That paragraph is defensible, it is interesting, and it does not overclaim.
+
+**What it would take to actually run it:** a training-capable GPU, a held-out
+*real* Turkish long-context evaluation (which does not exist — building one is
+itself a contribution), and a control separating "the model got better at
+Turkish" from "the model got better at aggregating."
 
 ### Uses beyond benchmarking
 
@@ -184,17 +214,48 @@ Access does not, and the proposal burden is far lower.
 5. **Confirm current terms before writing.** Call conditions and deadlines change;
    the figures above were checked 2026-08-25.
 
-### Honest assessment of whether it is worth it
+### Honest assessment — revised 2026-08-30
 
-**Probably not on the critical path, and here is why.** The thesis as scoped runs
-on a single 16 GB GPU, and a public reproduction has already run this paradigm on
-a 6 GB laptop GPU. The binding constraint on this project is **not compute** — it
-is (a) that no model has been run yet, and (b) unmeasured label noise. Neither is
-solved by a supercomputer.
+**My earlier answer assumed the wrong experiment, and the correction matters.**
 
-**Where it would genuinely help:** if the fine-tuning question in §4 is pursued.
-Training even a 4B model into a recursive scaffold is a real compute job, and
-that is exactly what Development Access is for. So the sensible sequencing is
-**answer §4 first as a research question, then apply if the answer is yes** —
-with the added benefit that a proposal citing a released benchmark and a
-concrete training plan is far stronger than one citing an intention.
+I originally said compute is not the binding constraint, because the thesis as
+scoped runs on a single 16 GB GPU and a public reproduction already ran this
+paradigm on a 6 GB laptop GPU. That reasoning holds **only for inference with
+small models**.
+
+If the plan is to evaluate **4B, 30B and larger** models, the picture inverts:
+
+| model size | what it needs to serve | fits 16 GB V100? |
+|---|---|---|
+| 4B | ~8 GB at bf16, ~3 GB at Q4 | yes, comfortably |
+| 8B | ~16 GB at bf16, ~5 GB at Q4 | Q4 only, tight with KV cache |
+| 30B | ~60 GB at bf16, ~18 GB at Q4 | **no** |
+| 70B+ | ~140 GB at bf16, ~40 GB at Q4 | **no** |
+
+And long-context makes it worse than the parameter count suggests: **KV cache
+grows linearly with context**, so a 500K-token haystack costs many GB on top of
+the weights. That is the actual wall, and it arrives well before 30B.
+
+**So yes, apply — and the case is stronger than a generic one.** A proposal that
+says "evaluate a size ladder from 4B to 30B+ on a released long-context benchmark
+at up to 1M tokens" is concrete, has a clear resource estimate, and produces a
+result (the capability-versus-size curve) that is useful to others. That is
+exactly what Development Access exists for.
+
+**Three practical notes:**
+
+1. **A size ladder is a much better experiment than one big model.** "At what
+   size does aggregation over 500K tokens become possible" is a finding; "model X
+   scored Y" is a data point. Frame the application around the ladder.
+2. **Estimate node-hours from a pilot.** Run the 4B rung locally first, measure
+   wall-clock per question, and extrapolate. Reviewers of HPC proposals notice
+   whether the resource estimate was computed or guessed.
+3. **Do not wait on it to start.** The 4B and 8B rungs run on your V100 today,
+   and they produce the baselines the benchmark currently lacks — which is the
+   single biggest gap in the project. Apply in parallel; do not treat the
+   application as a prerequisite.
+
+**Sequencing that makes both work:** run the 4B/8B rungs locally now → those
+numbers become the pilot data in the application → Development Access covers the
+30B+ rungs → if the fine-tuning question in §4 is pursued, that is a second
+application with a much stronger case behind it.

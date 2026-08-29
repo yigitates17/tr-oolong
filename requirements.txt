@@ -3,7 +3,7 @@
 polars==1.42.0
 transformers==5.1.0
 
-# Data-fetch scripts only (scripts/massive.py, health.py, vitamins.py, webears.py).
+# Data-fetch scripts only (scripts/massive.py, health.py, vitamins.py, musteri.py, marc_en.py).
 datasets==3.3.2
 
 # Figures only (scripts/make_readme_figs.py); does not affect benchmark output.

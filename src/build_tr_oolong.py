@@ -137,7 +137,7 @@ class Config:
     reference_tokenizer: str = ""         # e.g. "Qwen/Qwen3-8B"; empty -> char approx
     chars_per_token: float = 3.4
     # output
-    out_dir: str = "tr_oolong_out"
+    out_dir: str = "benchmark_out"
 
     @staticmethod
     def load(path: str) -> "Config":
@@ -333,8 +333,9 @@ def ranking_length_ceiling(df: pl.DataFrame, tokens_per_record: float) -> tuple[
     }
 
 
-# Observed: a set at 0.89x its ceiling still varies (tr_oolong at 500K), one at
-# 1.12x is degenerate (airline tweets at 250K). Warn from 0.85x.
+# Observed on two sets that were later dropped from the release (v0.5.0) but
+# whose measurements stand: one at 0.89x its ceiling still varied, one at 1.12x
+# was degenerate. Warn from 0.85x.
 CEILING_WARN_RATIO = 0.85
 
 
@@ -460,7 +461,8 @@ def _audit_thresholds(df: pl.DataFrame, cfg: Config, count_tokens, tok_per_rec: 
         if len(ec) < cfg.entity_candidates + 1:
             print(f"  [!] only {len(ec)} entities: a prior-neutral {cfg.entity_candidates}-way "
                   f"candidate set cannot exist. Lower entity_candidates, or expect "
-                  f"entity_argmax/top_k to be omitted (as for en_twin, 6 airlines).")
+                  f"entity_argmax/top_k to be omitted (a 6-entity set cannot form "
+                  f"a prior-neutral 5-candidate slate).")
 
     # trial haystacks: measure the adjacent-rank gaps this source actually yields
     target = min(cfg.haystack_target_tokens) if cfg.haystack_target_tokens else 50_000
@@ -1238,7 +1240,7 @@ def build(cfg: Config) -> None:
                     # `need` is estimated from the POOL's mean record length. On a
                     # heavy-tailed length distribution the sampled subset runs
                     # shorter than the mean, so every candidate fits and the
-                    # haystack lands far under budget: tr_oolong shipped a "100K"
+                    # haystack lands far under budget: a set once shipped a "100K"
                     # haystack of 53K tokens and a "500K" one of 381K.
                     # rank_candidate_rows returns the FULL ranking, so deepening
                     # the slice extends the same weighted selection -- a haystack

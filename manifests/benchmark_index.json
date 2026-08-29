@@ -1,8 +1,8 @@
 {
-  "version": "0.4.0",
-  "date": "2026-08-25",
-  "n_sets": 10,
-  "total_questions": 1506,
+  "version": "0.5.0",
+  "date": "2026-08-30",
+  "n_sets": 8,
+  "total_questions": 1221,
   "languages": [
     "en",
     "tr"
@@ -69,44 +69,6 @@
         "most_common": 10,
         "proportion": 40,
         "second_most": 10,
-        "shift": 10
-      }
-    },
-    {
-      "config": "configs/tr_oolong.json",
-      "out_dir": "tr_oolong_out",
-      "language": "tr",
-      "source": "datasets/turkish_review_sentiment.csv",
-      "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 174,
-      "kind_distribution": {
-        "count": 37,
-        "entity_argmax": 11,
-        "entity_count": 15,
-        "least_common": 12,
-        "most_common": 14,
-        "pairwise": 14,
-        "proportion": 36,
-        "second_most": 11,
-        "shift": 15,
-        "top_k": 9
-      }
-    },
-    {
-      "config": "configs/en_twin.json",
-      "out_dir": "en_twin_out",
-      "language": "en",
-      "source": "datasets/airline_tweets.csv",
-      "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 111,
-      "kind_distribution": {
-        "count": 29,
-        "entity_count": 10,
-        "least_common": 8,
-        "most_common": 8,
-        "pairwise": 10,
-        "proportion": 29,
-        "second_most": 7,
         "shift": 10
       }
     },

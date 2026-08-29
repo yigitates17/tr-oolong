@@ -48,14 +48,15 @@ for whether a model actually *ingests* a long context rather than skimming it.
 The review axis rests on **two independent corpora per language**, so aggregation
 results can be shown to hold across datasets rather than being an artifact of a
 single source. The supplement pair (Turkish Vitaminler.com ↔ English Amazon
-Health & Personal Care) is same-domain and thus the tighter twin; the
-reviews↔airline-tweets pair is matched by pipeline but not domain.
+Health & Personal Care) carries the entity axis; the e-commerce pair
+(Hepsiburada/Trendyol ↔ Multilingual Amazon Reviews) is the cleanest on every
+balance and shortcut measurement.
 
 Two axes:
 
 | Axis | Source | Label (classes) | Entity axis | Purpose |
 |---|---|---|---|---|
-| **Review / sentiment** | Three TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care; (c) Turkish e-commerce reviews + EN Multilingual Amazon Reviews | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
+| **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care; (b) Turkish e-commerce reviews + EN Multilingual Amazon Reviews | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
 | **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel corpus) | intent (48) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
 
 The intent axis is built **twice**, in two matching regimes, because they answer
@@ -110,7 +111,7 @@ families are meaningful:
 | `second_most` | which label is second most frequent | ✓ | ✓ |
 | `entity_count` | how many X-labelled records in group G | ✓ | — nested |
 | `entity_argmax` | which **named candidate** group has the most X | ✓ | — nested |
-| `top_k` | the k **named candidates** with the most X, ordered | ✓ | — nested |
+| ~~`top_k`~~ | *(withdrawn in v0.5.0 — see below)* | — | — |
 | `pairwise` | which of A or B has more X | ✓ | — nested |
 
 **Every ranking question names its candidates.** `entity_argmax`, `top_k` and the
@@ -121,14 +122,16 @@ produce `iot_hue_lightoff` without being told such a label space exists — and
 near-identical corpus-level counts, so only this haystack can rank them. See §4
 and `DESIGN_DECISIONS.md` (D9, D10).
 
-A family ships only where it passes that test, and three sets lose one:
-`en_twin` (6 airlines) cannot form a prior-neutral 5-candidate set, so it emits no
-`entity_argmax`/`top_k`; `vitamins_tr` and `amazon_hpc_en` disable `top_k`, whose
-*exact ordering* stayed prior-correlated even after entity randomization
-(z = +5.5 and +3.7 under `--certify`). `top_k` therefore ships on `tr_oolong`
-alone. Flipping one position is easy to randomize; permuting three independently
-is not — so exact ordering is intrinsically the hardest family to make
-prior-neutral. All of this is recorded, not hidden.
+**`top_k` no longer ships, and the reason is worth keeping.** Exact ordering was
+always the hardest family to make prior-neutral: flipping one position is easy to
+randomize, permuting three independently is not. It stayed prior-correlated on
+`vitamins_tr` and `amazon_hpc_en` (z = +5.5 and +3.7 under `--certify`) and
+survived on one corpus only — the brand-review set, which was **withdrawn in
+v0.5.0 over undocumented label provenance** (§3.5). Rather than ship a family
+resting on a single source we no longer trust, `top_k` is withdrawn with it.
+Restoring it needs a corpus with a clean licence, documented labels, and an
+entity axis orthogonal to the label; none of the candidates surveyed in
+`DATASET_REVIEW.md` has all three.
 
 The `most_common` / `least_common` family mirrors the OOLONG-synth counting
 typology; their actual task identifiers are `MOST_FREQ`, `LEAST_FREQ`,
@@ -139,7 +142,7 @@ single-question-per-haystack family (like `shift`): asking twice adds nothing.
 
 ## 3. The data sources, one by one
 
-Eight corpora feed ten sets. This section shows what each one actually looks
+Six corpora feed eight sets. This section shows what each one actually looks
 like, and exactly how its raw fields become the label the benchmark counts.
 Read it before anything else; every design decision downstream follows from
 these tables.
@@ -268,52 +271,7 @@ answer across languages, and what permits paired statistical tests.
 
 ---
 
-### 3.4 `tr_oolong` — Turkish brand reviews (secondary)
-
-Source: `We-Bears/Turkish-Review-Sentiment-Data`, Apache-2.0, fetched by
-`scripts/webears.py`. Labels are native 3-class sentiment; no mapping needed.
-
-| review | sentiment | sirket |
-|---|---|---|
-| *kaira, müşteri memnuniyetini ön planda tutarak şık ve kullanışlı ürünl…* | `olumlu` | kaira |
-| *vodafone tarife pahalılığı ile ilgili sorun yaşamaktayım. en ucuz tari…* | `olumsuz` | vodafone |
-| *jbl'in şarj süresi genellikle yeterlidir, ancak bose'un şarj süresi da…* | **`olumlu,olumsuz`** | jbl,bose |
-
-**The third row shows the problem.** 15,411 of 40,597 rows (38%) carry
-comma-joined multi-aspect labels rather than one sentiment. Ground truth needs
-one label per record, so these are dropped. The retained subset therefore skews
-shorter, single-aspect, and negative.
-
-**This set is labelled secondary, and §4d explains why** (full source review in
-[`DATASET_REVIEW.md`](DATASET_REVIEW.md)). Its label provenance is
-undocumented upstream, its length spread is 3.6x (the largest here), and 0 of its
-262 duplicate-text groups carry conflicting labels — the signature of
-programmatic rather than human labelling. Aggregate answers remain exact with
-respect to the built haystack, which is all any question asks about.
-
----
-
-### 3.5 `en_twin` — Twitter US Airline Sentiment
-
-Source: CrowdFlower (Feb 2015) via `osanseviero/twitter-airline-sentiment`,
-CC-BY-NC-SA-4.0, fetched by `scripts/airline.py`. Native 3-class labels, human
-annotated.
-
-| text | airline_sentiment | airline |
-|---|---|---|
-| *@VirginAmerica What @dhepburn said.* | `neutral` | Virgin America |
-| *@VirginAmerica plus you've added commercials to the experience... tack…* | `positive` | Virgin America |
-| *@VirginAmerica I didn't today... Must mean I need to take another trip…* | `neutral` | Virgin America |
-
-Only 6 airlines exist, which is too few to build a prior-neutral 5-candidate set,
-so this set emits no `entity_argmax` or `top_k`.
-
-**Licence.** Non-commercial **and** share-alike, which would infect the whole
-release if shipped as one dataset. **Text withheld**, rebuilt locally.
-
----
-
-### 3.6 `musteri_tr` / `marc_en` — the cleanest pair
+### 3.4 `musteri_tr` / `marc_en` — the cleanest pair
 
 Added 2026-08-25. Turkish: `turkish-nlp-suite/MusteriYorumlari`, product reviews
 scraped from Hepsiburada.com and Trendyol.com, CC-BY-SA-4.0. English:
@@ -339,7 +297,7 @@ question families is not a twin.
 **Why this pair matters.** On the measurements that decide whether a
 cross-lingual comparison is trustworthy, it is the best in the benchmark:
 
-| | `musteri_tr` ↔ `marc_en` | `vitamins_tr` ↔ `amazon_hpc_en` | `tr_oolong` ↔ `en_twin` |
+| | `musteri_tr` ↔ `marc_en` | `vitamins_tr` ↔ `amazon_hpc_en` | *withdrawn brand-review pair* |
 |---|---|---|---|
 | twin asymmetry (§4d) | **0.010** | 0.015 | 0.108 |
 | class balance | **1.0x / 1.0x** | 2.3x / 1.0x | 4.1x / 3.9x |
@@ -352,25 +310,23 @@ Its cost is six families instead of ten. It is therefore the **cleanest** pair,
 not the richest — `vitamins_tr` ↔ `amazon_hpc_en` remains the primary pair
 because it carries the entity axis.
 
-### 3.7 Summary — what each source contributes
+### 3.5 Summary — what each source contributes
 
 | set | source | label origin | classes | entity | ships |
 |---|---|---|---|---|---|
 | `tr_intent`, `en_intent` (+paired) | MASSIVE | already in the data, professional annotation | 48 | nested, unusable | 6 families |
 | `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | 9 families |
 | `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 9 families |
-| `tr_oolong` | brand reviews | native labels, provenance undocumented | 3 | brand | **all 10** |
-| `en_twin` | airline tweets | CrowdFlower human annotation | 3 | airline, only 6 values | 8 families |
 | `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | 6 families |
 | `marc_en` | MARC English | **writer's own star rating** | 3 | none | 6 families |
 
 
-### 3.8 Example questions (produced by the actual builder)
+### 3.6 Example questions (produced by the actual builder)
 
 Every answer below is computed from the source labels by two independent code
 paths and asserted equal (see §6).
 
-**Review axis** (orthogonal brand entity), from `tr_oolong_out/questions.jsonl`:
+**Review axis** (orthogonal brand entity), from `vitamins_tr_out/questions.jsonl`:
 
 - `entity_argmax` — *"Şu markalardan hangisi en çok 'olumlu' yorum aldı: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? Sadece marka adını yaz."* → **general mobile**
 - `top_k` — *"Şu markalar arasında en çok 'olumlu' yorum alan ilk 3 marka hangileri: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? …"* → **general mobile > carrefoursa > vestel**
@@ -423,6 +379,13 @@ A real sample question set is committed at `examples/sample_questions_review.jso
 
 Three independent shortcut solvers must fail before a set ships. Each exists
 because a *previous* version of the benchmark was solvable by it.
+
+> **On the set names in this section.** Several measurements below were taken on
+> `tr_oolong` (Turkish brand reviews) and `en_twin` (airline tweets), a pair
+> **withdrawn in v0.5.0** over undocumented label provenance. The measurements are
+> kept because they are the evidence for why each solver exists — a defect found
+> on a set that was later dropped is still a defect the pipeline now catches. No
+> shipped set depends on them.
 
 **(a) Grep-proofness — the leakage solver.** The question asks about a latent
 *label*, and no record contains any label's surface form; records that do are
@@ -508,10 +471,14 @@ review corpora, and severely in one:
 
 | source | longest class | shortest class | spread |
 |---|---|---|---|
-| Turkish brand reviews | olumsuz 33.1 w | olumlu 9.1 w | **3.6x** |
 | `vitamins_tr` | olumsuz 15.0 w | olumlu 9.8 w | 1.5x |
-| Airline tweets | negative 19.8 w | positive 14.1 w | 1.4x |
+| `musteri_tr` | olumsuz | olumlu | 1.2x |
+| `marc_en` | negative | positive | 1.1x |
 | `amazon_hpc_en` | **positive** 46.9 w | negative 41.8 w | 1.1x |
+
+For scale, the brand-review corpus withdrawn in v0.5.0 had a **3.6x** spread —
+`olumsuz` averaged 33.1 words and ended in a period 48% of the time, `olumlu`
+averaged 9.1 words and ended in a period 99% of the time.
 
 A format-solvable corpus still yields a valid aggregation task — the model must
 classify every record and add up the results either way. What it stops being is a
@@ -521,20 +488,20 @@ model can score on the Turkish half by measuring sentence lengths:
 
 | pair | asymmetry |
 |---|---|
-| intent, record-matched | **0.015** |
-| review pair (b), supplements | **0.017** |
+| `musteri_tr` ↔ `marc_en` | **0.010** |
+| `vitamins_tr` ↔ `amazon_hpc_en` | 0.015 |
+| intent, record-matched | 0.017 |
 | intent, token-matched | 0.033 |
-| review pair (a), brand reviews / airline | **0.108** |
 
-Pair (b) and the record-matched intent pair are the clean ones; pair (a) is the
-outlier and is labelled as secondary in `DATACARD.md` for this reason. All eight
-sets pass the gate (no set exceeds +0.15 mean lift over majority), and
+Every shipping pair is now at or under 0.033. The one pair that sat at **0.108**
+was the brand-reviews/airline pair, withdrawn in v0.5.0. All eight sets pass the
+gate (no set exceeds +0.15 mean lift over majority) and
 `manifests/style_audit.json` is the committed record.
 
 **One family fails this solver everywhere.** `shift` is the only family with a
 positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
 `vitamins_tr`), +0.100 (`en_intent`). Its majority baseline is already the
-highest in the suite (mean 0.61; 0.73 on `tr_oolong`). A binary rose/fell over
+highest in the suite (mean 0.61). A binary rose/fell over
 positional halves is simply too coarse. See §10.
 
 **Questions must be answerable only by aggregating.** The same audit measures how
@@ -586,14 +553,12 @@ utterances give 2.16× (GPT-2), 1.53× (Qwen3-8B), 1.29× (mBERT) and **0.57×**
 | `en_intent` | en | 48 | 50K / 100K | 10 | 120 | 99,871 |
 | `tr_intent_paired` | tr | 48 | 3K rec / 6K rec | 10 | 120 | 99,057 |
 | `en_intent_paired` | en | 48 | 3K rec / 6K rec | 10 | 120 | 75,187 |
-| `tr_oolong` | tr | 3 | 100K / 250K / 500K | 15 | 174 | 494,505 |
-| `en_twin` | en | 3 | 50K / 100K | 10 | 111 | 98,321 |
 | `vitamins_tr` | tr | 3 | 100K / 250K / 500K / 750K | 20 | 235 | 744,132 |
 | `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 20 | 234 | 986,533 |
 | `musteri_tr` | tr | 3 | 100K / 250K / 500K | 15 | 138 | 496,238 |
 | `marc_en` | en | 3 | 100K / 250K / 500K | 15 | 134 | 491,821 |
 
-**1506 questions over 135 haystacks**, ten instance sets. Realized
+**1221 questions over 110 haystacks**, eight instance sets. Realized
 haystack lengths are within 0.97–1.00 of target on every set (D14); each
 manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
 
@@ -738,13 +703,13 @@ which their paper reports as the hardest of the three.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 synth + 10,810 real | 1,506 |
-| haystacks | not reported per split | **135**, 33.2M tokens total |
-| context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 246K) |
+| questions | 6,500 synth + 10,810 real | 1,221 |
+| haystacks | not reported per split | **110**, 28.2M tokens total |
+| context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 257K) |
 | label space | 2–10 classes | **3 and 48** |
 | entity axis | synthetic user IDs | **real brands**, MI 0.022 on `vitamins_tr` |
 | **timeline axis** | **6 families over real dates** | 1 binary family over positional halves |
-| ordered ranking | — | **`top_k`, chance 1/60** |
+| ordered ranking | — | implemented, withdrawn with its only corpus in v0.5.0 |
 | numeric metric | `0.75^\|y-ŷ\|` | same **+ `relative`** (theirs degenerates at our counts) |
 | shortcut audit | not reported | **4 solvers, committed manifests** |
 
@@ -821,7 +786,7 @@ of how often they are the binding constraint:
 |---|---|---|---|---|
 | **MASSIVE tr-TR ↔ en-US** | identical, same utterances | identical by construction | **0.017** | **best available.** The only true record-matched twin; 110/120 questions share a gold answer |
 | **`vitamins_tr` ↔ `amazon_hpc_en`** | author's stars, both | 12.1 vs 44.8 w (3.7x) | **0.015** | **ships as primary review pair.** Length mismatch is its one weakness |
-| Turkish brand reviews ↔ airline tweets | undocumented vs CrowdFlower humans | 24.2 vs 15.7 w | **0.108** | **secondary only.** Mismatched provenance and a 7x surface-shape asymmetry |
+| Turkish brand reviews ↔ airline tweets | undocumented vs CrowdFlower humans | 24.2 vs 15.7 w | **0.108** | **withdrawn in v0.5.0.** Mismatched provenance, 7x surface-shape asymmetry |
 | MüşteriYorumları ↔ Amazon Home & Kitchen | author's stars, both | 13.2 vs 71.8 w (5.4x) | 0.106 | rejected: no Amazon category is terse enough |
 | `vitamins_tr` ↔ `app_reviews` | author's stars, both | 12.1 vs 18.8 w (1.6x) | 0.021 | best length match found, but no better than the pair in use |
 | SIB-200 tur ↔ eng | identical, parallel | identical | — | **structurally dead**: 1,004 rows total, ~14K token ceiling |
@@ -868,7 +833,7 @@ construction.
 **Release and licensing.** The six source corpora carry five different licenses,
 and two of them do not permit redistributing their text. `scripts/publish_hf.py`
 packages each set as its own Hugging Face config with its own license tag, and
-ships `en_twin` and `amazon_hpc_en` as questions-and-answers only — their
+ships `amazon_hpc_en` as questions-and-answers only — its
 haystacks are rebuilt locally from the public source, byte-identically. Full
 table in `DATACARD.md`. `LICENSE` (MIT) covers **code only**.
 
@@ -910,9 +875,9 @@ ranking and `proportion`.
 
 **`shift` is the weakest family and should be read with that in mind.** It is a
 binary rose/fell over positional halves, so its floor is the highest in the suite
-(mean majority baseline 0.61; 0.73 on `tr_oolong`), and it is the only family the
-surface-format solver beats: +0.400 on `amazon_hpc_en`, +0.300 on `en_twin` and
-`vitamins_tr`, +0.100 on `en_intent` (§4d). Length correlates with label, and
+(mean majority baseline 0.61), and it is the only family the surface-format
+solver beats: +0.400 on `amazon_hpc_en`, +0.300 on `vitamins_tr`, +0.267 on
+`musteri_tr` and `marc_en`, +0.100 on `en_intent` (§4d). Length correlates with label, and
 length also correlates with position once drift is injected, so format alone
 partly recovers the direction. The fix is a real dated timeline axis of the kind
 OOLONG has, which is blocked on data rather than code: no Turkish source examined
@@ -931,12 +896,10 @@ set's worst tier:
 | set | worst tier | mean Jaccard | pool consumed per haystack |
 |---|---|---|---|
 | `vitamins_tr` | 750K | 0.378 | 0.536 |
-| `tr_oolong` | 500K | 0.281 | 0.379 |
 | `tr_intent` | 100K | 0.279 | 0.403 |
 | `amazon_hpc_en` | 1M | 0.213 | 0.310 |
-| `en_twin` | 100K | 0.110 | 0.221 |
 
-Overlap is negligible at the shortest tiers (`tr_oolong` 100K: J=0.052) and grows
+Overlap is negligible at the shortest tiers (`tr_intent` 50K: J≈0.05) and grows
 with length, so treat long-tier variance as understated. Prefer more haystacks
 over more questions per haystack when adding statistical power.
 

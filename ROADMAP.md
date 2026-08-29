@@ -1,5 +1,10 @@
 # TR-OOLONG — Roadmap
 
+> **Note on set names in completed items.** Entries below Phase 6 may name
+> `tr_oolong` (Turkish brand reviews) and `en_twin` (airline tweets). That pair
+> was **withdrawn in v0.5.0**. The entries are kept as a work log — the
+> measurements that motivated each fix are still the reason the fix exists.
+
 Progress tracker. Tick boxes as items land. Ordered by priority; later phases
 assume earlier ones are done.
 
@@ -187,6 +192,15 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [x] Full licensing audit written up: which sets ship text, which ship
       questions-and-answers only, and why share-alike forces a per-source config
       split rather than one flat dataset.
-- [ ] Decide whether `tr_oolong` (We-Bears) stays in the release at all now that
-      a cleaner Turkish review pair exists. It is the only 10-family set, which
-      is the argument for keeping it.
+- [x] **Decided 2026-08-30: `tr_oolong` (We-Bears) and its `en_twin` partner are
+      withdrawn.** Undocumented label provenance was the deciding factor and is
+      the one defect filtering cannot fix. `top_k` withdrawn with it. Configs,
+      fetch scripts and built outputs removed so nothing dangles.
+
+## Phase 7 — after the withdrawal (2026-08-30)
+
+- [ ] **Restore an ordered-ranking family** if a corpus turns up with a clean
+      licence, documented labels, and an entity axis orthogonal to the label.
+      None of the candidates in `DATASET_REVIEW.md` has all three.
+- [ ] Consider whether the entity axis resting on `vitamins_tr` alone is
+      acceptable, or whether a second orthogonal-entity Turkish corpus is needed.

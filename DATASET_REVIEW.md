@@ -22,7 +22,7 @@ recovers, over the majority baseline. `spread` = longest class's mean word count
 | source | rows | classes | imbalance | ceiling | style | spread | licence |
 |---|---|---|---|---|---|---|---|
 | **`vitamins_tr`** (in use, primary) | 43,043 | 3 | 2.3x | 602K | +0.048 | 1.5x | CC-BY-SA-4.0 |
-| **We-Bears** (in use, secondary) | 25,186 | 3 | 4.1x | 527K | **+0.120** | **3.6x** | Apache-2.0 |
+| ~~We-Bears~~ (**withdrawn v0.5.0**) | 25,186 | 3 | 4.1x | 527K | **+0.120** | **3.6x** | Apache-2.0 |
 | MüşteriYorumları | 73,920 | 3 | 3.4x | **970K** | **+0.004** | **1.2x** | CC-BY-SA-4.0 |
 | BüyükSinema | 67,328 | **10** | 10.1x | **1.5M** | +0.000 | 1.6x | CC-BY-SA-4.0 |
 | TurkishHateMap | 42,175 | 4 | 32.9x | 414K | +0.000 | **6.8x** | CC-BY-SA-4.0 |
@@ -38,7 +38,7 @@ independent of the label** (normalised MI 0.022). That independence is what make
 `entity_count`, `entity_argmax`, `pairwise` and `top_k` possible. Every other
 candidate has no entity column or a correlated one.
 
-**We-Bears — the weakest, already demoted.** Three independent marks against it:
+**We-Bears — WITHDRAWN 2026-08-30.** Three independent marks against it:
 a +0.120 style shortcut (7x its English twin's), a 3.6x length spread, and **0
 conflicting labels across 262 duplicate-text groups** where the human-annotated
 airline twin has 17.1%. That last one means labels are a deterministic function
@@ -169,8 +169,10 @@ must be identical on both sides and must not be another LLM's judgement.
 3. **Do not adopt guardrail-tr for the cross-lingual axis**, for the circularity
    reason above and the 259K ceiling. Reconsider it only if a monolingual
    label-space-difficulty axis is wanted.
-4. **We-Bears stays as a secondary robustness check**, with its caveats already
-   recorded in `DATACARD.md` and README §4d.
+4. **~~We-Bears stays as a secondary robustness check.~~ WITHDRAWN 2026-08-30.**
+   Provenance is the one defect filtering cannot fix — you cannot filter for not
+   knowing where the labels came from. `top_k` was withdrawn with it, since that
+   corpus was the only one where exact ordering passed prior-neutrality.
 
 
 ---
@@ -237,7 +239,7 @@ is (a) as MüşteriYorumları's twin, and (b) it carries a real **`date` column*
 | MüşteriYorumları ↔ `app_reviews` | **13.8 vs 14.7 w** | 0.030 | best *length* match, but `license:unknown` |
 | `vitamins_tr` ↔ `app_reviews` | 12.1 vs 14.7 w | 0.021 | no better than the pair in use |
 | MüşteriYorumları ↔ Amazon Home | 13.8 vs 67.3 w | 0.106 | rejected |
-| We-Bears ↔ airline tweets | 24.2 vs 15.7 w | **0.108** | ships as secondary, with caveats |
+| ~~We-Bears ↔ airline tweets~~ | 24.2 vs 15.7 w | **0.108** | **withdrawn v0.5.0** |
 | SIB-200 / XNLI | identical | — | structurally dead |
 
 ---
