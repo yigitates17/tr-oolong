@@ -560,7 +560,7 @@ frozen scorer. It reports lift over each family's majority baseline, and the
 per-pair asymmetry. The builder's `--audit` reports the per-class surface shape
 so a source is screened before it is ever built, warning above a 2.0x spread.
 
-**Measured.** All eight sets pass (no set exceeds +0.15 mean lift). Asymmetries:
+**Measured.** All ten sets pass (no set exceeds +0.15 mean lift). Asymmetries:
 record-matched intent 0.015, supplement pair 0.017, token-matched intent 0.033,
 brand-reviews/airline pair **0.108**.
 

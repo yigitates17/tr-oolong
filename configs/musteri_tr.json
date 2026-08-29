@@ -1,0 +1,30 @@
+{
+  "source_path": "datasets/musteri_tr.parquet",
+  "text_col": "text",
+  "label_col": "label",
+  "entity_col": "",
+  "language": "tr",
+  "min_words": 3,
+  "seed": 42,
+  "dirichlet_alpha": 1.0,
+  "haystack_target_tokens": [
+    100000,
+    250000,
+    500000
+  ],
+  "haystacks_per_length": 5,
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "musteri_tr_out",
+  "question_templates": {
+    "count": "Bu yorumlardan kaç tanesi '{label}' etiketli? Sadece sayıyı yaz.",
+    "proportion": "Yorumların yüzde kaçı '{label}' etiketli? En yakın tam sayıya yuvarla, sadece sayıyı yaz.",
+    "shift": "Yorumların ikinci yarısında '{label}' oranı ilk yarıya göre arttı mı azaldı mı? 'arttı' veya 'azaldı' yaz.",
+    "most_common": "Bu yorumlarda en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
+    "least_common": "Bu yorumlarda en az görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
+    "second_most": "Bu yorumlarda ikinci en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz."
+  },
+  "families_disabled": [],
+  "min_rank_margin": 0.2
+}

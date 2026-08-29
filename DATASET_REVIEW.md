@@ -160,11 +160,12 @@ must be identical on both sides and must not be another LLM's judgement.
 
 1. **Change nothing about the primary pair.** `vitamins_tr` ↔ `amazon_hpc_en`
    is sound and is the only pair with a usable entity axis.
-2. **Optional, low-risk:** add MüşteriYorumları as a *third* Turkish review set
+2. **DONE (2026-08-25).** MüşteriYorumları added as a *third* Turkish review set
    alongside the existing ones rather than replacing We-Bears. It costs nothing,
-   removes no families, and gives a clean 6-family set with the best surface
-   profile of any Turkish source measured. **Its English twin is `app_reviews`
-   and both halves are already built** — see §"The twin search" below.
+   alongside the existing ones. Its twin is **MARC English**
+   (`SetFit/amazon_reviews_multi_en`, Apache-2.0), not `app_reviews`: the latter
+   is a closer length match but is tagged `license:unknown`, and MARC reached a
+   **better** twin asymmetry anyway — **0.010, the lowest in the benchmark**.
 3. **Do not adopt guardrail-tr for the cross-lingual axis**, for the circularity
    reason above and the 259K ceiling. Reconsider it only if a monolingual
    label-space-difficulty axis is wanted.
@@ -232,7 +233,8 @@ is (a) as MüşteriYorumları's twin, and (b) it carries a real **`date` column*
 |---|---|---|---|
 | MASSIVE tr ↔ en | identical | **0.015** | best; true record-matched twin |
 | `vitamins_tr` ↔ `amazon_hpc_en` | 12.1 vs 44.8 w | **0.017** | ships as primary review pair |
-| **MüşteriYorumları ↔ `app_reviews`** | **13.8 vs 14.7 w** | **0.030** | **best length match measured** |
+| **MüşteriYorumları ↔ MARC English** | 13.8 vs 34.1 w | **0.010** | **ships. Lowest asymmetry measured; both halves Apache-2.0 / CC-BY-SA** |
+| MüşteriYorumları ↔ `app_reviews` | **13.8 vs 14.7 w** | 0.030 | best *length* match, but `license:unknown` |
 | `vitamins_tr` ↔ `app_reviews` | 12.1 vs 14.7 w | 0.021 | no better than the pair in use |
 | MüşteriYorumları ↔ Amazon Home | 13.8 vs 67.3 w | 0.106 | rejected |
 | We-Bears ↔ airline tweets | 24.2 vs 15.7 w | **0.108** | ships as secondary, with caveats |

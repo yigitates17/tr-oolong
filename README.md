@@ -8,7 +8,7 @@ extraction), answerable by counting strings rather than by classifying each
 record. The claim here is therefore two gaps wide: the language, and
 latent-label aggregation rather than word counting. It follows the OOLONG-synth construction
 principle (Bertsch et al., 2025): concatenate examples from an existing *labeled*
-dataset into a 50K–1M-token haystack, then auto-generate distributional
+dataset into a 36K–1M-token haystack, then auto-generate distributional
 questions whose ground truth is computed exactly from the source labels — no
 manual annotation.
 
@@ -42,7 +42,7 @@ Two axes:
 
 | Axis | Source | Label (classes) | Entity axis | Purpose |
 |---|---|---|---|---|
-| **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
+| **Review / sentiment** | Three TR–EN corpus pairs: (a) Turkish brand reviews + EN airline tweets; (b) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care; (c) Turkish e-commerce reviews + EN Multilingual Amazon Reviews | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
 | **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel corpus) | intent (48) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
 
 The intent axis is built **twice**, in two matching regimes, because they answer
@@ -123,7 +123,7 @@ single-question-per-haystack family (like `shift`): asking twice adds nothing.
 
 ## 3. The data sources, one by one
 
-Six corpora feed eight sets. This section shows what each one actually looks
+Eight corpora feed ten sets. This section shows what each one actually looks
 like, and exactly how its raw fields become the label the benchmark counts.
 Read it before anything else; every design decision downstream follows from
 these tables.
@@ -297,7 +297,46 @@ release if shipped as one dataset. **Text withheld**, rebuilt locally.
 
 ---
 
-### 3.6 Summary — what each source contributes
+### 3.6 `musteri_tr` / `marc_en` — the cleanest pair
+
+Added 2026-08-25. Turkish: `turkish-nlp-suite/MusteriYorumlari`, product reviews
+scraped from Hepsiburada.com and Trendyol.com, CC-BY-SA-4.0. English:
+`SetFit/amazon_reviews_multi_en` (the Multilingual Amazon Reviews Corpus),
+Apache-2.0.
+
+**Both labels are the customer's own 1–5 star rating**, mapped by the same rule
+used for `vitamins_tr`:
+
+| stars | Turkish label | English label |
+|---|---|---|
+| 1, 2 | `olumsuz` | `negative` |
+| 3 | `nötr` | `neutral` |
+| 4, 5 | `olumlu` | `positive` |
+
+Each class is capped to the smallest, so **both pools are perfectly balanced**
+(normalised entropy 1.000): 12,883 per class in Turkish, 40,000 in English.
+
+**Neither half has a product or brand column**, so both emit the same six
+families. That symmetry is deliberate: a twin whose halves support different
+question families is not a twin.
+
+**Why this pair matters.** On the measurements that decide whether a
+cross-lingual comparison is trustworthy, it is the best in the benchmark:
+
+| | `musteri_tr` ↔ `marc_en` | `vitamins_tr` ↔ `amazon_hpc_en` | `tr_oolong` ↔ `en_twin` |
+|---|---|---|---|
+| twin asymmetry (§4d) | **0.010** | 0.015 | 0.108 |
+| class balance | **1.0x / 1.0x** | 2.3x / 1.0x | 4.1x / 3.9x |
+| length spread within set | **1.2x / 1.1x** | 1.5x / 1.1x | 3.6x / 1.4x |
+| tokens per record | **32.6 vs 41.3** | 22 vs 82 | 45 vs 30 |
+| label provenance | writer's own stars, both | writer's own stars, both | undocumented vs CrowdFlower |
+| text redistributable | **both** | Turkish only | Turkish only |
+
+Its cost is six families instead of ten. It is therefore the **cleanest** pair,
+not the richest — `vitamins_tr` ↔ `amazon_hpc_en` remains the primary pair
+because it carries the entity axis.
+
+### 3.7 Summary — what each source contributes
 
 | set | source | label origin | classes | entity | ships |
 |---|---|---|---|---|---|
@@ -306,9 +345,11 @@ release if shipped as one dataset. **Text withheld**, rebuilt locally.
 | `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 9 families |
 | `tr_oolong` | brand reviews | native labels, provenance undocumented | 3 | brand | **all 10** |
 | `en_twin` | airline tweets | CrowdFlower human annotation | 3 | airline, only 6 values | 8 families |
+| `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | 6 families |
+| `marc_en` | MARC English | **writer's own star rating** | 3 | none | 6 families |
 
 
-### 3.7 Example questions (produced by the actual builder)
+### 3.8 Example questions (produced by the actual builder)
 
 Every answer below is computed from the source labels by two independent code
 paths and asserted equal (see §6).
@@ -530,8 +571,10 @@ Qwen3-8B. This separates "harder to tokenize" from "harder to reason about."
 | `en_twin` | en | 3 | 50K / 100K | 10 | 111 | 98,321 |
 | `vitamins_tr` | tr | 3 | 100K / 250K / 500K / 750K | 20 | 235 | 744,132 |
 | `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 20 | 234 | 986,533 |
+| `musteri_tr` | tr | 3 | 100K / 250K / 500K | 15 | 138 | 496,238 |
+| `marc_en` | en | 3 | 100K / 250K / 500K | 15 | 134 | 491,821 |
 
-**1234 questions over 105 haystacks**, eight instance sets. Realized
+**1506 questions over 135 haystacks**, ten instance sets. Realized
 haystack lengths are within 0.97–1.00 of target on every set (D14); each
 manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
 
@@ -676,9 +719,9 @@ which their paper reports as the hardest of the three.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 synth + 10,810 real | 1,234 |
-| haystacks | not reported per split | **105**, 24.8M tokens total |
-| context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 236K) |
+| questions | 6,500 synth + 10,810 real | 1,506 |
+| haystacks | not reported per split | **135**, 33.2M tokens total |
+| context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 246K) |
 | label space | 2–10 classes | **3 and 48** |
 | entity axis | synthetic user IDs | **real brands**, MI 0.022 on `vitamins_tr` |
 | **timeline axis** | **6 families over real dates** | 1 binary family over positional halves |
