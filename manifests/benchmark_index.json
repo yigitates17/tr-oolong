@@ -1,30 +1,27 @@
 {
   "version": "0.4.0",
   "date": "2026-08-25",
-  "n_sets": 8,
-  "total_questions": 1234,
+  "n_sets": 10,
+  "total_questions": 1506,
   "languages": [
     "en",
     "tr"
   ],
   "sets": [
     {
-      "config": "configs/amazon_hpc_en.json",
-      "out_dir": "amazon_hpc_en_out",
-      "language": "en",
-      "source": "datasets/amazon_hpc_en.parquet",
+      "config": "configs/tr_intent.json",
+      "out_dir": "tr_intent_out",
+      "language": "tr",
+      "source": "datasets/massive_tr.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 234,
+      "questions": 120,
       "kind_distribution": {
-        "count": 56,
-        "entity_argmax": 18,
-        "entity_count": 22,
-        "least_common": 17,
-        "most_common": 17,
-        "pairwise": 15,
-        "proportion": 55,
-        "second_most": 14,
-        "shift": 20
+        "count": 40,
+        "least_common": 10,
+        "most_common": 10,
+        "proportion": 40,
+        "second_most": 10,
+        "shift": 10
       }
     },
     {
@@ -44,60 +41,26 @@
       }
     },
     {
-      "config": "configs/en_intent_paired.json",
-      "out_dir": "en_intent_paired_out",
-      "language": "en",
-      "source": "datasets/massive_en.parquet",
-      "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 120,
-      "kind_distribution": {
-        "count": 40,
-        "least_common": 10,
-        "most_common": 10,
-        "proportion": 40,
-        "second_most": 10,
-        "shift": 10
-      }
-    },
-    {
-      "config": "configs/en_twin.json",
-      "out_dir": "en_twin_out",
-      "language": "en",
-      "source": "datasets/airline_tweets.csv",
-      "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 111,
-      "kind_distribution": {
-        "count": 29,
-        "entity_count": 10,
-        "least_common": 8,
-        "most_common": 8,
-        "pairwise": 10,
-        "proportion": 29,
-        "second_most": 7,
-        "shift": 10
-      }
-    },
-    {
-      "config": "configs/tr_intent.json",
-      "out_dir": "tr_intent_out",
-      "language": "tr",
-      "source": "datasets/massive_tr.parquet",
-      "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 120,
-      "kind_distribution": {
-        "count": 40,
-        "least_common": 10,
-        "most_common": 10,
-        "proportion": 40,
-        "second_most": 10,
-        "shift": 10
-      }
-    },
-    {
       "config": "configs/tr_intent_paired.json",
       "out_dir": "tr_intent_paired_out",
       "language": "tr",
       "source": "datasets/massive_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 120,
+      "kind_distribution": {
+        "count": 40,
+        "least_common": 10,
+        "most_common": 10,
+        "proportion": 40,
+        "second_most": 10,
+        "shift": 10
+      }
+    },
+    {
+      "config": "configs/en_intent_paired.json",
+      "out_dir": "en_intent_paired_out",
+      "language": "en",
+      "source": "datasets/massive_en.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
@@ -130,6 +93,24 @@
       }
     },
     {
+      "config": "configs/en_twin.json",
+      "out_dir": "en_twin_out",
+      "language": "en",
+      "source": "datasets/airline_tweets.csv",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 111,
+      "kind_distribution": {
+        "count": 29,
+        "entity_count": 10,
+        "least_common": 8,
+        "most_common": 8,
+        "pairwise": 10,
+        "proportion": 29,
+        "second_most": 7,
+        "shift": 10
+      }
+    },
+    {
       "config": "configs/vitamins_tr.json",
       "out_dir": "vitamins_tr_out",
       "language": "tr",
@@ -146,6 +127,57 @@
         "proportion": 48,
         "second_most": 18,
         "shift": 20
+      }
+    },
+    {
+      "config": "configs/amazon_hpc_en.json",
+      "out_dir": "amazon_hpc_en_out",
+      "language": "en",
+      "source": "datasets/amazon_hpc_en.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 234,
+      "kind_distribution": {
+        "count": 56,
+        "entity_argmax": 18,
+        "entity_count": 22,
+        "least_common": 17,
+        "most_common": 17,
+        "pairwise": 15,
+        "proportion": 55,
+        "second_most": 14,
+        "shift": 20
+      }
+    },
+    {
+      "config": "configs/musteri_tr.json",
+      "out_dir": "musteri_tr_out",
+      "language": "tr",
+      "source": "datasets/musteri_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 138,
+      "kind_distribution": {
+        "count": 45,
+        "least_common": 13,
+        "most_common": 11,
+        "proportion": 44,
+        "second_most": 10,
+        "shift": 15
+      }
+    },
+    {
+      "config": "configs/marc_en.json",
+      "out_dir": "marc_en_out",
+      "language": "en",
+      "source": "datasets/marc_en.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 134,
+      "kind_distribution": {
+        "count": 45,
+        "least_common": 10,
+        "most_common": 11,
+        "proportion": 45,
+        "second_most": 8,
+        "shift": 15
       }
     }
   ]

@@ -318,6 +318,140 @@
     }
   },
   {
+    "set": "marc_en_out",
+    "n_questions": 134,
+    "pct_ok": 100,
+    "families": {
+      "count": {
+        "n": 45,
+        "ok": 45,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.044,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "least_common": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.3,
+        "chance": 0.5,
+        "p_value": 0.94531,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 11,
+        "ok": 11,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.364,
+        "chance": 0.545,
+        "p_value": 0.93522,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 45,
+        "ok": 45,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.022,
+        "chance": 0.089,
+        "p_value": 0.98484,
+        "prior_shortcut": false
+      },
+      "second_most": {
+        "n": 8,
+        "ok": 8,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.25,
+        "chance": 0.5,
+        "p_value": 0.96484,
+        "prior_shortcut": false
+      },
+      "shift": {
+        "n": 15,
+        "ok": 15,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.333,
+        "chance": 0.667,
+        "p_value": 0.99819,
+        "prior_shortcut": false
+      }
+    }
+  },
+  {
+    "set": "musteri_tr_out",
+    "n_questions": 138,
+    "pct_ok": 100,
+    "families": {
+      "count": {
+        "n": 45,
+        "ok": 45,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.022,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "least_common": {
+        "n": 13,
+        "ok": 13,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.385,
+        "chance": 0.385,
+        "p_value": 0.60336,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 11,
+        "ok": 11,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.273,
+        "chance": 0.545,
+        "p_value": 0.98402,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 44,
+        "ok": 44,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.023,
+        "chance": 0.068,
+        "p_value": 0.95527,
+        "prior_shortcut": false
+      },
+      "second_most": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.3,
+        "chance": 0.4,
+        "p_value": 0.83271,
+        "prior_shortcut": false
+      },
+      "shift": {
+        "n": 15,
+        "ok": 15,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.6,
+        "chance": 0.6,
+        "p_value": 0.60981,
+        "prior_shortcut": false
+      }
+    }
+  },
+  {
     "set": "tr_intent_out",
     "n_questions": 120,
     "pct_ok": 98,

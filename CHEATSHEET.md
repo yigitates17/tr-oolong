@@ -261,8 +261,8 @@ imprecision a reviewer notices.
 - **Benchmark** = the *task definition*: the question families, the construction
   procedure, the ground-truth derivation, and the frozen metric. That is the
   contribution. TR-OOLONG **is a benchmark**.
-- **Dataset** = the *files* one particular run of the generator produced — 1,230
-  questions over 105 haystacks. That is an *instantiation* of the benchmark, and
+- **Dataset** = the *files* one particular run of the generator produced — 1,506
+  questions over 135 haystacks. That is an *instantiation* of the benchmark, and
   it is what goes on Hugging Face.
 
 Use it like this:

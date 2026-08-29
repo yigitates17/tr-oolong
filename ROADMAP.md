@@ -176,3 +176,17 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [ ] Label-vs-label comparison family (`Is A more common than B?`) — a cheap
       OOLONG family we do not implement; our `pairwise` compares entities.
 - [ ] Entity-frequency family (`which entity appears most often?`, label-free).
+
+## Phase 6 — the clean pair (2026-08-25)
+
+- [x] `musteri_tr` ↔ `marc_en` added. 272 questions, 6 families, 100K/250K/500K.
+      Both pools perfectly balanced (entropy 1.000). **Twin asymmetry 0.010, the
+      lowest in the benchmark.** Both halves redistributable.
+- [x] `sealuzh/app_reviews` rejected on licence (`license:unknown`) despite a
+      closer length match. See `DATACARD.md` licensing section.
+- [x] Full licensing audit written up: which sets ship text, which ship
+      questions-and-answers only, and why share-alike forces a per-source config
+      split rather than one flat dataset.
+- [ ] Decide whether `tr_oolong` (We-Bears) stays in the release at all now that
+      a cleaner Turkish review pair exists. It is the only 10-family set, which
+      is the argument for keeping it.

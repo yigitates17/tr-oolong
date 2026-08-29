@@ -190,16 +190,16 @@ OOLONG has no cross-lingual dimension at all.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 (synth) + 10,810 (real) | **1,234** |
-| haystacks | not reported per split | **105** |
+| questions | 6,500 (synth) + 10,810 (real) | **1,506** |
+| haystacks | not reported per split | **135** |
 | context lengths | 1K–4M, reported at 8K–128K | 36K–987K |
 | **shortest haystack** | — | **36,250 tokens** |
-| **mean haystack** | — | **235,912 tokens** |
+| **mean haystack** | — | **245,671 tokens** |
 | **longest haystack** | — | **986,533 tokens** |
-| total tokens built | — | **24.8 million** |
+| total tokens built | — | **33.2 million** |
 | records per haystack | not reported | 1,523 – 22,259 |
 | label spaces | 2–10 | **3 and 48** |
-| source corpora | 10 classification sets + D&D transcripts | 6 corpora on 2 axes |
+| source corpora | 10 classification sets + D&D transcripts | 8 corpora on 2 axes |
 
 Per set:
 
@@ -213,6 +213,8 @@ Per set:
 | `en_twin` | en | 3 | 10 | 111 | 48,999 | 73,668 | 98,321 | 3,323 |
 | `vitamins_tr` | tr | 3 | 20 | 235 | 99,082 | 396,789 | 744,132 | 22,259 |
 | `amazon_hpc_en` | en | 3 | 20 | 234 | 98,574 | 456,178 | 986,533 | 17,623 |
+| `musteri_tr` | tr | 3 | 15 | 138 | 99,137 | 281,100 | 496,238 | 13,618 |
+| `marc_en` | en | 3 | 15 | 134 | 98,232 | 278,551 | 491,821 | 11,080 |
 
 The `en_intent_paired` set is shorter in tokens than its Turkish twin at the same
 record count. That gap **is** the measurement: at identical content, Turkish
@@ -263,7 +265,7 @@ So we report **both**:
 - A label-vs-label comparison family ("is A more, less, or equally common
   than B") that we do not implement; our `pairwise` compares entities.
 - A "which user appears most often" family with no label conditioning at all.
-- Far more questions: 17,310 against our 1,234.
+- Far more questions: 17,310 against our 1,506.
 - Two task flavours — synthetic plus real D&D transcripts. We have only the
   synthetic style.
 

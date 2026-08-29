@@ -232,3 +232,61 @@ is the figure that bears on the cross-lingual claim.
   utterances. Nothing in the review axis matches that, and nothing can: parallel
   corpora large enough for 100K–1M-token haystacks do not exist for Turkish
   beyond MASSIVE's 16.5K utterances. See `DATASET_REVIEW.md` for the full search.
+
+## Licensing — what can be published, verified 2026-08-25
+
+**Nothing here requires an email or a permission request.** Every source is
+publicly licensed. Three of the eight carry restrictions, and all three are
+handled by construction rather than by correspondence.
+
+| set | source | licence | text redistributable? | obligation |
+|---|---|---|---|---|
+| `tr_intent`, `en_intent` (+paired) | AmazonScience/massive | **CC-BY-4.0** | yes | attribute; state changes |
+| `tr_oolong` | We-Bears | **Apache-2.0** | yes | include licence + notice of modification |
+| `vitamins_tr` | turkish-nlp-suite (Vitaminler.com) | **CC-BY-SA-4.0** | yes | **share-alike**; cite Altınok (ACL 2023) |
+| `musteri_tr` | turkish-nlp-suite (Hepsiburada/Trendyol) | **CC-BY-SA-4.0** | yes | **share-alike** |
+| `marc_en` | SetFit/amazon_reviews_multi_en | **Apache-2.0** | yes | include licence |
+| `en_twin` | Twitter US Airline (CrowdFlower) | **CC-BY-NC-SA-4.0** | **no** | non-commercial **and** share-alike |
+| `amazon_hpc_en` | McAuley-Lab/Amazon-Reviews-2023 | repo has **no licence tag**; text under Amazon's Conditions of Use | **no** | withhold text |
+
+### The three things to be careful about
+
+**1. Share-alike is contagious, and it now covers two Turkish sets.**
+`vitamins_tr` and `musteri_tr` are CC-BY-SA-4.0. Anything derived from those
+subsets — including our haystacks, since they are concatenations of the text —
+must be released under CC-BY-SA-4.0. This is why the release is **packaged as one
+Hugging Face config per source**, each with its own licence tag, rather than as a
+single dataset: one licence field cannot describe this collection honestly, and
+merging them would force the strictest terms onto everything.
+
+**2. Two sets must ship without their text.** `en_twin` is non-commercial *and*
+share-alike, which would infect the whole release if shipped as one artifact.
+`amazon_hpc_en` is the genuine hazard: the HF repository has **no licence tag at
+all**, and the review text remains subject to Amazon's Conditions of Use, which
+grant no redistribution. Both ship as **questions and answers only**, with the
+haystack text rebuilt locally by a deterministic script. This costs nothing,
+because the build is byte-identical from the seed.
+
+**3. Aggregate answers are facts, not derivative text.** What we distribute for
+those two is a set of questions we wrote and integers computed from label counts.
+Counts over a dataset are not expressive content, so the questions-and-answers
+package is on solid ground even where the text is not redistributable. This
+reasoning should be stated in the release, not assumed.
+
+### One source was rejected on licence grounds
+
+`sealuzh/app_reviews` is a closer length match to `musteri_tr` than MARC is
+(14.7 against 13.8 mean words, versus MARC's 34.1) and produced a twin asymmetry
+of 0.030. **It is tagged `license:unknown`**, which is a declaration that no
+grant is known — not a missing field. For a benchmark intended to be downloaded,
+cited and rebuilt by others, adding a second unknown-licence dependency was
+judged not worth a 0.02 improvement in one metric. MARC is Apache-2.0 and its
+text is redistributable, and it reached a *better* asymmetry anyway (0.010).
+
+### Before release
+
+1. `LICENSE` (MIT) covers **code only** — add a line saying so, since each data
+   subset carries its own terms.
+2. Re-check every source's licence page at release time and record the access
+   date. Licence fields on Hugging Face do change.
+3. Ship the per-source config split; do not flatten into one dataset.
