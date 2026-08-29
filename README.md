@@ -12,7 +12,20 @@ dataset into a 36K–1M-token haystack, then auto-generate distributional
 questions whose ground truth is computed exactly from the source labels — no
 manual annotation.
 
-**Where to start.** [`COMPARISON.md`](COMPARISON.md) explains OOLONG and
+> ### ⚠️ Before writing anything about Turkish morphology
+>
+> The "Turkish costs 1.30–1.34x the tokens of English" figure below is measured
+> under **one tokenizer**. It is not a property of the language. On the same
+> 3,000 pair-aligned utterances the ratio is **2.16x** under GPT-2, **1.53x**
+> under Qwen3-8B, **1.29x** under mBERT and **0.57x** under BERTurk — where
+> Turkish is *cheaper* than English. It measures how much Turkish a tokenizer
+> saw, not agglutination. See [`PAPER_NOTES.md`](PAPER_NOTES.md) §1 for how to
+> state it correctly.
+
+**Where to start.** [`PAPER_NOTES.md`](PAPER_NOTES.md) lists every claim worth
+carrying into a write-up, and what must not be claimed yet.
+[`REVIEW.md`](REVIEW.md) reads the project adversarially.
+[`COMPARISON.md`](COMPARISON.md) explains OOLONG and
 TR-OOLONG side by side with real questions from both, for a reader without the
 code. §3 below shows every data source with real rows and how its labels are
 derived. [`DATASET_REVIEW.md`](DATASET_REVIEW.md) records every Turkish source
@@ -60,8 +73,11 @@ different questions:
 
 The difference between the two regimes is itself a measurement: at identical
 record counts Turkish costs **1.30–1.34× the tokens of English** under Qwen3-8B,
-stable across every haystack. That ratio is the morphology tax, isolated from any
-model's behaviour.
+stable across every haystack. **Name the tokenizer whenever quoting this.** The
+ratio is that model's tokenization penalty on Turkish, not a morphology constant:
+on the same aligned utterances it runs from **0.57×** (BERTurk, where Turkish is
+cheaper) to **2.16×** (GPT-2). The record-matched regime carries no token-budget
+confound at all and is the right anchor for a cross-lingual claim.
 
 MASSIVE ships 60 intents, but 12 of them have too few examples to ever be
 sampled competitively — with 6 rows in a 16.5K-row corpus, `cooking_query` was
@@ -555,9 +571,12 @@ the pool can supply more than R/K of it. The smallest class caps the haystack at
 **R_max = min_class_pool × K** records. The builder computes the ceiling per set,
 warns above 0.85×, and records it in the manifest under `ranking_feasibility`.
 
-**Morphology at the tokenizer.** Measured directly by the record-matched twin: at
-identical record counts Turkish costs **1.30–1.34×** the tokens of English under
-Qwen3-8B. This separates "harder to tokenize" from "harder to reason about."
+**Tokenization penalty at the tokenizer.** Measured by the record-matched twin:
+at identical record counts Turkish costs **1.30–1.34×** the tokens of English
+**under Qwen3-8B**. This separates "harder to tokenize" from "harder to reason
+about" — but only for that tokenizer. Across tokenizers the same aligned
+utterances give 2.16× (GPT-2), 1.53× (Qwen3-8B), 1.29× (mBERT) and **0.57×**
+(BERTurk), so it is a property of the tokenizer, not of Turkish.
 
 ## 5. What ships
 
@@ -825,6 +844,9 @@ tr-oolong/
 ├── DATACARD.md         # per-axis source, license, label-noise, construction
 ├── COMPARISON.md       # OOLONG vs TR-OOLONG, for a reader without the code
 ├── DATASET_REVIEW.md   # every source considered, the twin search, and each verdict
+├── PAPER_NOTES.md      # claims to carry into the paper, and what is not yet true
+├── REVIEW.md           # adversarial read: the weak parts, ranked
+├── ADVISOR_QUESTIONS.md # standing questions and their current answers
 ├── LICENSE             # MIT (code); data licenses in DATACARD
 ├── CHEATSHEET.md       # vocabulary, workflows, and what the golden test is for
 ├── src/build_tr_oolong.py
