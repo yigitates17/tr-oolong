@@ -349,7 +349,7 @@ def main() -> None:
     ap.add_argument("--certify", type=int, default=0, metavar="N",
                     help="redraw N candidate questions per haystack per family and "
                          "test the prior at real power. The shipped 7-20 questions "
-                         "per family CANNOT certify one: tr_oolong pairwise measured "
+                         "per family CANNOT certify one: a pairwise family measured "
                          "0.85 at n=13 and 0.53 at n=235. Use 200+ before release.")
     args = ap.parse_args()
     sets = args.sets or discover_sets()

@@ -57,31 +57,15 @@ is no manual answer annotation.
 ## Review / sentiment axis (built, not yet distributed)
 
 Rests on two independent TR–EN corpus pairs, so results can be shown to hold across
-datasets rather than one source. Label is `sentiment` (3 classes); the entity
+datasets rather than one source. A third pair (Turkish brand reviews ↔ airline
+tweets) was **withdrawn in v0.5.0**: its Turkish half had undocumented label
+provenance, a 3.6x length spread, and zero conflicting labels across 262
+duplicate-text groups where the human-annotated English half had 17.1%. Label is `sentiment` (3 classes); the entity
 (`brand` / `airline`) is orthogonal to the label, so all ten families apply.
 Carries the length gradient up to 1M tokens (see README §4 for how each set's
 maximum length is derived from its smallest class). Proportion unit: percent.
 
-**Pair (a) — brand reviews / airline tweets**
-- Source (TR): Turkish brand reviews (We-Bears/Turkish-Review-Sentiment-Data),
-  fetched by `scripts/webears.py`.
-  Twin (EN): Twitter US Airline Sentiment (CrowdFlower, Feb 2015), via
-  `osanseviero/twitter-airline-sentiment`, fetched by `scripts/airline.py`.
-- Labels are native 3-class sentiment.
-- **Selection effect (TR).** 15,411 of 40,597 We-Bears rows (38%) carry
-  comma-joined multi-aspect labels (`olumsuz,olumlu`) rather than a single
-  sentiment. The builder drops them, since the benchmark's ground truth requires
-  one label per record. The retained subset is therefore not a random sample of
-  the corpus: it skews toward shorter, single-aspect reviews, and toward
-  negative (15,637 olumsuz / 5,734 olumlu / 3,815 nötr before other filters).
-  Aggregate counts are still exact with respect to the *built* haystack, which
-  is what every question asks about — but the pool is not representative of
-  Turkish review text in general.
-- License: We-Bears is **Apache-2.0** — distributable. The airline twin is
-  **CC-BY-NC-SA-4.0** — non-commercial and share-alike, so its text is withheld
-  from the release and rebuilt locally. See the licensing table below.
-
-**Pair (b) — supplement reviews (same-domain twin)**
+**Pair (a) — supplement reviews (carries the entity axis)**
 - Source (TR): turkish-nlp-suite/vitamins-supplements-reviews (Vitaminler.com).
   Twin (EN): McAuley-Lab/Amazon-Reviews-2023, Health_and_Personal_Care subset.
 - Labels derived from 1–5 star ratings by a fixed map (1–2 negative, 3 neutral,
@@ -99,44 +83,6 @@ maximum length is derived from its smallest class). Proportion unit: percent.
   the text chose the label). See the per-family ceiling below.
 
 
-## Licensing — verified 2026-08-24
-
-**The six source corpora do not share a license, and two of them must not have
-their text redistributed.** `scripts/publish_hf.py` enforces this: each set is
-packaged as its own Hugging Face config with its own license tag, and the two
-restricted sets ship as questions-and-answers only, with the haystack text
-withheld and rebuilt locally from the public source.
-
-| Set | Source | License | Redistribute text? | Obligation |
-|---|---|---|---|---|
-| `tr_intent`, `en_intent` (+ paired) | AmazonScience/massive | **CC-BY-4.0** | yes | attribute; state changes |
-| `tr_oolong` | We-Bears/Turkish-Review-Sentiment-Data | **Apache-2.0** | yes | include license + notice of modification |
-| `vitamins_tr` | turkish-nlp-suite/vitamins-supplements-reviews (Vitaminler.com) | **CC-BY-SA-4.0** | yes | **share-alike**: this subset and derivatives stay CC-BY-SA-4.0; cite Altinok (ACL 2023) |
-| `en_twin` | Twitter US Airline Sentiment (CrowdFlower / Kaggle) | **CC-BY-NC-SA-4.0** | **no** | non-commercial **and** share-alike — text withheld |
-| `amazon_hpc_en` | McAuley-Lab/Amazon-Reviews-2023 (Health & Personal Care) | repo MIT-style, **text governed by Amazon's Conditions of Use** | **no** | text withheld |
-
-**No email or permission request is needed for any of these** — they are all
-publicly licensed. The two restrictions are handled by construction, not by
-correspondence:
-
-- **`en_twin`** is CC-BY-NC-SA. Non-commercial is a restriction on *use*, not a
-  bar to release, but combined with share-alike it would infect the whole
-  release if shipped as one dataset. It ships text-free.
-- **`amazon_hpc_en`** is the one genuine hazard. The Hugging Face repo's license
-  covers the *packaging*; the review text remains subject to Amazon's terms,
-  which do not grant redistribution. Withholding the text is the safe reading,
-  and it costs nothing: the build is deterministic, so a user who runs
-  `scripts/health.py` + the committed config gets byte-identical haystacks.
-
-**Two things to do before release.** (1) The repository `LICENSE` is MIT and
-covers *code only* — add a line saying so, since the data subsets carry their
-own terms. (2) Re-check each source's license page at release time and record
-the access date; license fields on Hugging Face do change.
-
-> Earlier drafts of this datacard listed the We-Bears license as "pending
-> clarification" and the Amazon set as "verify before shipping". Both are now
-> resolved: We-Bears is Apache-2.0 (distributable), Amazon is not.
-
 ## Family availability per set
 
 Not every family is meaningful on every source, and a family that fails the
@@ -146,10 +92,9 @@ the per-set question counts are not mistaken for a bug.
 | Set | Omitted | Why |
 |---|---|---|
 | `tr_intent`, `en_intent` (+paired) | the four entity families | `scenario` is *nested* in `intent`, so entity questions are trivial or impossible (detected automatically) |
-| `en_twin` | `entity_argmax`, `top_k` | 6 airlines cannot form a prior-neutral 5-candidate set |
 | `vitamins_tr` | `top_k` | exact ordering stayed prior-correlated (z=+5.5) |
+| `musteri_tr`, `marc_en` | the four entity families | no product or brand column in either half; kept symmetric on purpose |
 | `amazon_hpc_en` | `top_k` | exact ordering stayed prior-correlated (z=+3.7) |
-| `tr_oolong` | — | all ten families ship |
 
 ## Construction summary
 
@@ -201,15 +146,15 @@ longest class's mean word count to the shortest's.
 | MASSIVE tr-TR / en-US | professional annotation, parallel | — | −0.121 / −0.088 |
 | `vitamins_tr` | author's own 1–5 stars | 1.5x | **+0.007** |
 | `amazon_hpc_en` | author's own 1–5 stars | 1.1x | −0.008 |
-| Turkish brand reviews | **undocumented** | **3.6x** | −0.008 |
-| Airline tweets | CrowdFlower human annotation | 1.4x | −0.116 |
+| `musteri_tr` | author's own 1–5 stars | 1.2x | −0.044 |
+| `marc_en` | author's own 1–5 stars | 1.1x | −0.054 |
 
 Two notes on the brand-review set. Its 3.6x length spread is the largest of any
 source here (`olumsuz` averages 33.1 words and ends in a period 48% of the time;
 `olumlu` averages 9.1 words and ends in a period 99% of the time). And **0 of its
 262 duplicate-text groups carry conflicting labels**, against 17.1% for the
 human-annotated airline set — the signature of programmatic rather than human
-labelling. Its label provenance is undocumented upstream.
+labelling. **This is why the pair was withdrawn.** Its label provenance is undocumented upstream.
 
 Neither fact invalidates the set: at question level its mean style lift is
 −0.008, because prior-randomised sampling absorbs most of the source-level
@@ -225,9 +170,10 @@ is the figure that bears on the cross-lingual claim.
   axis on the Turkish half (normalised MI 0.022 after the `min_entity_examples`
   filter), and a twin asymmetry of 0.015. Its one weakness is a 3.7x record
   length mismatch.
-- **Secondary: Turkish brand reviews ↔ airline tweets.** Retained as a
-  cross-corpus robustness check, with the provenance and asymmetry caveats above
-  attached. It should not carry a cross-lingual claim on its own.
+- **Withdrawn in v0.5.0: Turkish brand reviews ↔ airline tweets.** Its Turkish
+  half had undocumented label provenance and a 3.6x length spread, and the pair's
+  twin asymmetry was 0.108 against 0.010–0.017 for the sets that remain. Removing
+  it also removed `top_k`, which shipped on that corpus alone.
 - **Strongest twin overall is the intent axis**, where TR and EN are the same
   utterances. Nothing in the review axis matches that, and nothing can: parallel
   corpora large enough for 100K–1M-token haystacks do not exist for Turkish
@@ -236,17 +182,15 @@ is the figure that bears on the cross-lingual claim.
 ## Licensing — what can be published, verified 2026-08-25
 
 **Nothing here requires an email or a permission request.** Every source is
-publicly licensed. Three of the eight carry restrictions, and all three are
+publicly licensed. Only one of the eight sets carries a redistribution restriction, and it is
 handled by construction rather than by correspondence.
 
 | set | source | licence | text redistributable? | obligation |
 |---|---|---|---|---|
 | `tr_intent`, `en_intent` (+paired) | AmazonScience/massive | **CC-BY-4.0** | yes | attribute; state changes |
-| `tr_oolong` | We-Bears | **Apache-2.0** | yes | include licence + notice of modification |
 | `vitamins_tr` | turkish-nlp-suite (Vitaminler.com) | **CC-BY-SA-4.0** | yes | **share-alike**; cite Altınok (ACL 2023) |
 | `musteri_tr` | turkish-nlp-suite (Hepsiburada/Trendyol) | **CC-BY-SA-4.0** | yes | **share-alike** |
 | `marc_en` | SetFit/amazon_reviews_multi_en | **Apache-2.0** | yes | include licence |
-| `en_twin` | Twitter US Airline (CrowdFlower) | **CC-BY-NC-SA-4.0** | **no** | non-commercial **and** share-alike |
 | `amazon_hpc_en` | McAuley-Lab/Amazon-Reviews-2023 | repo has **no licence tag**; text under Amazon's Conditions of Use | **no** | withhold text |
 
 ### The three things to be careful about
@@ -259,16 +203,17 @@ Hugging Face config per source**, each with its own licence tag, rather than as 
 single dataset: one licence field cannot describe this collection honestly, and
 merging them would force the strictest terms onto everything.
 
-**2. Two sets must ship without their text.** `en_twin` is non-commercial *and*
-share-alike, which would infect the whole release if shipped as one artifact.
-`amazon_hpc_en` is the genuine hazard: the HF repository has **no licence tag at
-all**, and the review text remains subject to Amazon's Conditions of Use, which
-grant no redistribution. Both ship as **questions and answers only**, with the
-haystack text rebuilt locally by a deterministic script. This costs nothing,
-because the build is byte-identical from the seed.
+**2. One set must ship without its text.** `amazon_hpc_en` is the genuine hazard:
+the HF repository has **no licence tag at all**, and the review text remains
+subject to Amazon's Conditions of Use, which grant no redistribution. It ships as
+**questions and answers only**, with the haystack text rebuilt locally by a
+deterministic script. This costs nothing, because the build is byte-identical
+from the seed. (A second such set, the CC-BY-NC-SA airline corpus, was withdrawn
+along with its Turkish partner in v0.5.0 — so the release no longer carries any
+non-commercial clause at all, which simplifies downstream use considerably.)
 
 **3. Aggregate answers are facts, not derivative text.** What we distribute for
-those two is a set of questions we wrote and integers computed from label counts.
+that set is a set of questions we wrote and integers computed from label counts.
 Counts over a dataset are not expressive content, so the questions-and-answers
 package is on solid ground even where the text is not redistributable. This
 reasoning should be stated in the release, not assumed.

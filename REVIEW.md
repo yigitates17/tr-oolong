@@ -90,8 +90,8 @@ prose implies, and the discrepancy is visible to anyone who opens the manifest.
 
 ## Finding 4 — SERIOUS. `shift` is measurably broken and should not ship as-is
 
-Across ten sets it is the only family the format solver beats: **+0.400**
-(`amazon_hpc_en`), **+0.300** (`en_twin`, `vitamins_tr`), **+0.267**
+Across the eight shipping sets it is the only family the format solver beats:
+**+0.400** (`amazon_hpc_en`), **+0.300** (`vitamins_tr`), **+0.267**
 (`musteri_tr`, `marc_en`), +0.100 (`en_intent`). Its majority baseline is also
 the highest in the suite (mean 0.61, up to 0.73).
 
@@ -171,25 +171,20 @@ themselves, especially since OOLONG reports timeline as its hardest group.
 
 ---
 
-## Finding 9 — MODERATE. We-Bears is a reputational risk in a public release
+## Finding 9 — RESOLVED 2026-08-30. We-Bears withdrawn
 
-Its label provenance is undocumented upstream, its length spread is 3.6x, and
-**0 of 262 duplicate-text groups carry conflicting labels** where the
-human-annotated airline set has 17.1% — labels being a deterministic function of
-text is not something human annotation produces. Some rows read as LLM-generated
-("botaş türkiye merkezli bir boru hattı ve enerji ile ilgili devlet şirketidir",
-labelled neutral).
+The Turkish brand-review corpus and its airline twin were removed from the
+release. Its label provenance was undocumented upstream, its length spread was
+3.6x, and **0 of 262 duplicate-text groups carried conflicting labels** where the
+human-annotated airline set had 17.1% — labels being a deterministic function of
+text is not something human annotation produces.
 
-It is also the **only 10-family set**, which is the entire argument for keeping it.
-
-**Verdict: a decision, not a task.** Either keep it and state the provenance
-caveat prominently in the datacard (currently it is stated, but in the middle of
-a long file), or drop it and lose `top_k` from the release. **Recommend: keep,
-but move the caveat to the top of its datacard section and never use it for a
-headline cross-lingual number.** Its twin asymmetry is 0.108, seven times the
-clean pairs.
-
----
+**Price paid:** `top_k` withdrawn (it survived prior-neutrality on that corpus
+alone), 285 questions, and one of three review pairs. **Bought:** every remaining
+label is either a professional annotation (MASSIVE) or the writer's own star
+rating, so classical label noise is near zero by construction on five of eight
+sets; every shipping pair now has a twin asymmetry at or under 0.033 against that
+pair's 0.108; and the release no longer carries any non-commercial clause.
 
 ## Finding 10 — MINOR but will be asked. No human ceiling
 

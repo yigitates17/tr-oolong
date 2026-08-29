@@ -115,9 +115,8 @@ interesting rather than awkward.
 
 ## 6. `shift` is style-solvable and should not carry a headline
 
-The only family the format solver beats, on 6 of 10 sets: **+0.400**
-(`amazon_hpc_en`), **+0.300** (`en_twin`, `vitamins_tr`), **+0.267**
-(`musteri_tr`, `marc_en`), +0.100 (`en_intent`). Highest majority baseline in the
+The only family the format solver beats: **+0.400** (`amazon_hpc_en`), **+0.300**
+(`vitamins_tr`), **+0.267** (`musteri_tr`, `marc_en`), +0.100 (`en_intent`). Highest majority baseline in the
 suite (mean 0.61, up to 0.73).
 
 **Use it as:** an honest limitation, paired with the explanation (length
@@ -138,19 +137,53 @@ the kind of detail reviewers cite approvingly.
 
 ---
 
-## 8. Headline numbers, current
+## 8. The benchmark can emit its own training data — a future-work angle worth claiming
 
-10 sets · 135 haystacks · **1,506 questions** · **33.2M tokens** ·
-36,250–986,533 tokens per haystack · label spaces 3 and 48 · 10 question families
-· 2 languages · 4 acceptance gates · byte-identical rebuilds.
+**No OOLONG-fine-tuned model exists.** Nobody has trained on OOLONG, and the
+adjacent precedents trained on something else: Xiong et al. (ICLR 2025) on
+synthetic key-value *retrieval* (+10.5% transfer to real long-context QA, with
+general benchmarks flat where other augmentation caused hallucination); Zhang et
+al. (2026) on 1,000 recursion trajectories; Kim & Ahmad (2026) on
+evidence-selection trajectories, reaching Claude-Sonnet-level rubric scores at 4B.
 
-Twin asymmetries (lower is cleaner): `musteri_tr`↔`marc_en` **0.010** ·
-`vitamins_tr`↔`amazon_hpc_en` 0.015 · intent record-matched 0.017 · intent
-token-matched 0.033 · `tr_oolong`↔`en_twin` 0.108.
+**The claim available to us, which none of them can make:** because ground truth
+here is computed by an explicit decomposition (chunk → classify → aggregate), the
+benchmark can emit **decomposition trajectories**, not just question–answer
+pairs, at zero annotation cost. Training on *question → decomposition* targets
+planning; training on *question → answer* targets guessing a number. Kim & Ahmad
+show the former works at 4B.
+
+**Write it as future work with a design, never as a result:**
+
+> The benchmark is constructed so that ground truth is computed by an explicit
+> decomposition. That makes it a source not only of evaluation items but of
+> decomposition trajectories, which prior work suggests are the effective
+> training signal for recursive scaffolds. Whether such training transfers to
+> Turkish long-context tasks generally is an open question this resource makes
+> answerable for the first time.
+
+**The caveat that must accompany it:** OOLONG's own result is that supplying gold
+labels improves scores only 0.79–10.9 points, so the bottleneck is aggregation
+rather than classification — and aggregation over thousands of items may be a
+tool-use problem rather than a weights problem. Counting is what a `for` loop
+does perfectly and what next-token prediction does badly.
 
 ---
 
-## 9. What is NOT yet true and must not be claimed
+## 9. Headline numbers, current
+
+8 sets · 110 haystacks · **1,221 questions** · **28.2M tokens** ·
+36,250–986,533 tokens per haystack · label spaces 3 and 48 · **9 question
+families** · 2 languages · 4 acceptance gates · byte-identical rebuilds.
+
+Twin asymmetries (lower is cleaner): `musteri_tr`↔`marc_en` **0.010** ·
+`vitamins_tr`↔`amazon_hpc_en` 0.015 · intent record-matched 0.017 · intent
+token-matched 0.033. **Every shipping pair is at or under 0.033**; the pair that
+sat at 0.108 was withdrawn in v0.5.0.
+
+---
+
+## 10. What is NOT yet true and must not be claimed
 
 - **No model has ever been run.** No baseline numbers exist. Do not write
   anything about difficulty that is not a chance rate or a solver ceiling.

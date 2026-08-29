@@ -119,8 +119,8 @@ axis** — which their paper reports as the hardest of the three.
 
 > **OOLONG**: *"how many data points should be classified as label 'ham'?"* → `4`
 >
-> **TR-OOLONG** (`tr_oolong`, 100K): *"Bu yorumlardan kaç tanesi 'olumlu'
-> etiketli? Sadece sayıyı yaz."* → `1735`
+> **TR-OOLONG** (`musteri_tr`, 100K): *"Bu yorumlardan kaç tanesi 'olumlu'
+> etiketli? Sadece sayıyı yaz."* → `881`
 
 **Note the magnitude.** OOLONG's counts are single or double digits at the
 lengths they report. Ours run into the thousands, which breaks their metric —
@@ -132,9 +132,9 @@ see §6.
 > 76063. Among instances associated with these users, which of the labels is the
 > least common?"* → `ham`
 
-> **TR-OOLONG** (`tr_oolong`, 100K): *"Şu markalardan hangisi en çok 'nötr' yorum
-> aldı: 'beko', 'halkbank', 'kahve dünyası', 'kumtel', 'starbucks'? Sadece marka
-> adını yaz."* → `kahve dünyası`
+> **TR-OOLONG** (`vitamins_tr`, 250K): *"Şu markalardan hangisi en çok 'olumlu'
+> yorum aldı: 'Beeo', 'NBL', 'Nbt İlaç', 'Smartcaps', 'Suda Collagen'? Sadece
+> marka adını yaz."* → `Smartcaps`
 
 > **TR-OOLONG** (`amazon_hpc_en`, 500K): *"Which of these brands received the most
 > 'negative' reviews: 'More of Me to Love', 'Panasonic', 'Professor Amos',
@@ -146,13 +146,14 @@ corpus, and the candidate set is chosen so the five options have near-identical
 corpus-level counts — meaning the answer cannot be guessed from world knowledge
 or from corpus statistics, only from this haystack.
 
-### Ordered ranking — ours only
+### Ordered ranking — implemented, then withdrawn
 
-> **TR-OOLONG** (`tr_oolong`, 250K): *"Şu markalar arasında en çok 'olumsuz' yorum
-> alan ilk 3 marka hangileri: 'finish', 'parex', 'prada', 'tcdd', 'versace'?
-> Çoktan aza doğru, aralarına ' > ' koyarak yaz."* → `parex > finish > tcdd`
-
-Chance here is 1/60. OOLONG has no ordered-ranking family.
+TR-OOLONG implemented `top_k` (order the 3 highest of 5 named candidates, chance
+1/60). OOLONG has no ordered-ranking family, so it was a genuine extension. It
+survived prior-neutrality on exactly one corpus, and **that corpus was withdrawn
+in v0.5.0 over undocumented label provenance**, so `top_k` went with it. Exact
+ordering is intrinsically the hardest family to make prior-neutral: flipping one
+position is easy to randomise, permuting three independently is not.
 
 ### Time — theirs is real, ours is not
 
@@ -190,16 +191,16 @@ OOLONG has no cross-lingual dimension at all.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 (synth) + 10,810 (real) | **1,506** |
-| haystacks | not reported per split | **135** |
+| questions | 6,500 (synth) + 10,810 (real) | **1,221** |
+| haystacks | not reported per split | **110** |
 | context lengths | 1K–4M, reported at 8K–128K | 36K–987K |
 | **shortest haystack** | — | **36,250 tokens** |
-| **mean haystack** | — | **245,671 tokens** |
+| **mean haystack** | — | **256,728 tokens** |
 | **longest haystack** | — | **986,533 tokens** |
-| total tokens built | — | **33.2 million** |
+| total tokens built | — | **28.2 million** |
 | records per haystack | not reported | 1,523 – 22,259 |
 | label spaces | 2–10 | **3 and 48** |
-| source corpora | 10 classification sets + D&D transcripts | 8 corpora on 2 axes |
+| source corpora | 10 classification sets + D&D transcripts | 6 corpora on 2 axes |
 
 Per set:
 
@@ -209,8 +210,6 @@ Per set:
 | `en_intent` | en | 48 | 10 | 120 | 49,921 | 74,880 | 99,871 | 8,122 |
 | `tr_intent_paired` | tr | 48 | 10 | 120 | 47,629 | 73,182 | 99,057 | 6,000 |
 | `en_intent_paired` | en | 48 | 10 | 120 | 36,250 | 55,547 | 75,187 | 6,000 |
-| `tr_oolong` | tr | 3 | 15 | 174 | 97,220 | 279,251 | 494,505 | 9,873 |
-| `en_twin` | en | 3 | 10 | 111 | 48,999 | 73,668 | 98,321 | 3,323 |
 | `vitamins_tr` | tr | 3 | 20 | 235 | 99,082 | 396,789 | 744,132 | 22,259 |
 | `amazon_hpc_en` | en | 3 | 20 | 234 | 98,574 | 456,178 | 986,533 | 17,623 |
 | `musteri_tr` | tr | 3 | 15 | 138 | 99,137 | 281,100 | 496,238 | 13,618 |
@@ -252,7 +251,9 @@ So we report **both**:
 - Larger label space: 48 classes against their 2–10.
 - Real entities instead of synthetic user IDs, with candidate sets constructed to
   be prior-neutral.
-- Ordered top-k ranking, and normalised proportions — neither exists in OOLONG.
+- Normalised proportions, which OOLONG does not have. (Ordered top-k was also
+  implemented and is described above; it was withdrawn with its only surviving
+  corpus in v0.5.0.)
 - Four shortcut solvers with committed manifests. OOLONG reports no such audit.
 - Ground truth computed twice by independent code paths and asserted equal.
 
@@ -261,11 +262,11 @@ So we report **both**:
 - **A real timeline axis** with six question shapes over calendar dates. Their
   paper reports it as the hardest group. Ours is one binary rose/fell over
   positional halves, and it is the only family our format solver beats
-  (+0.400 / +0.300 / +0.300 / +0.100 across sets). **This is the real gap.**
+  (+0.400 / +0.300 / +0.267 / +0.100 across sets). **This is the real gap.**
 - A label-vs-label comparison family ("is A more, less, or equally common
   than B") that we do not implement; our `pairwise` compares entities.
 - A "which user appears most often" family with no label conditioning at all.
-- Far more questions: 17,310 against our 1,506.
+- Far more questions: 17,310 against our 1,221.
 - Two task flavours — synthetic plus real D&D transcripts. We have only the
   synthetic style.
 

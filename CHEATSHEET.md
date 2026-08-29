@@ -179,7 +179,7 @@ A dataset is a **config file, not code**. You never touch the builder.
    if a family's leakage score beats `max(majority, chance)`.
 
 8. **Certify before release.** The 7–20 questions per family that ship CANNOT
-   certify a family — `tr_oolong` `pairwise` measured 0.85 at n=13 and 0.53 at
+   certify a family — a `pairwise` family measured 0.85 at n=13 and 0.53 at
    n=235. Run the generator at real power:
    ```bash
    python scripts/quality_audit.py --certify 250
@@ -214,7 +214,7 @@ Then: `python tests/test_golden.py --regen` + bump `VERSION`.
 ### 5.3 Full rebuild of everything
 ```bash
 python src/build_tr_oolong.py --config configs/tr_intent.json configs/en_intent.json \
-  configs/tr_oolong.json configs/en_twin.json configs/vitamins_tr.json \
+  configs/vitamins_tr.json configs/musteri_tr.json configs/marc_en.json \
   configs/amazon_hpc_en.json --build --index manifests/benchmark_index.json
 python scripts/trivial_baseline.py
 python tests/test_golden.py
@@ -261,8 +261,8 @@ imprecision a reviewer notices.
 - **Benchmark** = the *task definition*: the question families, the construction
   procedure, the ground-truth derivation, and the frozen metric. That is the
   contribution. TR-OOLONG **is a benchmark**.
-- **Dataset** = the *files* one particular run of the generator produced — 1,506
-  questions over 135 haystacks. That is an *instantiation* of the benchmark, and
+- **Dataset** = the *files* one particular run of the generator produced — 1,221
+  questions over 110 haystacks. That is an *instantiation* of the benchmark, and
   it is what goes on Hugging Face.
 
 Use it like this:
@@ -359,7 +359,7 @@ better; every item makes the benchmark harder or smaller.** Full write-ups in
 | 15,411 We-Bears rows with multi-aspect labels (`olumsuz,olumlu`) | Ground truth needs exactly one label per record. | 38% of that corpus; retained pool is **not representative** — say so | D7 |
 | The airline set's 250K tier | Its corpus is too small: `positive` (2,363 rows) cannot reach a 1/3 share in a 7,400-record haystack, so `most_common` answered itself. | Airline set caps at 100K | D6 |
 | `top_k` on `vitamins_tr` and `amazon_hpc_en` | *Exact ordering* stayed predictable from the corpus (z=+5.5 and +3.7) even after entity randomization. Argmax decorrelates easily; permuting three positions does not. Ships on `tr_oolong` only. | One family on two sets | D9 |
-| `entity_argmax`/`top_k` on `en_twin` | Six airlines cannot form a candidate set whose corpus counts are near-identical. | Two families on one set | D9 |
+| `top_k` everywhere (v0.5.0) | Survived prior-neutrality on one corpus only, and that corpus was withdrawn over undocumented label provenance. A six-entity set also cannot form a candidate set whose corpus counts are near-identical. | Two families on one set | D9 |
 | Questions decided by <10 records | Finding 8 records in 3,919 is *retrieval*, not aggregation — the task this benchmark exists to replace. | ~15% of draws rejected | D9 |
 | Questions with a margin below the threshold | A gap of 1–2 records is inside source label noise, so the question measures annotation error. | rejected at build time | D9 |
 | `<<<KAYIT>>>` separator | A Turkish word inside the **English** haystacks; it also tokenizes differently per language, a confound in a matched-twin design. | none | D12 |

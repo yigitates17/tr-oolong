@@ -3,7 +3,7 @@
 LICENSING IS THE POINT OF THIS SCRIPT. The six instance sets do NOT share one
 license, and two of them must not have their text redistributed at all. Shipping
 them as one undifferentiated dataset would breach Amazon's review terms and the
-airline set's non-commercial clause. So each set is packaged into its own
+Amazon set's withheld text and the share-alike Turkish sets. So each set is packaged into its own
 config, tagged with its own license, and the sets that cannot be redistributed
 ship as *questions and answers only* -- the haystack text is withheld and the
 user rebuilds it locally from the public source with the committed config.
@@ -49,21 +49,23 @@ POLICY = {
         note="The English half of the record-matched pair. Sized in RECORDS, not "
              "tokens, so its token counts are lower than the Turkish half by the "
              "morphology factor (1.30-1.34x)."),
-    "tr_oolong_out": dict(
-        license="apache-2.0", full_text=True,
-        source="We-Bears/Turkish-Review-Sentiment-Data",
-        note="Apache-2.0: redistribution permitted with the license text and a "
-             "notice of modification."),
     "vitamins_tr_out": dict(
         license="cc-by-sa-4.0", full_text=True,
         source="turkish-nlp-suite/vitamins-supplements-reviews (Vitaminler.com)",
         note="CC-BY-SA-4.0 is SHARE-ALIKE: this subset and anything derived from "
              "it must stay CC-BY-SA-4.0. Cite Altinok (ACL 2023)."),
-    "en_twin_out": dict(
-        license="cc-by-nc-sa-4.0", full_text=False,
-        source="Twitter US Airline Sentiment (CrowdFlower / Kaggle)",
-        note="NON-COMMERCIAL and share-alike. Text withheld; rebuild locally "
-             "with scripts/airline.py + configs/en_twin.json."),
+    "musteri_tr_out": dict(
+        license="cc-by-sa-4.0", full_text=True,
+        source="turkish-nlp-suite/MusteriYorumlari (Hepsiburada, Trendyol)",
+        note="CC-BY-SA-4.0 is SHARE-ALIKE: this subset and anything derived from "
+             "it must stay CC-BY-SA-4.0. Labels are the customer's own 1-5 star "
+             "rating. No entity column, so six families ship."),
+    "marc_en_out": dict(
+        license="apache-2.0", full_text=True,
+        source="SetFit/amazon_reviews_multi_en (Multilingual Amazon Reviews Corpus)",
+        note="Apache-2.0: redistribution permitted. The English half of the "
+             "cleanest pair; labels are the reviewer's own 1-5 star rating, and "
+             "the entity families are omitted to stay parallel with musteri_tr."),
     "amazon_hpc_en_out": dict(
         license="other", full_text=False,
         source="McAuley-Lab/Amazon-Reviews-2023 (Health_and_Personal_Care)",

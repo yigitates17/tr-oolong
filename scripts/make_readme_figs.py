@@ -6,7 +6,7 @@ Reads each set's manifest.json (question-family distribution) and haystacks.json
 one script in the project written with pandas + matplotlib rather than Polars.
 
 Usage:
-    python scripts/make_readme_figs.py --sets tr_oolong_out en_twin_out tr_intent_out en_intent_out
+    python scripts/make_readme_figs.py --sets vitamins_tr_out amazon_hpc_en_out tr_intent_out en_intent_out
 """
 
 import argparse
