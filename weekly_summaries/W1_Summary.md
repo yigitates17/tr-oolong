@@ -160,10 +160,10 @@ for us it is over document position, which we use as a stand-in for time.**
 | questions | 17,310 total (6,500 synthetic + 10,810 real) | **1,221** |
 | documents (haystacks) | not reported per split | **110** |
 | **shortest document** | — | **36,250 tokens** |
-| **mean document** | reporting focused at 8K–128K | **256,728 tokens** |
-| **longest document** | up to 4M claimed | **986,533 tokens** |
-| total tokens built | — | **28,240,180** |
-| records inside one document | not reported | 1,523 – 22,259 |
+| **mean document** | reporting focused at 8K–128K | **256,882 tokens** |
+| **longest document** | up to 4M claimed | **987,623 tokens** |
+| total tokens built | — | **28,257,099** |
+| records inside one document | not reported | 1,523 – 19,774 |
 | number of possible labels | 2–10 | **3 and 48** |
 | source corpora | 10 classification sets + D&D transcripts | 6 corpora on 2 axes |
 
@@ -175,8 +175,8 @@ Per set, ours (recomputed today):
 | `en_intent` | en | 48 | 10 | 120 | 49,921 | 74,880 | 99,871 |
 | `tr_intent_paired` | tr | 48 | 10 | 120 | 47,629 | 73,182 | 99,057 |
 | `en_intent_paired` | en | 48 | 10 | 120 | 36,250 | 55,547 | 75,187 |
-| `vitamins_tr` | tr | 3 | 20 | 235 | 99,082 | 396,789 | 744,132 |
-| `amazon_hpc_en` | en | 3 | 20 | 234 | 98,574 | 456,178 | 986,533 |
+| `vitamins_tr` | tr | 3 | 20 | 235 | 99,217 | 397,122 | 744,785 |
+| `amazon_hpc_en` | en | 3 | 20 | 234 | 98,672 | 456,691 | 987,623 |
 | `musteri_tr` | tr | 3 | 15 | 138 | 99,137 | 281,100 | 496,238 |
 | `marc_en` | en | 3 | 15 | 134 | 98,232 | 278,551 | 491,821 |
 
@@ -277,7 +277,7 @@ these are structural difficulty arguments, not measured ones.**
 |---|---|---|---|
 | label space | 2–10 | **48** | random guessing scores 1/48 = 2% instead of 1/2 = 50% |
 | document length | reported at 8K–128K | **up to 987K** | 7.7× their reporting ceiling |
-| records to classify | tens | **up to 22,259** | the arithmetic is over thousands of items |
+| records to classify | tens | **up to 19,774** | the arithmetic is over thousands of items |
 | answer magnitude | single/double digits | up to 12,225 | no room for "eyeballing it" |
 
 **Harder in OOLONG:**
