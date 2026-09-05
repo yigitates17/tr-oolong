@@ -1,32 +1,22 @@
 [
   {
-    "set": "tr_intent_out",
-    "n_questions": 120,
-    "pct_ok": 98,
+    "set": "amazon_hpc_en_out",
+    "n_questions": 236,
+    "pct_ok": 100,
     "families": {
       "count": {
-        "n": 40,
-        "ok": 40,
+        "n": 55,
+        "ok": 55,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.05,
+        "chance": 0.018,
         "p_value": 1.0,
         "prior_shortcut": false
       },
-      "least_common": {
-        "n": 10,
-        "ok": 10,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.4,
-        "chance": 0.2,
-        "p_value": 0.12087,
-        "prior_shortcut": false
-      },
-      "most_common": {
-        "n": 10,
-        "ok": 10,
+      "entity_argmax": {
+        "n": 8,
+        "ok": 8,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
@@ -34,34 +24,84 @@
         "p_value": 1.0,
         "prior_shortcut": false
       },
-      "proportion": {
-        "n": 40,
-        "ok": 37,
-        "thin": 3,
+      "entity_count": {
+        "n": 19,
+        "ok": 19,
+        "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.075,
+        "chance": 0.158,
         "p_value": 1.0,
         "prior_shortcut": false
       },
-      "second_most": {
-        "n": 10,
-        "ok": 10,
+      "label_vs_label": {
+        "n": 20,
+        "ok": 20,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.3,
-        "chance": 0.2,
-        "p_value": 0.3222,
+        "chance": 0.55,
+        "p_value": 0.99357,
         "prior_shortcut": false
       },
-      "shift": {
-        "n": 10,
-        "ok": 10,
+      "least_common": {
+        "n": 17,
+        "ok": 17,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.294,
+        "chance": 0.412,
+        "p_value": 0.89311,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 18,
+        "ok": 18,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.5,
+        "chance": 0.5,
+        "p_value": 0.59274,
+        "prior_shortcut": false
+      },
+      "pairwise": {
+        "n": 15,
+        "ok": 15,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.4,
-        "chance": 0.6,
-        "p_value": 0.94524,
+        "chance": 0.5,
+        "p_value": 0.84912,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 49,
+        "ok": 49,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.02,
+        "chance": 0.061,
+        "p_value": 0.95476,
+        "prior_shortcut": false
+      },
+      "second_most": {
+        "n": 15,
+        "ok": 15,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.267,
+        "chance": 0.4,
+        "p_value": 0.9095,
+        "prior_shortcut": false
+      },
+      "shift": {
+        "n": 20,
+        "ok": 20,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.55,
+        "chance": 0.55,
+        "p_value": 0.59136,
         "prior_shortcut": false
       }
     }
@@ -81,14 +121,24 @@
         "p_value": 1.0,
         "prior_shortcut": false
       },
+      "label_vs_label": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.5,
+        "chance": 0.6,
+        "p_value": 0.83376,
+        "prior_shortcut": false
+      },
       "least_common": {
         "n": 10,
         "ok": 10,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.1,
+        "prior_acc": 0.2,
         "chance": 0.2,
-        "p_value": 0.89263,
+        "p_value": 0.62419,
         "prior_shortcut": false
       },
       "most_common": {
@@ -96,19 +146,19 @@
         "ok": 10,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.5,
+        "prior_acc": 0.1,
         "chance": 0.2,
-        "p_value": 0.03279,
-        "prior_shortcut": true
+        "p_value": 0.89263,
+        "prior_shortcut": false
       },
       "proportion": {
-        "n": 40,
-        "ok": 40,
+        "n": 30,
+        "ok": 30,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.025,
-        "chance": 0.075,
-        "p_value": 0.95577,
+        "prior_acc": 0.033,
+        "chance": 0.1,
+        "p_value": 0.95761,
         "prior_shortcut": false
       },
       "second_most": {
@@ -116,9 +166,9 @@
         "ok": 10,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.1,
-        "chance": 0.2,
-        "p_value": 0.89263,
+        "prior_acc": 0.0,
+        "chance": 0.3,
+        "p_value": 1.0,
         "prior_shortcut": false
       },
       "shift": {
@@ -129,73 +179,6 @@
         "prior_acc": 0.5,
         "chance": 0.5,
         "p_value": 0.62305,
-        "prior_shortcut": false
-      }
-    }
-  },
-  {
-    "set": "tr_intent_paired_out",
-    "n_questions": 120,
-    "pct_ok": 99,
-    "families": {
-      "count": {
-        "n": 40,
-        "ok": 40,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.0,
-        "chance": 0.05,
-        "p_value": 1.0,
-        "prior_shortcut": false
-      },
-      "least_common": {
-        "n": 10,
-        "ok": 10,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.2,
-        "chance": 0.2,
-        "p_value": 0.62419,
-        "prior_shortcut": false
-      },
-      "most_common": {
-        "n": 10,
-        "ok": 10,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.2,
-        "chance": 0.2,
-        "p_value": 0.62419,
-        "prior_shortcut": false
-      },
-      "proportion": {
-        "n": 40,
-        "ok": 39,
-        "thin": 1,
-        "knife": 0,
-        "prior_acc": 0.025,
-        "chance": 0.075,
-        "p_value": 0.95577,
-        "prior_shortcut": false
-      },
-      "second_most": {
-        "n": 10,
-        "ok": 10,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.1,
-        "chance": 0.2,
-        "p_value": 0.89263,
-        "prior_shortcut": false
-      },
-      "shift": {
-        "n": 10,
-        "ok": 10,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.7,
-        "chance": 0.7,
-        "p_value": 0.64961,
         "prior_shortcut": false
       }
     }
@@ -215,6 +198,16 @@
         "p_value": 1.0,
         "prior_shortcut": false
       },
+      "label_vs_label": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.3,
+        "chance": 0.5,
+        "p_value": 0.94531,
+        "prior_shortcut": false
+      },
       "least_common": {
         "n": 10,
         "ok": 10,
@@ -236,13 +229,13 @@
         "prior_shortcut": false
       },
       "proportion": {
-        "n": 40,
-        "ok": 39,
+        "n": 30,
+        "ok": 29,
         "thin": 1,
         "knife": 0,
-        "prior_acc": 0.025,
-        "chance": 0.075,
-        "p_value": 0.95577,
+        "prior_acc": 0.033,
+        "chance": 0.1,
+        "p_value": 0.95761,
         "prior_shortcut": false
       },
       "second_most": {
@@ -268,202 +261,85 @@
     }
   },
   {
-    "set": "vitamins_tr_out",
-    "n_questions": 235,
+    "set": "marc_en_out",
+    "n_questions": 148,
     "pct_ok": 100,
     "families": {
       "count": {
-        "n": 49,
-        "ok": 49,
+        "n": 45,
+        "ok": 45,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.041,
+        "chance": 0.044,
         "p_value": 1.0,
         "prior_shortcut": false
       },
-      "entity_argmax": {
-        "n": 23,
-        "ok": 23,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.13,
-        "chance": 0.2,
-        "p_value": 0.86681,
-        "prior_shortcut": false
-      },
-      "entity_count": {
-        "n": 20,
-        "ok": 20,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.05,
-        "chance": 0.15,
-        "p_value": 0.96124,
-        "prior_shortcut": false
-      },
-      "least_common": {
-        "n": 17,
-        "ok": 17,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.353,
-        "chance": 0.353,
-        "p_value": 0.5903,
-        "prior_shortcut": false
-      },
-      "most_common": {
-        "n": 20,
-        "ok": 20,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.45,
-        "chance": 0.45,
-        "p_value": 0.58569,
-        "prior_shortcut": false
-      },
-      "pairwise": {
-        "n": 20,
-        "ok": 20,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.6,
-        "chance": 0.5,
-        "p_value": 0.25172,
-        "prior_shortcut": false
-      },
-      "proportion": {
-        "n": 48,
-        "ok": 48,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.0,
-        "chance": 0.104,
-        "p_value": 1.0,
-        "prior_shortcut": false
-      },
-      "second_most": {
-        "n": 18,
-        "ok": 18,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.333,
-        "chance": 0.444,
-        "p_value": 0.88329,
-        "prior_shortcut": false
-      },
-      "shift": {
-        "n": 20,
-        "ok": 20,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.5,
-        "chance": 0.5,
-        "p_value": 0.5881,
-        "prior_shortcut": false
-      }
-    }
-  },
-  {
-    "set": "amazon_hpc_en_out",
-    "n_questions": 234,
-    "pct_ok": 100,
-    "families": {
-      "count": {
-        "n": 56,
-        "ok": 56,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.0,
-        "chance": 0.018,
-        "p_value": 1.0,
-        "prior_shortcut": false
-      },
-      "entity_argmax": {
-        "n": 18,
-        "ok": 18,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.333,
-        "chance": 0.2,
-        "p_value": 0.13292,
-        "prior_shortcut": false
-      },
-      "entity_count": {
-        "n": 22,
-        "ok": 22,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.0,
-        "chance": 0.136,
-        "p_value": 1.0,
-        "prior_shortcut": false
-      },
-      "least_common": {
-        "n": 17,
-        "ok": 17,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.294,
-        "chance": 0.412,
-        "p_value": 0.89311,
-        "prior_shortcut": false
-      },
-      "most_common": {
-        "n": 17,
-        "ok": 17,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.529,
-        "chance": 0.529,
-        "p_value": 0.59729,
-        "prior_shortcut": false
-      },
-      "pairwise": {
-        "n": 15,
-        "ok": 15,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.467,
-        "chance": 0.5,
-        "p_value": 0.69638,
-        "prior_shortcut": false
-      },
-      "proportion": {
-        "n": 55,
-        "ok": 55,
-        "thin": 0,
-        "knife": 0,
-        "prior_acc": 0.036,
-        "chance": 0.073,
-        "p_value": 0.91648,
-        "prior_shortcut": false
-      },
-      "second_most": {
+      "label_vs_label": {
         "n": 14,
         "ok": 14,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.286,
-        "chance": 0.429,
-        "p_value": 0.91441,
+        "prior_acc": 0.071,
+        "chance": 0.714,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "least_common": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.3,
+        "chance": 0.5,
+        "p_value": 0.94531,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 11,
+        "ok": 11,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.364,
+        "chance": 0.545,
+        "p_value": 0.93522,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 45,
+        "ok": 45,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.022,
+        "chance": 0.089,
+        "p_value": 0.98484,
+        "prior_shortcut": false
+      },
+      "second_most": {
+        "n": 8,
+        "ok": 8,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.25,
+        "chance": 0.5,
+        "p_value": 0.96484,
         "prior_shortcut": false
       },
       "shift": {
-        "n": 20,
-        "ok": 20,
+        "n": 15,
+        "ok": 15,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.45,
-        "chance": 0.55,
-        "p_value": 0.86924,
+        "prior_acc": 0.333,
+        "chance": 0.667,
+        "p_value": 0.99819,
         "prior_shortcut": false
       }
     }
   },
   {
     "set": "musteri_tr_out",
-    "n_questions": 138,
+    "n_questions": 153,
     "pct_ok": 100,
     "families": {
       "count": {
@@ -474,6 +350,16 @@
         "prior_acc": 0.0,
         "chance": 0.022,
         "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "label_vs_label": {
+        "n": 15,
+        "ok": 15,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.2,
+        "chance": 0.6,
+        "p_value": 0.99972,
         "prior_shortcut": false
       },
       "least_common": {
@@ -529,21 +415,98 @@
     }
   },
   {
-    "set": "marc_en_out",
-    "n_questions": 134,
-    "pct_ok": 100,
+    "set": "tr_intent_out",
+    "n_questions": 120,
+    "pct_ok": 98,
     "families": {
       "count": {
-        "n": 45,
-        "ok": 45,
+        "n": 40,
+        "ok": 40,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
-        "chance": 0.044,
+        "chance": 0.05,
         "p_value": 1.0,
         "prior_shortcut": false
       },
+      "label_vs_label": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.5,
+        "chance": 0.5,
+        "p_value": 0.62305,
+        "prior_shortcut": false
+      },
       "least_common": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.4,
+        "chance": 0.2,
+        "p_value": 0.12087,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.3,
+        "chance": 0.2,
+        "p_value": 0.3222,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 30,
+        "ok": 27,
+        "thin": 3,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.1,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "second_most": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.2,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "shift": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.4,
+        "chance": 0.6,
+        "p_value": 0.94524,
+        "prior_shortcut": false
+      }
+    }
+  },
+  {
+    "set": "tr_intent_paired_out",
+    "n_questions": 120,
+    "pct_ok": 99,
+    "families": {
+      "count": {
+        "n": 40,
+        "ok": 40,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.05,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "label_vs_label": {
         "n": 10,
         "ok": 10,
         "thin": 0,
@@ -553,44 +516,161 @@
         "p_value": 0.94531,
         "prior_shortcut": false
       },
-      "most_common": {
-        "n": 11,
-        "ok": 11,
+      "least_common": {
+        "n": 10,
+        "ok": 10,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.364,
-        "chance": 0.545,
-        "p_value": 0.93522,
+        "prior_acc": 0.2,
+        "chance": 0.2,
+        "p_value": 0.62419,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.2,
+        "chance": 0.2,
+        "p_value": 0.62419,
         "prior_shortcut": false
       },
       "proportion": {
-        "n": 45,
-        "ok": 45,
-        "thin": 0,
+        "n": 30,
+        "ok": 29,
+        "thin": 1,
         "knife": 0,
-        "prior_acc": 0.022,
-        "chance": 0.089,
-        "p_value": 0.98484,
+        "prior_acc": 0.033,
+        "chance": 0.1,
+        "p_value": 0.95761,
         "prior_shortcut": false
       },
       "second_most": {
-        "n": 8,
-        "ok": 8,
+        "n": 10,
+        "ok": 10,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.25,
-        "chance": 0.5,
-        "p_value": 0.96484,
+        "prior_acc": 0.1,
+        "chance": 0.2,
+        "p_value": 0.89263,
         "prior_shortcut": false
       },
       "shift": {
-        "n": 15,
-        "ok": 15,
+        "n": 10,
+        "ok": 10,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.7,
+        "chance": 0.7,
+        "p_value": 0.64961,
+        "prior_shortcut": false
+      }
+    }
+  },
+  {
+    "set": "vitamins_tr_out",
+    "n_questions": 237,
+    "pct_ok": 100,
+    "families": {
+      "count": {
+        "n": 48,
+        "ok": 48,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.021,
+        "p_value": 1.0,
+        "prior_shortcut": false
+      },
+      "entity_argmax": {
+        "n": 12,
+        "ok": 12,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.25,
+        "chance": 0.25,
+        "p_value": 0.60932,
+        "prior_shortcut": false
+      },
+      "entity_count": {
+        "n": 20,
+        "ok": 20,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.05,
+        "chance": 0.2,
+        "p_value": 0.98847,
+        "prior_shortcut": false
+      },
+      "label_vs_label": {
+        "n": 20,
+        "ok": 20,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.55,
+        "chance": 0.6,
+        "p_value": 0.75534,
+        "prior_shortcut": false
+      },
+      "least_common": {
+        "n": 18,
+        "ok": 18,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.333,
-        "chance": 0.667,
-        "p_value": 0.99819,
+        "chance": 0.333,
+        "p_value": 0.58776,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 19,
+        "ok": 19,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.421,
+        "chance": 0.421,
+        "p_value": 0.58683,
+        "prior_shortcut": false
+      },
+      "pairwise": {
+        "n": 20,
+        "ok": 20,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.35,
+        "chance": 0.5,
+        "p_value": 0.94234,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 42,
+        "ok": 42,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.024,
+        "chance": 0.071,
+        "p_value": 0.95551,
+        "prior_shortcut": false
+      },
+      "second_most": {
+        "n": 18,
+        "ok": 18,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.278,
+        "chance": 0.5,
+        "p_value": 0.98456,
+        "prior_shortcut": false
+      },
+      "shift": {
+        "n": 20,
+        "ok": 20,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.55,
+        "chance": 0.55,
+        "p_value": 0.59136,
         "prior_shortcut": false
       }
     }

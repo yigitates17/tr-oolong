@@ -1,8 +1,8 @@
 {
-  "version": "0.5.0",
-  "date": "2026-08-30",
+  "version": "0.6.0",
+  "date": "2026-09-05",
   "n_sets": 8,
-  "total_questions": 1221,
+  "total_questions": 1254,
   "languages": [
     "en",
     "tr"
@@ -17,9 +17,10 @@
       "questions": 120,
       "kind_distribution": {
         "count": 40,
+        "label_vs_label": 10,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 40,
+        "proportion": 30,
         "second_most": 10,
         "shift": 10
       }
@@ -33,9 +34,10 @@
       "questions": 120,
       "kind_distribution": {
         "count": 40,
+        "label_vs_label": 10,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 40,
+        "proportion": 30,
         "second_most": 10,
         "shift": 10
       }
@@ -49,9 +51,10 @@
       "questions": 120,
       "kind_distribution": {
         "count": 40,
+        "label_vs_label": 10,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 40,
+        "proportion": 30,
         "second_most": 10,
         "shift": 10
       }
@@ -65,9 +68,10 @@
       "questions": 120,
       "kind_distribution": {
         "count": 40,
+        "label_vs_label": 10,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 40,
+        "proportion": 30,
         "second_most": 10,
         "shift": 10
       }
@@ -78,15 +82,16 @@
       "language": "tr",
       "source": "datasets/vitamins_tr.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 235,
+      "questions": 237,
       "kind_distribution": {
-        "count": 49,
-        "entity_argmax": 23,
+        "count": 48,
+        "entity_argmax": 12,
         "entity_count": 20,
-        "least_common": 17,
-        "most_common": 20,
+        "label_vs_label": 20,
+        "least_common": 18,
+        "most_common": 19,
         "pairwise": 20,
-        "proportion": 48,
+        "proportion": 42,
         "second_most": 18,
         "shift": 20
       }
@@ -97,16 +102,17 @@
       "language": "en",
       "source": "datasets/amazon_hpc_en.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 234,
+      "questions": 236,
       "kind_distribution": {
-        "count": 56,
-        "entity_argmax": 18,
-        "entity_count": 22,
+        "count": 55,
+        "entity_argmax": 8,
+        "entity_count": 19,
+        "label_vs_label": 20,
         "least_common": 17,
-        "most_common": 17,
+        "most_common": 18,
         "pairwise": 15,
-        "proportion": 55,
-        "second_most": 14,
+        "proportion": 49,
+        "second_most": 15,
         "shift": 20
       }
     },
@@ -116,9 +122,10 @@
       "language": "tr",
       "source": "datasets/musteri_tr.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 138,
+      "questions": 153,
       "kind_distribution": {
         "count": 45,
+        "label_vs_label": 15,
         "least_common": 13,
         "most_common": 11,
         "proportion": 44,
@@ -132,9 +139,10 @@
       "language": "en",
       "source": "datasets/marc_en.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 134,
+      "questions": 148,
       "kind_distribution": {
         "count": 45,
+        "label_vs_label": 14,
         "least_common": 10,
         "most_common": 11,
         "proportion": 45,

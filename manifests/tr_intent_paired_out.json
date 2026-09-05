@@ -1,6 +1,6 @@
 {
-  "version": "0.4.0",
-  "date": "2026-08-25",
+  "version": "0.6.0",
+  "date": "2026-09-05",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -28,6 +28,12 @@
     "haystacks_per_length": 5,
     "questions_per_haystack": 12,
     "separator": "\n\n<<<###>>>\n\n",
+    "licence": "cc-by-4.0",
+    "label_provenance": "professional_annotation",
+    "lvl_same_tol": 0.02,
+    "lvl_min_margin": 0.1,
+    "render_entity": false,
+    "entity_render": "[[{entity}]] ",
     "drift_mode": true,
     "min_entity_examples": 15,
     "dirichlet_alpha": 5.0,
@@ -82,9 +88,10 @@
   "questions_written": 120,
   "kind_distribution": {
     "count": 40,
+    "label_vs_label": 10,
     "least_common": 10,
     "most_common": 10,
-    "proportion": 40,
+    "proportion": 30,
     "second_most": 10,
     "shift": 10
   },

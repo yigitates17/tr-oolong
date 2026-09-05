@@ -1,0 +1,248 @@
+{
+  "version": "0.6.0",
+  "date": "2026-09-05",
+  "environment": {
+    "python": "3.12.9",
+    "polars": "1.42.0",
+    "transformers": "5.1.0"
+  },
+  "config": {
+    "source_path": "datasets/marc_en.parquet",
+    "text_col": "text",
+    "label_col": "label",
+    "entity_col": "",
+    "language": "en",
+    "min_words": 3,
+    "max_words": 400,
+    "drop_label_leakage": true,
+    "min_class_support": 0,
+    "seed": 42,
+    "haystack_target_tokens": [
+      100000,
+      250000,
+      500000
+    ],
+    "haystack_target_records": [],
+    "haystacks_per_length": 5,
+    "questions_per_haystack": 12,
+    "separator": "\n\n<<<###>>>\n\n",
+    "licence": "apache-2.0",
+    "label_provenance": "author_stars",
+    "lvl_same_tol": 0.02,
+    "lvl_min_margin": 0.1,
+    "render_entity": false,
+    "entity_render": "[[{entity}]] ",
+    "drift_mode": true,
+    "min_entity_examples": 15,
+    "dirichlet_alpha": 1.0,
+    "proportion_unit": "auto",
+    "top_k_k": 3,
+    "min_answer_count": 20,
+    "min_entity_answer": 10,
+    "min_rank_margin": 0.2,
+    "entity_candidates": 5,
+    "label_candidates": 5,
+    "families_disabled": [],
+    "entity_band_tol": 0.05,
+    "label_band_tol": 0.15,
+    "entity_jitter_sigma": 1.0,
+    "pair_seed": false,
+    "question_templates": {
+      "count": "How many reviews are labeled '{label}'? Answer with the number only.",
+      "proportion": "What percentage of reviews are labeled '{label}'? Round to the nearest integer, answer with the number only.",
+      "shift": "Did the share of '{label}' reviews rise or fall in the second half compared to the first? Answer 'rose' or 'fell'.",
+      "most_common": "Which label is the most common among these reviews? Labels: {labels}. Answer with the label name only.",
+      "least_common": "Which label is the least common among these reviews? Labels: {labels}. Answer with the label name only.",
+      "second_most": "Which label is the second most common among these reviews? Labels: {labels}. Answer with the label name only."
+    },
+    "reference_tokenizer": "Qwen/Qwen3-8B",
+    "chars_per_token": 3.4,
+    "out_dir": "marc_en_out"
+  },
+  "source_hash_first1000": "d0de2c459cf8efa1",
+  "rows_after_cleaning": 118779,
+  "cleaning": {
+    "rows_dropped_label_leakage": 657,
+    "label_leakage_rate": 0.005501,
+    "classes_dropped_low_support": [],
+    "min_class_support": 0
+  },
+  "ranking_feasibility": {
+    "n_classes": 3,
+    "min_class_pool": 39528,
+    "max_records": 118584,
+    "binding": true,
+    "ranking_length_ceiling_tokens": 5485458
+  },
+  "tier_overlap": {
+    "100000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0093,
+      "max_jaccard": 0.0149,
+      "pool_fraction_per_haystack": 0.0185
+    },
+    "250000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0212,
+      "max_jaccard": 0.0337,
+      "pool_fraction_per_haystack": 0.0467
+    },
+    "500000": {
+      "n_haystacks": 5,
+      "mean_jaccard": 0.0447,
+      "max_jaccard": 0.0533,
+      "pool_fraction_per_haystack": 0.0918
+    }
+  },
+  "label_space": 3,
+  "proportion_unit": "percent",
+  "top_k_k": 3,
+  "tokenizer": "Qwen/Qwen3-8B",
+  "questions_written": 148,
+  "kind_distribution": {
+    "count": 45,
+    "label_vs_label": 14,
+    "least_common": 10,
+    "most_common": 11,
+    "proportion": 45,
+    "second_most": 8,
+    "shift": 15
+  },
+  "haystacks": [
+    {
+      "haystack_id": "en-100000-0",
+      "n_examples": 2161,
+      "n_tokens": 98246,
+      "n_chars": 424938,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-100000-1",
+      "n_examples": 2152,
+      "n_tokens": 98389,
+      "n_chars": 423323,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-100000-2",
+      "n_examples": 2275,
+      "n_tokens": 98232,
+      "n_chars": 422378,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 9
+    },
+    {
+      "haystack_id": "en-100000-3",
+      "n_examples": 2266,
+      "n_tokens": 98255,
+      "n_chars": 423150,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-100000-4",
+      "n_examples": 2157,
+      "n_tokens": 98302,
+      "n_chars": 421396,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 9
+    },
+    {
+      "haystack_id": "en-250000-0",
+      "n_examples": 5536,
+      "n_tokens": 245770,
+      "n_chars": 1055123,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-250000-1",
+      "n_examples": 5448,
+      "n_tokens": 245881,
+      "n_chars": 1056964,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-250000-2",
+      "n_examples": 5505,
+      "n_tokens": 245679,
+      "n_chars": 1054412,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 9
+    },
+    {
+      "haystack_id": "en-250000-3",
+      "n_examples": 5415,
+      "n_tokens": 245867,
+      "n_chars": 1056443,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-250000-4",
+      "n_examples": 5804,
+      "n_tokens": 245503,
+      "n_chars": 1056550,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-500000-0",
+      "n_examples": 10959,
+      "n_tokens": 491589,
+      "n_chars": 2113173,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 8
+    },
+    {
+      "haystack_id": "en-500000-1",
+      "n_examples": 10766,
+      "n_tokens": 491821,
+      "n_chars": 2111135,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 11
+    },
+    {
+      "haystack_id": "en-500000-2",
+      "n_examples": 11080,
+      "n_tokens": 491449,
+      "n_chars": 2112392,
+      "drift_target": "neutral",
+      "drift_ok": true,
+      "n_questions": 9
+    },
+    {
+      "haystack_id": "en-500000-3",
+      "n_examples": 10897,
+      "n_tokens": 491617,
+      "n_chars": 2118869,
+      "drift_target": "negative",
+      "drift_ok": true,
+      "n_questions": 7
+    },
+    {
+      "haystack_id": "en-500000-4",
+      "n_examples": 10823,
+      "n_tokens": 491670,
+      "n_chars": 2116715,
+      "drift_target": "positive",
+      "drift_ok": true,
+      "n_questions": 9
+    }
+  ]
+}
