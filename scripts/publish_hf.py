@@ -178,11 +178,14 @@ def main() -> None:
     configured = set()
     for c in sorted((ROOT / "configs").glob("*.json")):
         try:
-            out = json.loads(c.read_text(encoding="utf-8")).get("out_dir")
+            # NOT `out` -- that is the release directory, and rebinding it here
+            # shadowed it with a config's out_dir string, so the first packaging
+            # step died on `str / str`.
+            out_dir = json.loads(c.read_text(encoding="utf-8")).get("out_dir")
         except json.JSONDecodeError:
             continue
-        if out and (ROOT / out / "questions.jsonl").exists():
-            configured.add(out)
+        if out_dir and (ROOT / out_dir / "questions.jsonl").exists():
+            configured.add(out_dir)
     missing = sorted(configured - declared)
     if missing:
         sys.exit(f"refusing to package: {missing} are built but have no entry in "

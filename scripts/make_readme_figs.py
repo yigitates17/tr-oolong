@@ -17,7 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 FAMILY_ORDER = ["count", "proportion", "shift",
-                "most_common", "least_common", "second_most",
+                "most_common", "least_common", "second_most", "label_vs_label",
                 "entity_count", "entity_argmax", "top_k", "pairwise"]
 
 
@@ -43,7 +43,10 @@ def load_sets(dirs):
 def fig_family_counts(dist: pd.DataFrame, out: Path):
     pivot = (dist.pivot_table(index="family", columns="set", values="count",
                               aggfunc="sum", fill_value=0)
-             .reindex([f for f in FAMILY_ORDER if f in dist["family"].unique()]))
+             .reindex([f for f in FAMILY_ORDER if f in dist["family"].unique()]
+                      # a family absent from FAMILY_ORDER was previously dropped
+                      # from the figure without a word -- append it instead
+                      + sorted(set(dist["family"].unique()) - set(FAMILY_ORDER))))
     ax = pivot.plot(kind="bar", figsize=(9, 5), width=0.8)
     ax.set_ylabel("questions")
     ax.set_xlabel("question family")
