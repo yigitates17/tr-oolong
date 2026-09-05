@@ -68,6 +68,14 @@ def recompute(kind, meta, q, k, unit):
         a = sum(1 for l, e in zip(labels, ents) if l == lab and e == q["entity_a"])
         b = sum(1 for l, e in zip(labels, ents) if l == lab and e == q["entity_b"])
         return q["entity_a"] if a > b else q["entity_b"]
+    if kind == "label_vs_label":
+        a = labels.count(q["label_a"])
+        b = labels.count(q["label_b"])
+        rel = abs(a - b) / max(a, b, 1)
+        key = "same" if rel <= q.get("same_tol", 0.02) else ("more" if a > b else "less")
+        return {"tr": {"more": "daha çok", "less": "daha az", "same": "eşit"},
+                "en": {"more": "more common", "less": "less common",
+                       "same": "the same"}}[q["language"]][key]
     raise ValueError(kind)
 
 
@@ -103,14 +111,25 @@ def verify(name: str) -> list[str]:
     if missing:
         bad(f"haystacks with no meta parquet: {sorted(missing)}")
 
+    render_entity = bool(man["config"].get("render_entity", False))
+    entity_render = man["config"].get("entity_render", "[[{entity}]] ")
+
+    def render(text: str, entity) -> str:
+        if not render_entity or entity in (None, "", "__none__"):
+            return text
+        return entity_render.format(entity=entity) + text
+
     label_space = set()
     for hid, h in hay_by_id.items():
         if hid not in metas:
             continue
         m = metas[hid]
         label_space |= set(m["label"].to_list())
-        # the haystack string must be exactly the meta rows joined by the separator
-        rebuilt = sep.join(m["text"].to_list())
+        # the haystack string must be exactly the RENDERED meta rows joined by the
+        # separator. v0.6.0: an entity-bearing set prints "[[brand]] " before each
+        # record, so reconstructing from `text` alone no longer reproduces it.
+        rows = [render(t, e) for t, e in zip(m["text"].to_list(), m["entity"].to_list())]
+        rebuilt = sep.join(rows)
         if rebuilt != h["haystack"]:
             bad(f"{hid}: haystack text does not match its meta parquet")
         if m.height != h["n_examples"]:
@@ -118,7 +137,7 @@ def verify(name: str) -> list[str]:
         # char offsets must actually locate each record in the haystack
         cs, ce = m["char_start"].to_list(), m["char_end"].to_list()
         for i in (0, m.height // 2, m.height - 1):
-            if h["haystack"][cs[i]:ce[i]] != m["text"][i]:
+            if h["haystack"][cs[i]:ce[i]] != rows[i]:
                 bad(f"{hid}: char offsets wrong at row {i}")
                 break
 

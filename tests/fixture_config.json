@@ -7,11 +7,15 @@
   "min_words": 3,
   "seed": 42,
   "dirichlet_alpha": 1.0,
-  "haystack_target_tokens": [5000, 10000],
+  "haystack_target_tokens": [
+    5000,
+    10000
+  ],
   "haystacks_per_length": 2,
   "questions_per_haystack": 10,
   "proportion_unit": "auto",
   "top_k_k": 3,
   "reference_tokenizer": "",
-  "out_dir": "tests/golden"
+  "out_dir": "tests/golden",
+  "render_entity": true
 }

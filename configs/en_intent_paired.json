@@ -24,5 +24,7 @@
   "haystack_target_records": [
     3000,
     6000
-  ]
+  ],
+  "licence": "cc-by-4.0",
+  "label_provenance": "professional_annotation"
 }

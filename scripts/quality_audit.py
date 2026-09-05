@@ -86,6 +86,17 @@ def question_support(q: dict, meta: pl.DataFrame, k: int) -> tuple[int, float | 
         i = {"most_common": 0, "second_most": 1, "least_common": len(r) - 1}[kind]
         nb = r[i + 1][1] if i + 1 < len(r) else r[i - 1][1]
         return r[i][1], abs(r[i][1] - nb) / max(1, r[i][1])
+    if kind == "label_vs_label":
+        a = meta.filter(pl.col("label") == q["label_a"]).height
+        b = meta.filter(pl.col("label") == q["label_b"]).height
+        # A "same" answer is CORRECT precisely because the gap is small, so the
+        # usual "bigger margin = more robust" rule inverts. Reporting the raw gap
+        # marked every equal-frequency question knife-edge (5 of 10 on the intent
+        # axis, exactly the count of "same" answers). Its robustness is headroom
+        # against same_tol, which the builder already enforces, so skip the check.
+        if str(q["answer"]) in ("eşit", "the same"):
+            return a + b, None
+        return a + b, abs(a - b) / max(a, b, 1)
     if kind == "shift":
         return sum(1 for l in labs if l == q["label"]), None
     return sum(1 for l in labs if l == q.get("label")), None      # count, proportion
@@ -104,6 +115,14 @@ def prior_prediction(q: dict, st: dict) -> str:
         return {"most_common": r[0], "second_most": r[1], "least_common": r[-1]}[kind][0]
     if kind == "shift":
         return {"tr": "arttı", "en": "rose"}[q["language"]]
+    if kind == "label_vs_label":
+        a = st["share"].get(q["label_a"], 0.0)
+        b = st["share"].get(q["label_b"], 0.0)
+        rel = abs(a - b) / max(a, b, 1e-9)
+        key = "same" if rel <= 0.02 else ("more" if a > b else "less")
+        return {"tr": {"more": "daha çok", "less": "daha az", "same": "eşit"},
+                "en": {"more": "more common", "less": "less common",
+                       "same": "the same"}}[q["language"]][key]
     cands = q.get("candidates")
     pe = st["prior_ent"].get(q["label"], {})
     if kind == "entity_argmax":
@@ -131,6 +150,8 @@ def chance_rate(kind: str, K: int, q: dict) -> float:
         return 1.0 / (n or K)
     if kind in ("shift", "pairwise"):
         return 0.5
+    if kind == "label_vs_label":
+        return 1.0 / 3.0          # more / less / same, and the builder balances them
     if kind == "entity_argmax":
         return 1.0 / max(2, n)
     if kind == "top_k":
@@ -320,12 +341,29 @@ def verify_pairs(sets: list[str], cfgs: dict) -> int:
                    and x["kind"] == y["kind"] and x.get("label") == y.get("label")
                    and json.dumps(x["answer"], ensure_ascii=False)
                    == json.dumps(y["answer"], ensure_ascii=False))
-        # `shift` is language-mapped (arttı / rose), so it can never match verbatim
-        shifts = sum(1 for x in qa if x["kind"] == "shift")
+        # `shift` and `label_vs_label` have language-mapped answers (arttı / rose,
+        # "daha çok" / "more common"), so they can never match verbatim. The twin
+        # still holds: both halves ask about the same records and the same label
+        # pair, and the mapped answers agree -- checked below.
+        LANG_MAPPED = ("shift", "label_vs_label")
+        mapped = sum(1 for x in qa if x["kind"] in LANG_MAPPED)
+        # canonical key per outcome, so the check does not depend on which half
+        # of the pair is `a` and which is `b`
+        CANON = {"arttı": "rose", "rose": "rose", "azaldı": "fell", "fell": "fell",
+                 "daha çok": "more", "more common": "more",
+                 "daha az": "less", "less common": "less",
+                 "eşit": "same", "the same": "same"}
+        mism = sum(1 for x, y in zip(qa, qb)
+                   if x["kind"] in LANG_MAPPED
+                   and (CANON.get(x["answer"]) != CANON.get(y["answer"])
+                        or x.get("label_a") != y.get("label_a")
+                        or x.get("label_b") != y.get("label_b")))
         print(f"  haystacks record-identical : {len(ma) - bad}/{len(ma)}")
         print(f"  questions w/ same gold     : {same}/{len(qa)}"
-              f"  (+{shifts} `shift`, language-mapped by design)")
-        if bad or same + shifts < len(qa):
+              f"  (+{mapped} language-mapped by design: {', '.join(LANG_MAPPED)})")
+        if mism:
+            print(f"  [!] {mism} language-mapped answer(s) DISAGREE across the twin")
+        if bad or mism or same + mapped < len(qa):
             print("  [!] the pair is NOT fully matched -- paired tests are invalid")
             problems += 1
         else:

@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.4.0"
+VERSION = "0.6.0"
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +97,33 @@ class Config:
     # the ENGLISH haystacks and tokenizes differently in each language, which is
     # a confound in a matched-twin comparison. Symbols tokenize identically.
     separator: str = "\n\n<<<###>>>\n\n"
+    # v0.6.0 -- the entity MUST be printed, or the entity families are
+    # unanswerable. Before this the brand lived only in a metadata column the
+    # model never saw: `entity_count` asked for a count of 20 records whose
+    # brand appeared 0 times in the haystack. Rendering is OFF by default and
+    # asserted ON below whenever an entity family is actually emitted, so the
+    # defect cannot recur silently. The marker is symbol-only for the same
+    # reason the separator is: a natural-language prefix ("Marka:"/"Brand:")
+    # tokenizes differently per language and would confound the matched twin.
+    # label_vs_label: two labels count as equal within this RELATIVE band. The
+    # band between it and min_rank_margin is a dead zone -- such a pair is
+    # rejected rather than forced into a bucket, so no gold answer is arbitrary.
+    # Declared provenance metadata. Not used by the build -- read by
+    # scripts/check_pair.py, which FAILS a pair that leaves either blank.
+    # Undocumented label provenance is the one defect filtering cannot fix, so
+    # it is declared by hand rather than inferred.
+    licence: str = ""                     # e.g. "cc-by-sa-4.0", or "unknown"
+    label_provenance: str = ""            # "author_stars" | "professional_annotation" | "crowd"
+    lvl_same_tol: float = 0.02
+    # label_vs_label needs a WIDER margin than the ranking families. It is a
+    # 3-way call on a continuous quantity, so a pair just outside same_tol is a
+    # knife-edge answer: at 48 classes a class holds ~125 records, 2% is 2.5
+    # records, and min_rank_margin=0.03 left a dead band of one single record.
+    # The audit flagged 2-5 of 10 intent-axis questions knife-edge until this
+    # was separated out.
+    lvl_min_margin: float = 0.10
+    render_entity: bool = False
+    entity_render: str = "[[{entity}]] "
     drift_mode: bool = True
     min_entity_examples: int = 15         # soft eligibility: records per entity in-haystack
     dirichlet_alpha: float = 0.0          # >0: per-haystack Dirichlet label priors
@@ -277,7 +304,13 @@ def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFr
     # from the built benchmark.
     before = df.height
     if cfg.drop_label_leakage and before:
-        leaking = label_leak_mask(df["text"].to_list(), sorted(set(df["label"].to_list())),
+        # v0.6.0: mask the RENDERED record, not the raw text. With render_entity on,
+        # the entity prefix is shipped text too, so a brand whose NAME contains a
+        # label word ("The Pressure Positive Co.") would hand the label to a
+        # substring solver. verify_release caught exactly this on amazon_hpc_en.
+        rendered = [render_record(t, e, cfg)
+                    for t, e in zip(df["text"].to_list(), df["entity"].to_list())]
+        leaking = label_leak_mask(rendered, sorted(set(df["label"].to_list())),
                                   cfg.language)
         df = df.filter(~pl.Series(leaking))
     stats["rows_dropped_label_leakage"] = before - df.height
@@ -473,7 +506,7 @@ def _audit_thresholds(df: pl.DataFrame, cfg: Config, count_tokens, tok_per_rec: 
         w = (draw_label_weights(df["label"].to_list(), cfg.dirichlet_alpha, rng)
              if cfg.dirichlet_alpha > 0 else None)
         cand = sample_candidate_rows(df, need, rng, w)
-        kept = select_rows_to_fit(cand, target, count_tokens, cfg.separator)
+        kept = select_rows_to_fit(cand, target, count_tokens, cfg.separator, cfg)
         c = Counter(kept["label"].to_list())
         r = sorted(c.items(), key=lambda kv: (-kv[1], kv[0]))
         if len(r) < 3:
@@ -575,16 +608,29 @@ def sample_candidate_rows(df: pl.DataFrame, need: int, rng: random.Random,
     return df[order[: min(need, df.height)]]
 
 
+def render_record(text: str, entity: str, cfg: Config) -> str:
+    """The exact string a record contributes to the haystack. One definition,
+    used by BOTH the token-budget fit and the assembly, so a rendered prefix can
+    never be charged in one place and omitted in the other."""
+    if not cfg.render_entity or entity in (None, "", "__none__"):
+        return text
+    return cfg.entity_render.format(entity=entity) + text
+
+
 def select_rows_to_fit(
-    cand: pl.DataFrame, target: int, count_tokens: Callable[[str], int], sep: str
+    cand: pl.DataFrame, target: int, count_tokens: Callable[[str], int], sep: str,
+    cfg: Config | None = None
 ) -> pl.DataFrame:
     """Greedily keep candidate rows (neutral order) until the token budget is hit.
-    No drift ordering here -- so nothing drift-relevant can be trimmed later."""
+    No drift ordering here -- so nothing drift-relevant can be trimmed later.
+    Costs the RENDERED record, so an entity prefix is inside the budget."""
     sep_tok = count_tokens(sep)
     total = 0
     kept = 0
-    for text in cand["text"]:
-        cost = count_tokens(text) + (sep_tok if kept > 0 else 0)
+    ents = cand["entity"].to_list() if "entity" in cand.columns else [None] * cand.height
+    for i, text in enumerate(cand["text"]):
+        rendered = render_record(text, ents[i], cfg) if cfg is not None else text
+        cost = count_tokens(rendered) + (sep_tok if kept > 0 else 0)
         if total + cost > target and kept > 0:
             break
         total += cost
@@ -633,13 +679,15 @@ def order_and_assemble(
     parts: list[str] = []
     spans: list[tuple[int, int]] = []
     pos = 0
+    ordered_ents = ordered["entity"].to_list()
     for i, text in enumerate(ordered["text"]):
         if i > 0:
             parts.append(sep)
             pos += len(sep)
         start = pos
-        parts.append(text)
-        pos += len(text)
+        rendered = render_record(text, ordered_ents[i], cfg)
+        parts.append(rendered)
+        pos += len(rendered)
         spans.append((start, pos))
     hay = "".join(parts)
     meta = ordered.with_columns(
@@ -713,6 +761,7 @@ Q_TEMPLATES = {
         "most_common": "Bu kayıtlarda en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
         "least_common": "Bu kayıtlarda en az görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
         "second_most": "Bu kayıtlarda ikinci en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
+        "label_vs_label": "'{label_a}' etiketli kayıtlar '{label_b}' etiketli kayıtlardan daha mı çok, daha mı az, yoksa eşit sayıda mı? 'daha çok', 'daha az' veya 'eşit' yaz.",
     },
     "en": {
         "count": "How many records are labeled '{label}'? Answer with the number only.",
@@ -726,6 +775,7 @@ Q_TEMPLATES = {
         "most_common": "Which label is the most common in these records? Labels: {labels}. Answer with the label name only.",
         "least_common": "Which label is the least common in these records? Labels: {labels}. Answer with the label name only.",
         "second_most": "Which label is the second most common in these records? Labels: {labels}. Answer with the label name only.",
+        "label_vs_label": "Are records labeled '{label_a}' more common, less common, or the same frequency as records labeled '{label_b}'? Answer 'more common', 'less common', or 'the same'.",
     },
 }
 
@@ -734,6 +784,15 @@ Q_TEMPLATES = {
 SHIFT_ANSWER = {
     "tr": {"rose": "arttı", "fell": "azaldı"},
     "en": {"rose": "rose", "fell": "fell"},
+}
+
+# v0.6.0 -- OOLONG's label-vs-label comparison ("is A more, less, or equally
+# common than B"). Their typology has it and ours did not; `pairwise` compares
+# two ENTITIES, which is a different question. It needs no entity column, so
+# unlike the entity families it ships on all eight sets.
+LVL_ANSWER = {
+    "tr": {"more": "daha çok", "less": "daha az", "same": "eşit"},
+    "en": {"more": "more common", "less": "less common", "same": "the same"},
 }
 
 
@@ -772,6 +831,7 @@ def _margin_ok(hi: int, lo: int, min_margin: float) -> bool:
 
 
 def gt_primary(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=None,
+               label_a=None, label_b=None, same_tol=0.0,
                unit="percent", k=3, askable=None, min_margin=0.0, min_answer=0):
     askable = askable or []
     if kind == "count":
@@ -814,6 +874,10 @@ def gt_primary(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=N
         if abs(s1 - s0) < max(0.5 * base, 0.02):
             return None
         return "rose" if s1 > s0 else "fell"
+    if kind == "label_vs_label":
+        a = meta.filter(pl.col("label") == label_a).height
+        b = meta.filter(pl.col("label") == label_b).height
+        return _label_vs_label(a, b, min_margin, same_tol, min_answer)
     if kind in ("most_common", "least_common", "second_most"):
         agg = meta.group_by("label").len().sort(["len", "label"], descending=[True, False])
         ranked = list(zip(agg["label"].to_list(), agg["len"].to_list()))
@@ -821,6 +885,20 @@ def gt_primary(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=N
             ranked = [(l, c) for l, c in ranked if l in set(askable)]
         return _label_stat(ranked, kind, min_margin, min_answer)
     raise ValueError(kind)
+
+
+def _label_vs_label(a: int, b: int, min_margin: float, same_tol: float, min_answer: int):
+    """more / less / same for label_a against label_b, or None if the pair falls
+    in the dead band between "equal" and "clearly different". Both counts must
+    clear min_answer so the comparison rests on real mass, not on two rare tails."""
+    if min(a, b) < min_answer:
+        return None
+    rel = abs(a - b) / max(a, b, 1)
+    if rel <= same_tol:
+        return "same"
+    if rel < min_margin:
+        return None                      # ambiguous: neither equal nor clearly apart
+    return "more" if a > b else "less"
 
 
 def _label_stat(ranked, kind, min_margin=0.0, min_answer=0):
@@ -851,6 +929,7 @@ def _label_stat(ranked, kind, min_margin=0.0, min_answer=0):
 
 
 def gt_check(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=None,
+             label_a=None, label_b=None, same_tol=0.0,
              unit="percent", k=3, askable=None, min_margin=0.0, min_answer=0):
     askable = set(askable or [])
     labels = meta["label"].to_list()
@@ -896,6 +975,10 @@ def gt_check(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=Non
         if abs(s1 - s0) < max(0.5 * base, 0.02):
             return None
         return "rose" if s1 > s0 else "fell"
+    if kind == "label_vs_label":
+        a = sum(1 for l in labels if l == label_a)
+        b = sum(1 for l in labels if l == label_b)
+        return _label_vs_label(a, b, min_margin, same_tol, min_answer)
     if kind in ("most_common", "least_common", "second_most"):
         c = Counter(labels)
         if askable:
@@ -1007,6 +1090,39 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k,
         return {"kind": kind, "label": label, "answer": answer,
                 "question": resolve_template(cfg, kind).format(label=label)}
 
+    if kind == "label_vs_label":
+        # The OUTCOME is drawn first and a label pair is then searched for that
+        # realizes it. Sampling a pair at random instead would make "same" almost
+        # never the gold answer at counts near 1,000, and a model that never
+        # answers "same" would lose nothing -- the prior-degeneracy this
+        # benchmark rejects everywhere else (D9).
+        want = rng.choice(("more", "less", "same"))
+        pool = [l for l in labels]
+        rng.shuffle(pool)
+        for i in range(len(pool)):
+            for j in range(i + 1, len(pool)):
+                la, lb = pool[i], pool[j]
+                gt = verified_gt(meta, kind, label_a=la, label_b=lb,
+                                 min_margin=max(mm, cfg.lvl_min_margin),
+                                 same_tol=cfg.lvl_same_tol, min_answer=ma)
+                if gt is None:
+                    continue
+                # "A vs B -> more" and "B vs A -> less" state the SAME fact, so the
+                # asked order is free and is chosen to hit `want`. Without this the
+                # realized answers skewed to whichever direction the label ranking
+                # happened to favour -- majority baseline 0.71 on marc_en. Swapping
+                # makes more/less exactly as frequent as the sampler asks for them.
+                if gt in ("more", "less") and want in ("more", "less"):
+                    if gt != want:
+                        la, lb, gt = lb, la, want
+                elif gt != want:
+                    continue
+                return {"kind": kind, "label": None, "label_a": la, "label_b": lb,
+                        "candidates": [la, lb], "answer": LVL_ANSWER[cfg.language][gt],
+                        "question": resolve_template(cfg, kind).format(
+                            label_a=la, label_b=lb)}
+        return None
+
     if kind in ("most_common", "least_common", "second_most"):
         # The candidate labels are NAMED in the question. Two reasons:
         #  1. Well-posedness -- no model can be expected to produce
@@ -1041,10 +1157,15 @@ def _dedup_key(q: dict) -> tuple:
         return ("pairwise", q["label"], frozenset((q["entity_a"], q["entity_b"])))
     if q["kind"] == "entity_count":
         return ("entity_count", q["label"], q["entity"])
+    if q["kind"] == "label_vs_label":       # A-vs-B and B-vs-A are the same question
+        return ("label_vs_label", frozenset((q["label_a"], q["label_b"])))
     if q["kind"] in ("entity_argmax", "top_k", "most_common", "least_common",
                      "second_most"):                # same family, different candidates
         return (q["kind"], q["label"], tuple(q.get("candidates") or ()))
     return (q["kind"], q["label"])
+
+
+ENTITY_FAMILIES = ("entity_count", "entity_argmax", "pairwise", "top_k")
 
 
 def SINGLETON_FAMILIES():
@@ -1084,7 +1205,8 @@ def generate_questions(meta, cfg, rng, *, drift_target, unit, k, prior_ent=None,
         .filter((pl.col("len") >= cfg.min_entity_examples) & (pl.col("entity") != "__none__"))
         ["entity"].to_list()
     )   # min_entity_examples counts records IN THIS HAYSTACK, not in the pool
-    families = ["count", "proportion", "most_common", "least_common", "second_most"]
+    families = ["count", "proportion", "most_common", "least_common", "second_most",
+                "label_vs_label"]
     if drift_target is not None:
         families.append("shift")
     # Entity-relational families are only meaningful when the entity axis is
@@ -1116,6 +1238,18 @@ def generate_questions(meta, cfg, rng, *, drift_target, unit, k, prior_ent=None,
             families.append("top_k")
 
     families = [f for f in families if f not in set(cfg.families_disabled)]
+    # v0.6.0 GUARD. An entity family asks the model to attribute records to a
+    # group. If the group is not printed in the haystack the question has no
+    # answerable content -- which is exactly the defect this guard exists to
+    # prevent recurring. Fail loudly at build time rather than shipping
+    # unanswerable questions that every shortcut solver happily passes.
+    if any(f in ENTITY_FAMILIES for f in families) and not cfg.render_entity:
+        raise ValueError(
+            f"config emits entity families {[f for f in families if f in ENTITY_FAMILIES]} "
+            f"but render_entity=False: the entity would never appear in the haystack, "
+            f"so the questions are unanswerable. Set render_entity=true, or disable "
+            f"those families via families_disabled."
+        )
     quota = allocate_quota(families, cfg.questions_per_haystack)
     seen: set[tuple] = set()
     out: list[dict] = []
@@ -1236,7 +1370,7 @@ def build(cfg: Config) -> None:
                     kept = df[order[: min(need, df.height)]]
                 else:
                     kept = select_rows_to_fit(df[order[:need]], target,
-                                              count_tokens, cfg.separator)
+                                              count_tokens, cfg.separator, cfg)
                     # `need` is estimated from the POOL's mean record length. On a
                     # heavy-tailed length distribution the sampled subset runs
                     # shorter than the mean, so every candidate fits and the
@@ -1250,8 +1384,9 @@ def build(cfg: Config) -> None:
                         grow += 1
                         need = min(df.height, int(need * 1.6) + 64)
                         kept = select_rows_to_fit(df[order[:need]], target,
-                                                  count_tokens, cfg.separator)
-                    got = sum(count_tokens(t) for t in kept["text"]) + \
+                                                  count_tokens, cfg.separator, cfg)
+                    got = sum(count_tokens(render_record(t, e, cfg))
+                              for t, e in zip(kept["text"], kept["entity"])) + \
                         count_tokens(cfg.separator) * max(0, kept.height - 1)
                     if got < 0.95 * target:
                         print(f"[short-haystack] {cfg.language}-{target}-{ki}: {got:,} of "

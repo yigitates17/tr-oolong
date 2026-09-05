@@ -55,6 +55,10 @@ def fit(rows, text_col, label_col):
     return {k: c.most_common(1)[0][0] for k, c in table.items()}, fallback
 
 
+LVL = {"tr": {"more": "daha çok", "less": "daha az", "same": "eşit"},
+       "en": {"more": "more common", "less": "less common", "same": "the same"}}
+
+
 def predict(q, counts, records, table, fallback):
     lang = q["language"]
     n = sum(counts.values()) or 1
@@ -70,6 +74,11 @@ def predict(q, counts, records, table, fallback):
         return ranked[-1] if ranked else ""
     if kind == "second_most":
         return ranked[1] if len(ranked) > 1 else ""
+    if kind == "label_vs_label":
+        a, b = counts.get(q["label_a"], 0), counts.get(q["label_b"], 0)
+        rel = abs(a - b) / max(a, b, 1)
+        key = "same" if rel <= 0.02 else ("more" if a > b else "less")
+        return LVL[lang][key]
     if kind == "shift":
         half = len(records) // 2
 

@@ -32,5 +32,8 @@
   },
   "families_disabled": [
     "top_k"
-  ]
+  ],
+  "render_entity": true,
+  "licence": "unknown",
+  "label_provenance": "author_stars"
 }

@@ -92,6 +92,10 @@ class Haystack:
         return m.bit_count()
 
 
+LVL = {"tr": {"more": "daha çok", "less": "daha az", "same": "eşit"},
+       "en": {"more": "more common", "less": "less common", "same": "the same"}}
+
+
 def answer(q, hs: Haystack, labels, entities, language):
     kind = q["kind"]
     if kind == "count":
@@ -113,6 +117,11 @@ def answer(q, hs: Haystack, labels, entities, language):
     if kind == "pairwise":
         a, b = hs.count(q["label"], q["entity_a"]), hs.count(q["label"], q["entity_b"])
         return q["entity_a"] if a >= b else q["entity_b"]
+    if kind == "label_vs_label":
+        a, b = hs.count(q["label_a"]), hs.count(q["label_b"])
+        rel = abs(a - b) / max(a, b, 1)
+        key = "same" if rel <= 0.02 else ("more" if a > b else "less")
+        return LVL[language][key]
     if kind == "shift":
         m = hs.lab[q["label"]]
         h0 = hs.n // 2
@@ -124,7 +133,7 @@ def answer(q, hs: Haystack, labels, entities, language):
     raise ValueError(kind)
 
 
-CHANCE = {"shift": 0.5, "pairwise": 0.5}
+CHANCE = {"shift": 0.5, "pairwise": 0.5, "label_vs_label": 1 / 3}
 
 
 def run_set(d: Path) -> dict:
