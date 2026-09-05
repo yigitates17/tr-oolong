@@ -44,15 +44,19 @@ is no manual answer annotation.
   fails in either), so the twin retains an identical label space and an identical
   source row set. Applying either filter per locale would have left TR and EN with
   different class sets — a comparison across different label spaces.
-- Label leakage: 112 English utterances (0.68%) contain their intent's surface
-  form; **zero** Turkish utterances do. Those 112 pairs are dropped from both
-  locales. This rate is the cross-lingual leakage measurement reported in
-  README §4.
+- Label leakage: **zero on both locales** in the shipped build
+  (`label_leakage_rate: 0.0`). An earlier revision reported 112 English
+  utterances (0.68%) against zero Turkish and read it as a cross-lingual finding;
+  that claim is **withdrawn** — it is absent from this pool and was confounded by
+  matching both locales against the English label vocabulary. See README §4.
+  The filter still runs, and still applies as a union over the pair.
 - License: MASSIVE is CC-BY-4.0. Verify at release time.
 - Proportion unit: per-mille (label space > 10).
-- Label noise: [ ] rate still to be measured on the 200-row self-annotation slice,
-  but its *consequence* is now bounded — see "Label noise is a per-family ceiling"
-  below. MASSIVE is professionally annotated, so the expected rate is low.
+- **Label noise: measured 2026-09-04.** A native Turkish speaker judged a
+  150-row pair-aligned slice (`scripts/make_noise_slice.py`, seed 42;
+  `scripts/annotate_noise.py` for the protocol). **14 of 150 rejected → ε = 9.3%,
+  95% Wilson CI [5.6%, 15.1%].** Higher than "professionally annotated" would
+  suggest, and the reason matters — see the two subsections below.
 
 ## Review / sentiment axis (built, not yet distributed)
 
@@ -85,6 +89,9 @@ maximum length is derived from its smallest class). Proportion unit: percent.
 
 ## Family availability per set
 
+*v0.6.0: `label_vs_label` added on all eight sets; the entity families now
+require `render_entity` (D17) and are asserted at build time.*
+
 Not every family is meaningful on every source, and a family that fails the
 prior-oracle gate is switched off rather than shipped. This is recorded here so
 the per-set question counts are not mistaken for a bug.
@@ -110,6 +117,69 @@ the per-set question counts are not mistaken for a bug.
 - Drift: one label is over-represented in the second half so `shift` questions
   have detectable signal; the target and a detectability flag are recorded.
 - Reproducibility: single string seed; byte-identical rebuilds; full manifest.
+
+## The measured intent-axis noise, and what it is actually made of
+
+**Headline: ε = 9.3%, n = 150, 95% CI [5.6%, 15.1%].** Two qualifications belong
+next to that number, and both lower the figure that should be used for the
+English half.
+
+**1. A second reviewer disagreed with 3 of the 14 rejections.** Checked against
+how the corpus uses each label elsewhere, three look correct as assigned:
+
+| row | utterance | label | why it stands |
+|---|---|---|---|
+| 78 | *what purpose the event been scheduled for* | `calendar_query` | the family covers "check when the show starts", "what is the time for jimmy's party" |
+| 88 | *how many meetings have there been* | `calendar_query` | same |
+| 90 | *look up the residential address of my team leader* | `email_querycontact` | the family is contact-detail lookup — "what's the email address of silvia", "tell me the landline number" |
+
+Four are clear errors on any reading — row 122 *"tell me the nearest location"*
+labelled `lists_remove` (a family otherwise entirely about deleting list items),
+row 59 *"mail administrator"* labelled `email_sendemail` (a bare noun phrase with
+no send action), row 43 (closing hours labelled as a recommendation) and row 14
+(below). The remaining seven are genuinely ambiguous — mostly `qa_definition` vs
+`qa_factoid`, and the corpus convention that *"do i need a hat"* is a
+`weather_query`, which is consistent across the corpus but underdetermined in any
+single utterance.
+
+**So the defensible range is ε ∈ [2.7%, 9.3%]**, with ~7.3% the best point
+estimate (14 rejections less the 3 overturned). Report the range, not the point:
+inter-annotator disagreement at this rate is itself the finding.
+
+## ⚠️ Part of the "noise" is mistranslation, and it is asymmetric
+
+**This is the more important result of the annotation exercise.** MASSIVE is a
+human *localization* of English SLURP utterances, and some labels are correct for
+the English source while being wrong for the Turkish that ships:
+
+| EN source | TR as shipped | label | what happened |
+|---|---|---|---|
+| *put a record on* | *bir kayıt koy* | `play_music` | the idiom is gone. Turkish `kayıt` is a record/registration in the clerical sense, never a vinyl. No Turkish reader infers "play music" |
+| *how to spell the word treble* | *üç kat kelimesi nasıl kodlanır* | `qa_definition` | "treble" → "üç kat" (threefold), "spell" → "kodlanır" (is encoded) |
+| *when does olive garden close today* | *hanım eli bugün ne zaman kapanıyor* | `recommendation_locations` | a US restaurant chain localized to a Turkish pastry |
+
+**Why this matters more than the headline ε.** These are not annotation errors —
+they are *translation* errors, and they land on **one half of the twin only**.
+The English half's label is right; the Turkish half's is not. A Turkish model is
+therefore scored against noisier ground truth than its English counterpart, on
+records that are supposed to be identical.
+
+That is a **direct confound for the cross-lingual claim**, which is the whole
+point of the intent axis. At least 2 of 150 (1.3%) are unambiguously of this
+kind; the true rate needs a pass that judges TR and EN separately, which the
+current protocol does not do.
+
+**Consequences, in order:**
+
+1. **State it as a limitation of the intent axis.** The review axis is unaffected
+   — `vitamins_tr` and `musteri_tr` are natively written Turkish with the
+   writer's own star as the label, so there is no translation step to corrupt.
+2. **The record-matched twin's headline claim survives but needs the caveat.**
+   Any TR−EN gap on the intent axis is (language effect) + (translation noise),
+   and the second term is not currently separated.
+3. **The fix is a two-column protocol** — judge "does the label fit the English"
+   and "does it fit the Turkish" as separate questions on the same rows. That
+   turns the confound into a measurement, and it is the same 150 rows again.
 
 ## Label noise is a per-family ceiling, not a global one
 
@@ -238,6 +308,19 @@ cited and rebuilt by others, adding a second unknown-licence dependency was
 judged not worth a 0.02 improvement in one metric. MARC is Apache-2.0 and its
 text is redistributable, and it reached a *better* asymmetry anyway (0.010).
 
+### Declared per source (read by `scripts/check_pair.py`)
+
+Two config fields are declared by hand because neither is measurable from the
+data, and one of them withdrew a whole pair in v0.5.0:
+
+| set | `licence` | `label_provenance` |
+|---|---|---|
+| `tr_intent`, `en_intent` (+paired) | `cc-by-4.0` | `professional_annotation` |
+| `vitamins_tr` | `cc-by-sa-4.0` | `author_stars` |
+| `musteri_tr` | `cc-by-sa-4.0` | `author_stars` |
+| `marc_en` | `apache-2.0` | `author_stars` |
+| `amazon_hpc_en` | `unknown` | `author_stars` |
+
 ### Before release
 
 1. `LICENSE` (MIT) covers **code only** — add a line saying so, since each data
@@ -261,7 +344,9 @@ ships text-free, and the per-source config split handles share-alike.
    though not for a Hugging Face release, which can precede the paper.*
 2. **`--certify` has never been run at scale.** README §4 states the rule that
    n = 10–20 per family certifies nothing, and the committed audit is exactly
-   that size. One family (`en_intent` `most_common`, p = 0.033, n = 10) is
+   that size. ✅ **Closed 2026-09-05:** `--certify 250` now runs clean on every
+   family of every set, and the one flagged family (`en_intent` `most_common`,
+   p = 0.033, n = 10) measures z = +1.9 `ok` at 152 draws. Formerly this
    flagged and unresolved in either direction.
 
 **Three that should be stated rather than fixed:**

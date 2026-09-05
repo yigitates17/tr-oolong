@@ -5,7 +5,7 @@ Five questions, checked against the repo 2026-08-25.
 
 | # | question | status |
 |---|---|---|
-| 1 | Label noise rates, can we check them ourselves? | ⚠️ **half** — consequence bounded and protocol written; **the rate itself is not measured** |
+| 1 | Label noise rates, can we check them ourselves? | ✅ **done 2026-09-04** — **ε = 9.3%, n=150, 95% CI [5.6%, 15.1%]**; second review puts the defensible range at [2.7%, 9.3%]. Part of it is *mistranslation*, not misannotation, and that part is asymmetric across the twin — see `DATACARD.md` |
 | 2 | OOLONG question types, difficulty vs OOLONG | ✅ **done** — `COMPARISON.md` |
 | 3 | OOLONG vs TR-OOLONG comparison table | ✅ **done** — `COMPARISON.md` |
 | 4 | What if an LLM were fine-tuned on this? Uses beyond benchmarking? | ❌ **was not started** — answered below |
@@ -43,10 +43,26 @@ For a star-derived set there is no annotator to disagree with. The benchmark ask
 *relationship* between a star and the sentiment expressed — but the benchmark
 never asks about sentiment.
 
-**Not settled: the rate ε on the annotated sets.** The protocol is written and
-the slices are generated (`*_out/label_noise_slice.csv`, 200 rows each).
-**n = 400 per corpus gives ±3 points at ε ≈ 0.10.** This needs a Turkish speaker
-reading rows; no code closes it. Roughly 4–5 hours across the annotated sources.
+**✅ Settled 2026-09-04: ε is measured.** A native speaker judged 150
+pair-aligned MASSIVE rows (`scripts/make_noise_slice.py` to generate,
+`scripts/annotate_noise.py` to annotate). **14 of 150 rejected → ε = 9.3%,
+95% Wilson CI [5.6%, 15.1%].** A second review overturned 3 of the 14 as correct
+per the corpus's own use of `calendar_query` / `email_querycontact`, so the
+defensible range is **[2.7%, 9.3%]**, point estimate ~7.3%.
+
+**⚠️ And the more important half of the result: some of it is mistranslation,
+not misannotation.** MASSIVE localizes English SLURP utterances, so a label can
+be right for the English and wrong for the Turkish that ships — *"put a record
+on"* → *"bir kayıt koy"*, labelled `play_music`, where Turkish `kayıt` is a
+clerical record and no reader infers music. **This lands on one half of the twin
+only**, so the Turkish half is scored against noisier ground truth than the
+English half on records that are supposed to be identical — a direct confound for
+the cross-lingual claim. The review axis is unaffected (natively written Turkish,
+writer's own star as the label).
+
+**Open:** a two-column re-pass over the same 150 rows — does the label fit the
+English, does it fit the Turkish, judged separately — to split translation noise
+from annotation noise. ~30 minutes.
 
 ---
 

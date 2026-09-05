@@ -263,3 +263,58 @@ number that mattered did not move.
 
 The Amazon `Home_and_Kitchen` half also turned out to carry a `most_common` style
 lift of +0.250 on its own, which is how `app_reviews` was found.
+
+---
+
+# Second sweep, 2026-09-04 — candidates raised after the search was closed
+
+A fresh list of Turkish resources was reviewed. **None displaces anything in
+use**, and the reasons are recorded here so the search stays closed with evidence
+rather than by assertion.
+
+**The structural filter, restated:** we need a **document-level latent class
+label** — the label is the answer key, and aggregation is only meaningful if the
+class must be *inferred* from the text. That eliminates most Turkish NLP
+resources immediately.
+
+| candidate | verdict |
+|---|---|
+| **SentiTurca** (234K, CC-BY-SA-4.0) | **no new data.** Its own card names the subsets: e-commerce *is* MüşteriYorumları, movies *is* BüyükSinema, hate *is* TurkishHateMap. All three already have verdicts above — one in use, two rejected |
+| **winvoker/turkish-sentiment** (490K, CC-BY-SA-4.0) | **rejected.** Largest Turkish sentiment set found, but label provenance is undocumented *and* the card states it includes "random text inputs marked as neutral" — programmatic labelling, the exact We-Bears defect, stated openly |
+| **Havadis** (745K, CC-BY-SA-4.0) | **confirms the earlier rejection.** Columns are `url` + `text`. No label, no date |
+| **NLI-TR** (SNLI/MultiNLI-tr) | rejected: machine-translated (the reason XNLI's train split was rejected), and records are sentence *pairs*, structurally unlike every other set |
+| InstrucTurca, Turkish-Alpaca, WikiRAG-TR, turkish-math-186k | instruction data — no class to count. InstrucTurca is additionally an OpenOrca translation |
+| TNC, TS Corpus, TDD, METU, CC-100, OSCAR, BellaTurca, temiz-Wiki, lyrics/poems/idioms | unlabelled |
+| UD treebanks, METU-Sabancı, HisTR, turkish-wikiNER | token-level labels; 9.7K–18.7K sentences is two orders too small |
+| BosphorusSign22k, PMC-VQA-TR, turkce-kitap | multimodal |
+| FSMTSAD | **not fully assessed.** Balanced hotel/movie/product sentiment with a domain column that could serve as an entity axis; GitHub-hosted with no clear licence. The one open thread from this sweep |
+
+## The one real find: Interpress carries dates
+
+[`yavuzkomecoglu/interpress_news_category_tr`](https://huggingface.co/datasets/yavuzkomecoglu/interpress_news_category_tr)
+— 273,601 Turkish news articles, 17 categories, and a **`publishdatetime`
+field in ISO 8601 spanning 2010–2017**.
+
+**This is the only Turkish labelled source found that carries real dates**, and
+dates are the blocker on the timeline axis — OOLONG's hardest question group and
+our one honest structural gap. Three obstacles, in order:
+
+1. **Licence: `unknown`.** The same veto that rejected `sealuzh/app_reviews`.
+   *But* the pipeline already has a pattern for this — `amazon_hpc_en` ships
+   text-withheld, questions and answers only, rebuilt locally from a fetch
+   script. So it is not automatically dead; it would mean the **Turkish** half
+   ships text-free, which is worse for a Turkish benchmark but not fatal.
+2. **Label provenance undocumented.** For news the category is normally the
+   publisher's own section — a recorded fact like a star rating rather than an
+   annotation. Plausible, unverified, and provenance is exactly what we now fail
+   pairs on.
+3. **Record length.** `content` is full articles; the usable field is `title`,
+   which then matches an English headline corpus well.
+
+**English twin candidate:** HuffPost News Category (~210K, 42 categories, dated
+2012–2022, headline + short description). Its licence was not verifiable from the
+Kaggle page and must be checked before anyone invests in this.
+
+**Next step is not code.** It is an email to the uploader or to Interpress asking
+what terms the data is under. Until that is answered the timeline axis stays
+blocked, and the correct thing to do is state it as a limitation.

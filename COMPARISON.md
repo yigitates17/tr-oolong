@@ -42,20 +42,20 @@ Date: Dec 28, 2022 || User: 76063 || Instance: Todays Vodafone nu...
 Date: Mar 02, 2023 || User: 41288 || Instance: ...
 ```
 
-**TR-OOLONG** concatenates the record text alone, separated by a fixed delimiter.
-The entity (brand, airline) is a real column in the source corpus, not synthetic
-metadata, so it does not need to be printed inline:
+**TR-OOLONG** prints the entity in a symbol-only marker, then joins with a fixed
+delimiter. The marker carries no natural-language word, because `Marka:` and
+`Brand:` tokenize differently and would confound the matched twin:
 
 ```
-Indirim zamani buradan alinabilir gayet guzel paketlemesi de
+[[Nutraxin]] urun güzel fakat kokusu çok agır, insanı bile rahatsız ettiriyor
 
 <<<###>>>
 
-Başkası İçin aldım ama sürekli kullanıyor 🙏🏻
+[[GetDirect]] orjinal ürün. güvenilir mağaza.
 
 <<<###>>>
 
-kargo ve hizmet iyiydi. nutraxin ürünlerinden genel de memnun kaldık.
+[[Newvit]] içimi kolay değil, çok şekerli bir tadı var
 ```
 
 ---
@@ -85,14 +85,16 @@ TR-OOLONG has the same idea but a different second axis, and no third:
 | second most frequent label (`second_most`) | ✅ | — | ❌ |
 | how many have label X (`count`) | ✅ | ✅ `entity_count` | ❌ |
 | **what share** have label X (`proportion`) | ✅ | — | ❌ |
+| **label A vs label B** (`label_vs_label`) | ✅ **added v0.6.0** | — | ❌ |
 | which entity has the most X (`entity_argmax`) | — | ✅ | ❌ |
 | A or B, which has more X (`pairwise`) | — | ✅ | ❌ |
-| **ordered top-k** entities (`top_k`) | — | ✅ | ❌ |
+| ~~ordered top-k entities (`top_k`)~~ | — | ~~✅~~ **withdrawn v0.5.0** | ❌ |
 | did X's share rise or fall (`shift`) | ✅ | — | ⚠️ positional halves, not dates |
 
 **Read the two tables together and the picture is:** we match their counting
-group, we replace their user axis with a richer entity axis and add ordering to
-it, we add normalised proportions, and **we are missing their entire timeline
+group **including their label-vs-label comparison as of v0.6.0**, we replace
+their user axis with a real entity axis, we add normalised proportions, and
+**we are missing their entire timeline
 axis** — which their paper reports as the hardest of the three.
 
 ---
@@ -181,7 +183,7 @@ in both languages with the **same gold answer**:
 >
 > **English**: *"How many utterances have the intent 'transport_taxi'?"* → `18`
 
-110 of 120 questions in the record-matched pair share a byte-identical answer.
+100 of 120 questions in the record-matched pair share a byte-identical answer.
 OOLONG has no cross-lingual dimension at all.
 
 ---
@@ -191,14 +193,14 @@ OOLONG has no cross-lingual dimension at all.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 (synth) + 10,810 (real) | **1,221** |
+| questions | 6,500 (synth) + 10,810 (real) | **1,254** |
 | haystacks | not reported per split | **110** |
 | context lengths | 1K–4M, reported at 8K–128K | 36K–987K |
 | **shortest haystack** | — | **36,250 tokens** |
-| **mean haystack** | — | **256,728 tokens** |
-| **longest haystack** | — | **986,533 tokens** |
+| **mean haystack** | — | **256,882 tokens** |
+| **longest haystack** | — | **987,623 tokens** |
 | total tokens built | — | **28.2 million** |
-| records per haystack | not reported | 1,523 – 22,259 |
+| records per haystack | not reported | 1,523 – 19,774 |
 | label spaces | 2–10 | **3 and 48** |
 | source corpora | 10 classification sets + D&D transcripts | 6 corpora on 2 axes |
 
@@ -210,10 +212,10 @@ Per set:
 | `en_intent` | en | 48 | 10 | 120 | 49,921 | 74,880 | 99,871 | 8,122 |
 | `tr_intent_paired` | tr | 48 | 10 | 120 | 47,629 | 73,182 | 99,057 | 6,000 |
 | `en_intent_paired` | en | 48 | 10 | 120 | 36,250 | 55,547 | 75,187 | 6,000 |
-| `vitamins_tr` | tr | 3 | 20 | 235 | 99,082 | 396,789 | 744,132 | 22,259 |
-| `amazon_hpc_en` | en | 3 | 20 | 234 | 98,574 | 456,178 | 986,533 | 17,623 |
-| `musteri_tr` | tr | 3 | 15 | 138 | 99,137 | 281,100 | 496,238 | 13,618 |
-| `marc_en` | en | 3 | 15 | 134 | 98,232 | 278,551 | 491,821 | 11,080 |
+| `vitamins_tr` | tr | 3 | 20 | 237 | 99,217 | 397,122 | 744,785 | 19,774 |
+| `amazon_hpc_en` | en | 3 | 20 | 236 | 98,672 | 456,691 | 987,623 | 16,116 |
+| `musteri_tr` | tr | 3 | 15 | 153 | 99,137 | 281,100 | 496,238 | 13,618 |
+| `marc_en` | en | 3 | 15 | 148 | 98,232 | 278,551 | 491,821 | 11,080 |
 
 The `en_intent_paired` set is shorter in tokens than its Turkish twin at the same
 record count. That gap **is** the measurement: at identical content, Turkish
@@ -247,7 +249,7 @@ So we report **both**:
 
 - Only cross-lingual long-context aggregation benchmark; the intent axis is a
   true record-matched twin.
-- Much longer: to 987K tokens and 22,259 records per haystack.
+- Much longer: to 987K tokens and 19,774 records per haystack.
 - Larger label space: 48 classes against their 2–10.
 - Real entities instead of synthetic user IDs, with candidate sets constructed to
   be prior-neutral.
@@ -263,10 +265,11 @@ So we report **both**:
   paper reports it as the hardest group. Ours is one binary rose/fell over
   positional halves, and it is the only family our format solver beats
   (+0.400 / +0.300 / +0.267 / +0.100 across sets). **This is the real gap.**
-- A label-vs-label comparison family ("is A more, less, or equally common
-  than B") that we do not implement; our `pairwise` compares entities.
+- ~~A label-vs-label comparison family~~ — **implemented in v0.6.0** as
+  `label_vs_label`, on all eight sets. It is 3-way at 48 classes and collapses to
+  2-way at 3, where near-equality does not occur (D18).
 - A "which user appears most often" family with no label conditioning at all.
-- Far more questions: 17,310 against our 1,221.
+- Far more questions: 17,310 against our 1,254.
 - Two task flavours — synthetic plus real D&D transcripts. We have only the
   synthetic style.
 

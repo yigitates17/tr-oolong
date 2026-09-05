@@ -261,7 +261,7 @@ imprecision a reviewer notices.
 - **Benchmark** = the *task definition*: the question families, the construction
   procedure, the ground-truth derivation, and the frozen metric. That is the
   contribution. TR-OOLONG **is a benchmark**.
-- **Dataset** = the *files* one particular run of the generator produced — 1,221
+- **Dataset** = the *files* one particular run of the generator produced — 1,254
   questions over 110 haystacks. That is an *instantiation* of the benchmark, and
   it is what goes on Hugging Face.
 
@@ -432,3 +432,33 @@ git tag, and cite `revision=` in the thesis so a reader gets exactly your data.
 version mismatch is *silent*: a rebuilt v0.5.0 looks like a perfectly valid
 dataset and produces perfectly valid numbers that simply are not comparable to
 the ones in your draft.
+
+---
+
+## v0.6.0 — what changed, in one place
+
+**The entity is now printed.** `[[Nutraxin]] <review text>`. Before v0.6.0 the
+brand lived only in a metadata column the model never saw, so **all 118 entity
+questions were unanswerable** — gold answers of 10–92 against brands appearing
+0–11 times. No gate caught it, because all four solvers test whether a question
+is answerable *too easily*, never whether it is answerable *at all*. See D17.
+
+- Guard: the builder **raises** if an entity family is emitted while
+  `render_entity` is false.
+- The leakage filter now masks the **rendered** record, so a brand name
+  containing a label word (`The Pressure Positive Co.`) is dropped.
+- The label stays latent, so the family is still latent aggregation, not string
+  counting.
+
+**New family `label_vs_label`** — OOLONG's "is A more, less, or equally common
+than B". Ships on all eight sets. 3-way at 48 classes, 2-way at 3 (D18). It is
+the least stable family: `musteri_tr`↔`marc_en` now sits at 0.030, the widest
+of the four pairs.
+
+**New tool `scripts/check_pair.py`** — screens a candidate corpus pair before you
+build it, against the §11 criteria, with a COMPATIBLE / WITH CAVEATS /
+INCOMPATIBLE verdict. Requires `licence` and `label_provenance` declared in each
+config.
+
+**Headline after the rebuild:** 8 sets · 110 haystacks · **1,254 questions** ·
+**28.3M tokens** · 10 families · 630 tr / 624 en · 36,250–987,623 tokens.

@@ -58,19 +58,29 @@ does not).
 building* and recorded, so the phenomenon becomes a corpus statistic rather than
 a benchmark contaminant.
 
-| Corpus | Leaking records | Rate |
-|---|---|---|
-| MASSIVE tr-TR | 0 / 16,521 | **0.00%** |
-| MASSIVE en-US | 112 / 16,521 | **0.68%** |
-| Turkish brand reviews | 341 / 40,597 | 0.84% |
-| Amazon H&PC (en) | 560 / 60,000 | 0.93% |
+| Corpus | Pool | Leaking records | Rate |
+|---|---|---|---|
+| MASSIVE tr-TR | 15,075 | 0 | **0.00%** |
+| MASSIVE en-US | 15,075 | 0 | **0.00%** |
+| `vitamins_tr` | 43,043 | 177 | 0.45% |
+| `amazon_hpc_en` | 60,000 | 557 | 1.00% |
+| `musteri_tr` | 38,649 | 80 | 0.22% |
+| `marc_en` | 120,000 | 657 | 0.55% |
 
 **Why this is the better number.** The earlier attempt measured the asymmetry as
 a *difference in baseline scores* over 10 questions per family — far too few to
-support a claim. The drop rate is computed over 16,521 utterances and is exact.
-On the intent axis the asymmetry is total: zero Turkish utterances in 16.5K
-surface their own intent label. On the review axis the rates are comparable,
-because there the label names are ordinary sentiment words in both languages.
+support a claim. The drop rate is computed over the whole pool and is exact.
+
+⚠️ **The cross-lingual reading of these numbers is withdrawn (v0.6.0).** Earlier
+revisions reported 112 leaking English intent records against 0 Turkish and read
+it as morphology. The shipped build measures **0.00% on both**, and the
+comparison was confounded regardless: both locales are matched against the
+*English* label vocabulary, so a Turkish utterance cannot contain a label form.
+Matching each language against labels in its own language reverses it — TR 0.91%
+vs EN 0.00%, because Turkish is verb-final and `alarm_kur` reproduces a natural
+phrase where `alarm_set` does not. See `PAPER_NOTES.md` §5. On the review axis
+the rates are comparable, because there the label names are ordinary sentiment
+words in both languages.
 
 ---
 
@@ -403,7 +413,7 @@ buys different numbers of records in the two languages.
 
 Together they give a **record-matched twin**: `tr_intent_paired` and
 `en_intent_paired`. Verified — identical `row_id` order, identical labels,
-identical halves, identical drift target, and **110 of 120 questions identical
+identical halves, identical drift target, and **100 of 120 questions identical
 including the gold answer**. The 10 that differ are `shift`, where the same fact
 is expressed in each language (`arttı` / `rose`).
 
@@ -612,3 +622,74 @@ axis.** This is a ceiling on the design, not a gap in the search.
 **Where `app_reviews` is still worth taking.** It carries a real `date` column
 (2014–2017), which is the substrate for the timeline axis TR-OOLONG lacks. That
 build is blocked on a *Turkish* dated source, which no examined corpus provides.
+
+## D17 — The entity must be PRINTED, not merely present in the source (v0.6.0)
+
+**The defect.** Every entity question — `entity_count`, `entity_argmax`,
+`pairwise` — asks the model to attribute records to a group. Until v0.6.0 the
+group lived only in a metadata column that was never rendered: the haystack was
+`text` joined by the separator and nothing else. **All 118 entity questions were
+therefore unanswerable.** Measured on the shipped v0.5.0 build: gold answers of
+10–92 records against brands appearing 0–11 times in the haystack, uncorrelated;
+22–25% of entity questions had no candidate appearing anywhere at all; and only
+**2.0%** of source reviews mention their own brand.
+
+**Why the reasoning failed.** `COMPARISON.md` argued the entity "does not need to
+be printed inline" because, unlike OOLONG's synthetic user IDs, ours is a real
+corpus column. Being real in the *source* is irrelevant — the model sees only the
+haystack. OOLONG prints `Date: … || User: 76063 || Instance: …` for exactly this
+reason.
+
+**Why no gate caught it.** All four solvers test for **shortcuts** — is this
+answerable *too easily*. None tests **solvability** — is it answerable *at all*.
+The prior oracle even made it worse: it found `entity_argmax` answerable from
+corpus priors (0.55–0.87) and the per-haystack jitter fix (D9) pushed it away
+from guessable, in the direction of impossible. **A shortcut audit is not a
+validity audit.** The cheapest detector was always one model run.
+
+**Decision.** `render_entity` prefixes each record with `[[entity]] `. Three
+consequences, each deliberate:
+
+1. **The marker is symbol-only**, for the same reason the separator is: a
+   natural-language prefix (`Marka:` / `Brand:`) tokenizes differently per
+   language and would confound the matched twin.
+2. **It is off by default and asserted on.** `generate_questions` raises if any
+   entity family is emitted while `render_entity` is false. The defect cannot
+   recur silently.
+3. **The leakage filter now masks the RENDERED record**, not the raw text.
+   Printing the entity ships brand names, and a brand whose name contains a label
+   word hands the label to a substring solver. `verify_release` caught exactly
+   this: `The Pressure Positive Co.` in `amazon_hpc_en` (1 brand, 52 rows, 0.09%).
+
+**Does printing the brand make the family lexical?** No, and this is the check
+that matters, because "lexical rather than latent aggregation" is the criticism
+we level at ONERULER. The **label stays latent**: *"how many of brand X's records
+are negative"* still requires classifying every one of brand X's records. The
+filter becomes lexical; the aggregation does not. That is OOLONG's design.
+
+## D18 — `label_vs_label`, and why "same" is rare (v0.6.0)
+
+OOLONG has a label-vs-label comparison ("is A more, less, or equally common than
+B") and we did not; our `pairwise` compares two *entities*, which is a different
+question. It needs no entity column, so it ships on all eight sets.
+
+**The outcome is drawn first**, then a label pair is searched for that realizes
+it. Sampling a pair at random instead would make "same" almost never the gold
+answer at counts near 1,000, and a model that never answers "same" would lose
+nothing — the prior degeneracy rejected everywhere else (D9).
+
+**A dead band, so no gold answer is arbitrary.** Two labels are "same" within
+`lvl_same_tol` (2% relative) and "more"/"less" beyond `min_rank_margin` (10%).
+Pairs landing between the two are **rejected** rather than forced into a bucket.
+
+**Measured: the family is 3-way at 48 classes and 2-way at 3.** On
+`tr_intent_paired`, "eşit" is 5 of 10 answers; on the 3-class review sets it never
+fires, because Dirichlet-drawn class shares are far apart and near-equality does
+not occur. This is the same scale effect that degenerates OOLONG's `partial`
+metric at our counts, and it is stated rather than engineered away.
+
+**Its cost, stated honestly.** It is the least stable family in the suite. On the
+cleanest pair its format-solver lift is +0.067 (`musteri_tr`) against −0.357
+(`marc_en`). After the outcome-balancing fix and rebuild that pair's twin
+asymmetry sits at **0.030** — the widest of the four, but comfortably inside the
++0.15 gate.

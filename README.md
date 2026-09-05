@@ -66,7 +66,7 @@ different questions:
   therefore holds ~25% fewer utterances. Asks *"at equal cost, which language
   degrades faster?"*
 - **record-matched** (`tr_intent_paired` / `en_intent_paired`) — equal *record*
-  count, same records, same order, same drift target. **110 of 120 questions have
+  count, same records, same order, same drift target. **100 of 120 questions have
   a byte-identical gold answer in both languages** (the other 10 are `shift`,
   where the same fact is written `arttı` / `rose`). Asks *"at equal content,
   which language degrades faster?"* — and admits **paired** tests (McNemar)
@@ -109,6 +109,7 @@ families are meaningful:
 | `most_common` | which label is most frequent | ✓ | ✓ |
 | `least_common` | which label is least frequent | ✓ | ✓ |
 | `second_most` | which label is second most frequent | ✓ | ✓ |
+| `label_vs_label` | is label A more, less, or equally common than label B | ✓ | ✓ |
 | `entity_count` | how many X-labelled records in group G | ✓ | — nested |
 | `entity_argmax` | which **named candidate** group has the most X | ✓ | — nested |
 | ~~`top_k`~~ | *(withdrawn in v0.5.0 — see below)* | — | — |
@@ -132,6 +133,26 @@ resting on a single source we no longer trust, `top_k` is withdrawn with it.
 Restoring it needs a corpus with a clean licence, documented labels, and an
 entity axis orthogonal to the label; none of the candidates surveyed in
 `DATASET_REVIEW.md` has all three.
+
+**`label_vs_label` (added v0.6.0) closes the last gap in OOLONG's counting
+group.** It mirrors their "is A more common, less common, or the same frequency
+as B", needs no entity column, and therefore ships on all eight sets. Two
+properties are worth stating because they are not obvious:
+
+- **The asked order is chosen, not inherited.** "A vs B → more" and "B vs A →
+  less" state the same fact, so the builder picks the direction that realises a
+  target outcome drawn uniformly. Without this the answers skewed to whichever
+  way the label ranking happened to fall (majority baseline 0.71 on `marc_en`);
+  with it the baseline sits at 0.50–0.60, in line with `shift`.
+- **"Equal" is reachable only when the label space is large.** At 48 classes many
+  labels carry similar counts and `the same` is the gold answer about half the
+  time; at 3 classes with per-haystack Dirichlet priors the classes are far
+  apart, no pair falls inside the 2% band, and the family is effectively binary.
+  This is reported rather than forced — widening the band to manufacture ties
+  would make the gold answer an artifact of the threshold.
+
+A pair whose relative gap falls between the 2% "equal" band and the 10% margin
+floor is **rejected**, not bucketed, so no gold answer here is a judgement call.
 
 The `most_common` / `least_common` family mirrors the OOLONG-synth counting
 typology; their actual task identifiers are `MOST_FREQ`, `LEAST_FREQ`,
@@ -342,7 +363,7 @@ therefore ships six families, not ten.
 | `tr_intent` / `en_intent` | equal **token** budget | at equal cost, which language degrades faster? |
 | `tr_intent_paired` / `en_intent_paired` | equal **record** count, same records, same order | at equal content, which language degrades faster? |
 
-The paired regime is what makes 110 of 120 questions share a byte-identical gold
+The paired regime is what makes 100 of 120 questions share a byte-identical gold
 answer across languages, and what permits paired statistical tests.
 
 ---
@@ -418,8 +439,8 @@ because it carries the entity axis.
 | set | source | label origin | classes | entity | ships |
 |---|---|---|---|---|---|
 | `tr_intent`, `en_intent` (+paired) | MASSIVE | already in the data, professional annotation | 48 | nested, unusable | 6 families |
-| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | 9 families |
-| `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 9 families |
+| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | 10 families |
+| `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 10 families |
 | `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | 6 families |
 | `marc_en` | MARC English | **writer's own star rating** | 3 | none | 6 families |
 
@@ -529,8 +550,14 @@ longer haystack converges on corpus proportions. Fixed by per-haystack entity
 jitter plus prior-matched candidate sets (D9); all entity families now pass. One
 flag remains in the committed record and is stated rather than buried:
 `en_intent` `most_common` scores a prior of 0.50 against a chance of 0.20
-(p = 0.033, n = 10). By this section's own rule — per-family samples of 10–20
-cannot certify a family — that is a small-sample flag, not a demonstrated
+(p = 0.033, n = 10). ✅ **Resolved 2026-09-05 by `--certify 250`:** at **152
+distinct draws** the same family measures a prior of **0.263 against a chance of
+0.200, z = +1.9 — `ok`.** The flag was small-sample noise, exactly as this
+section's own rule predicts. Every family on every set now passes at scale; the
+label-ranking families are singleton (one distinct question per haystack), so
+their power comes from more haystacks rather than more draws. By that rule —
+per-family samples of 10–20 cannot certify a family — the original was a
+small-sample flag, not a demonstrated
 shortcut, and the `--certify` run at n in the hundreds is the governing test.
 `manifests/quality_audit.json` is the committed record.
 
@@ -589,14 +616,14 @@ test of reading the *language*. So the number to watch is not either half's lift
 but **the gap between the twin's halves**, because an asymmetric bias means a
 model can score on the Turkish half by measuring sentence lengths:
 
-| pair | asymmetry |
+| pair | asymmetry (v0.6.0 build) |
 |---|---|
-| `musteri_tr` ↔ `marc_en` | **0.010** |
-| `vitamins_tr` ↔ `amazon_hpc_en` | 0.015 |
-| intent, record-matched | 0.017 |
-| intent, token-matched | 0.033 |
+| intent, record-matched | **0.014** |
+| `vitamins_tr` ↔ `amazon_hpc_en` | 0.020 |
+| intent, token-matched | 0.028 |
+| `musteri_tr` ↔ `marc_en` | 0.030 |
 
-Every shipping pair is now at or under 0.033. The one pair that sat at **0.108**
+Every shipping pair is now at or under 0.030. The one pair that sat at **0.108**
 was the brand-reviews/airline pair, withdrawn in v0.5.0. All eight sets pass the
 gate (no set exceeds +0.15 mean lift over majority) and
 `manifests/style_audit.json` is the committed record.
@@ -619,21 +646,46 @@ prior measured 0.85; at n = 235 distinct draws it measured 0.53. Per-family
 samples of 10–20 cannot certify a family, so the audit runs on hundreds of
 deduplicated candidate draws.
 
-**Label-leakage asymmetry (why the twin matters).** The filter's drop rate is
-itself the cross-lingual measurement, taken on the source corpora before anything
-is built:
+**Label leakage, as measured on the shipped build.** The filter drops any record
+containing any label's surface form. These are the rates recorded in the
+manifests of the current build, not from an earlier one:
 
-| Corpus | Leaking records | Rate |
-|---|---|---|
-| MASSIVE **tr**-TR (intent) | 0 / 16,521 | **0.00%** |
-| MASSIVE **en**-US (intent) | 112 / 16,521 | **0.68%** |
-| Turkish brand reviews | 341 / 40,597 | 0.84% |
-| Amazon H&PC (en) | 560 / 60,000 | 0.93% |
+| Corpus | Pool | Leaking records | Rate |
+|---|---|---|---|
+| MASSIVE **tr**-TR (intent) | 15,075 | 0 | **0.00%** |
+| MASSIVE **en**-US (intent) | 15,075 | 0 | **0.00%** |
+| `vitamins_tr` | 43,043 | 177 | 0.45% |
+| `amazon_hpc_en` | 60,000 | 557 | 1.00% |
+| `musteri_tr` | 38,649 | 80 | 0.22% |
+| `marc_en` | 120,000 | 657 | 0.55% |
 
-On the intent axis the asymmetry is total: English surface text leaks the label
-("play music" ⇒ `play_music`) while Turkish morphology never surfaces it once in
-16.5K utterances. Since the two locales are the same utterances, the filter is
-applied as a **union** over the pair.
+⚠️ **A claim previously made here has been withdrawn.** Earlier revisions reported
+112 leaking English intent records (0.68%) against 0 Turkish, and read that as
+Turkish morphology hiding labels where English surface text gives them away.
+**The current build measures 0.00% on both**, so the asymmetry is not there to
+interpret. The earlier figure came from a larger pool (16,521 rows) than the one
+that ships.
+
+**And the intent-axis comparison was confounded anyway**, which is the more useful
+point. Both locales are scored against the *English* label vocabulary
+(`play_music`), so a Turkish utterance cannot contain a label form no matter how
+transparent it is — 0.00% is a tautology, not a finding. Scoring each language
+against labels **in its own language** reverses the result:
+
+| | leak rate |
+|---|---|
+| EN text vs English labels (`alarm_set`) | **0.00%** |
+| TR text vs Turkish labels (`alarm_kur`) | **0.91%** (137 / 15,075) |
+
+The cause is word order, not morphology: Turkish is verb-final, so a `noun_verb`
+label name matches the natural phrase exactly ("iki saat sonrasına **alarm
+kur**"), while English `verb_noun` labels never surface — you say "set an alarm",
+not "alarm set". This is why the shipped intent labels stay in their original
+MASSIVE identifier form; see §13 for the translation question.
+
+Since the two locales are the same utterances, the filter is applied as a
+**union** over the pair, so a drop on one side removes the same `pair_id` from
+the other and the record-matched twin stays aligned.
 
 **Maximum length is derived, not chosen.** A haystack of R records over K classes
 gives each class a 1/K share on average, so a class can top the ranking only if
@@ -656,12 +708,12 @@ utterances give 2.16× (GPT-2), 1.53× (Qwen3-8B), 1.29× (mBERT) and **0.57×**
 | `en_intent` | en | 48 | 50K / 100K | 10 | 120 | 99,871 |
 | `tr_intent_paired` | tr | 48 | 3K rec / 6K rec | 10 | 120 | 99,057 |
 | `en_intent_paired` | en | 48 | 3K rec / 6K rec | 10 | 120 | 75,187 |
-| `vitamins_tr` | tr | 3 | 100K / 250K / 500K / 750K | 20 | 235 | 744,132 |
-| `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 20 | 234 | 986,533 |
-| `musteri_tr` | tr | 3 | 100K / 250K / 500K | 15 | 138 | 496,238 |
-| `marc_en` | en | 3 | 100K / 250K / 500K | 15 | 134 | 491,821 |
+| `vitamins_tr` | tr | 3 | 100K / 250K / 500K / 750K | 20 | 237 | 744,785 |
+| `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 20 | 236 | 987,623 |
+| `musteri_tr` | tr | 3 | 100K / 250K / 500K | 15 | 153 | 496,238 |
+| `marc_en` | en | 3 | 100K / 250K / 500K | 15 | 148 | 491,821 |
 
-**1221 questions over 110 haystacks**, eight instance sets. Realized
+**1254 questions over 110 haystacks**, eight instance sets. Realized
 haystack lengths are within 0.97–1.00 of target on every set (D14); each
 manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
 
@@ -806,7 +858,7 @@ which their paper reports as the hardest of the three.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 synth + 10,810 real | 1,221 |
+| questions | 6,500 synth + 10,810 real | 1,254 |
 | haystacks | not reported per split | **110**, 28.2M tokens total |
 | context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 257K) |
 | label space | 2–10 classes | **3 and 48** |
@@ -927,6 +979,44 @@ human translation is expensive so they are all small, and this benchmark needs a
 large pool for independent draws at 100K–1M tokens. MASSIVE, at 16.5K parallel
 utterances, is the largest such Turkish resource in existence and it is already
 used here. Full search in `DATASET_REVIEW.md`.
+
+## 11b. Screening a candidate pair automatically
+
+`--audit` screens ONE source. What decides a cross-lingual claim is the **gap**
+between two, and both halves can pass separately while the pair still cannot
+support the claim. `scripts/check_pair.py` runs the §11 criteria as a script:
+
+```bash
+python scripts/check_pair.py configs/musteri_tr.json configs/marc_en.json
+```
+
+It checks declared label provenance, label-space size, mean record length, the
+surface-shape gap, class balance, whether each half reaches its own length tiers
+under its own reference tokenizer, entity-axis symmetry, and the licence veto.
+The verdict is **COMPATIBLE** / **COMPATIBLE WITH CAVEATS** / **INCOMPATIBLE**,
+each failure naming the number that caused it. `--strict` turns every caveat into
+a failure; `--json` writes the report.
+
+Two fields must be **declared** in the config, because neither can be measured
+from the data and one of them withdrew a whole pair in v0.5.0:
+
+```json
+"licence": "cc-by-sa-4.0",
+"label_provenance": "author_stars"
+```
+
+On the pairs in this repo it reproduces the verdicts §11 reached by hand:
+
+| pair | verdict |
+|---|---|
+| `musteri_tr` ↔ `marc_en` | **COMPATIBLE** |
+| `vitamins_tr` ↔ `amazon_hpc_en` | COMPATIBLE WITH CAVEATS (3.3× length, Amazon licence) |
+| `tr_intent` ↔ `en_intent` | COMPATIBLE WITH CAVEATS |
+| `tr_intent` ↔ `marc_en` | **INCOMPATIBLE** (provenance, label space, 6.1× length) |
+
+**It screens sources, not questions.** Only the post-build gates can certify a
+family — source-level numbers have already been shown not to predict
+question-level exploitability (§4d).
 
 ## 12. Repository layout
 

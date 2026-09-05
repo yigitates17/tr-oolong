@@ -148,8 +148,10 @@ label. Only `vitamins_tr` has one (normalised MI 0.022). `tr_oolong`'s brand
 column is correlated (MI 0.226) and `en_twin` has six airlines. The new pair has
 no entity column at all.
 
-So `entity_argmax`, `top_k`, `pairwise` and `entity_count` effectively rest on a
-single Turkish corpus, and `top_k` ships on `tr_oolong` alone.
+So `entity_argmax`, `pairwise` and `entity_count` effectively rest on a single
+Turkish corpus (`vitamins_tr`). **`top_k` ships nowhere** — it survived
+prior-neutrality only on `tr_oolong`, which was withdrawn in v0.5.0, and went
+with it.
 
 **Verdict: doable but not cheap.** `sealuzh/app_reviews` has 392 apps at MI 0.044
 and would fix it — but is `license:unknown`, which is exactly why it was passed
@@ -183,7 +185,7 @@ text is not something human annotation produces.
 alone), 285 questions, and one of three review pairs. **Bought:** every remaining
 label is either a professional annotation (MASSIVE) or the writer's own star
 rating, so classical label noise is near zero by construction on five of eight
-sets; every shipping pair now has a twin asymmetry at or under 0.033 against that
+sets; every shipping pair now has a twin asymmetry at or under 0.030 against that
 pair's 0.108; and the release no longer carries any non-commercial clause.
 
 ## Finding 10 — MINOR but will be asked. No human ceiling

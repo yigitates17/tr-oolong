@@ -45,8 +45,9 @@ assume earlier ones are done.
 - [x] `VERSION` actually bumped to 0.3.0 (v0.3.0 tag had shipped with `VERSION = "0.2.1"`)
 - [x] Leakage eliminated at the source (`drop_label_leakage`): TR review axis
       `most_common` leakage baseline 0.733 → 0.133
-- [x] Leakage drop rate recorded per corpus — this *is* the asymmetry measurement
-      (MASSIVE en 0.68% vs tr 0.00%)
+- [x] Leakage drop rate recorded per corpus. ⚠️ The *asymmetry* reading
+      (MASSIVE en 0.68% vs tr 0.00%) was **withdrawn in v0.6.0**: the shipped
+      build measures 0.00% on both, and the comparison was confounded anyway.
 - [x] `least_common` degeneracy fixed (`min_class_support=100`): was `cooking_query`
       in 10/10 haystacks in both languages; now majority 0.20, 8–9 distinct
 - [x] Leakage + support filters applied as a **union over the locale pair**, so the
@@ -131,7 +132,13 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 
 ## Phase 4 — Datacard and harness
 
-- [ ] Label-noise self-annotation of the 200-row slices (native speaker)
+- [x] **Label-noise annotation done** (2026-09-04). n=150 pair-aligned MASSIVE
+      rows, native speaker: **ε = 9.3%, 95% CI [5.6%, 15.1%]**; second review
+      overturned 3 of 14, so the defensible range is [2.7%, 9.3%]. Recorded in
+      `DATACARD.md`. ⚠️ Part of it is *translation* error, not annotation error,
+      and it is asymmetric across the twin — see `PAPER_NOTES.md` §5b.
+- [ ] Two-column re-pass (does the label fit the EN / the TR separately) to split
+      translation noise from annotation noise on the same 150 rows
 - [ ] `DATACARD.md` completed with per-axis label-noise numbers
 - [ ] Evaluation harness with the **frozen** dual metric (exact match + `0.75^|y−ŷ|`)
 - [ ] Freeze the metric *before* any model runs
@@ -204,3 +211,22 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       None of the candidates in `DATASET_REVIEW.md` has all three.
 - [ ] Consider whether the entity axis resting on `vitamins_tr` alone is
       acceptable, or whether a second orthogonal-entity Turkish corpus is needed.
+
+## v0.6.0 (2026-09-03)
+
+- [x] **Entity rendering** — all 118 entity questions were unanswerable; the
+      brand was never printed (D17). Fixed, rebuilt, all five gates re-run green.
+- [x] Build-time **guard**: emitting an entity family with `render_entity=false`
+      now raises rather than shipping unanswerable questions.
+- [x] Leakage filter extended to the **rendered** record (caught
+      `The Pressure Positive Co.` in `amazon_hpc_en`).
+- [x] **`label_vs_label`** — OOLONG's label-vs-label comparison, on all eight
+      sets. Closes the last family gap against their typology except the timeline.
+- [x] **`scripts/check_pair.py`** — pairwise compatibility screening for
+      contributors; reproduces the §11 verdicts on our own pairs.
+- [x] `licence` + `label_provenance` declared in all eight configs.
+- [ ] **Run one model.** Still the top open item, and now demonstrably so: a
+      single 4B run over 20 entity questions would have caught D17 in an hour.
+- [x] `quality_audit.py --certify 250` run at scale 2026-09-05 — every family on
+      every set passes; the `en_intent` `most_common` flag resolved (z=+1.9, ok).
+      ~2 min. **Re-run before the actual release.**
