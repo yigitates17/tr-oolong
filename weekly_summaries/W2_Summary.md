@@ -231,34 +231,71 @@ question:
 
 > *"Which has more 'olumlu' reviews: Shorne or Tab?"* → **Tab**
 
-### 4.3 The tokenizer — we used Qwen. Is that wrong?
+### 4.3 The tokenizer — we used Qwen. Should we use GPT's or Claude's? Can we be attacked on this?
 
-A **tokenizer** is the tool that chops text into the pieces a model actually
-counts. Different models chop differently.
+A **tokenizer** chops text into the pieces a model actually counts and charges
+for. Different models chop differently.
 
-**Using Qwen as a ruler: correct.** You need one fixed ruler to say "this document
-is 100,000 tokens", and Qwen is the model family we plan to test.
+**Two separate uses, and only one of them is risky.**
 
-**Using it to prove "Turkish costs more tokens than English": not safe.** On the
-*exact same sentences*:
+**(a) As a ruler, to say "this document is 100,000 tokens" — completely fine.**
+You need *one* consistent ruler, and Qwen is the model family we plan to test.
+Any consistent ruler would do.
 
-| Tokenizer | Turkish costs |
-|---|---|
-| GPT-2 | **2.16×** English |
-| Qwen3-8B | 1.53× |
-| mBERT | 1.29× |
-| **BERTurk** (Turkish-specific) | **0.57× — Turkish is CHEAPER** |
+**(b) As evidence that "Turkish costs more tokens than English" — this is where a
+reviewer could attack, and they would be right to.** On the *exact same 3,000
+sentence pairs*, measured this week:
 
-So the number measures **how much Turkish the tokenizer was trained on**, not
-Turkish grammar.
+| Tokenizer | Used by | Turkish costs |
+|---|---|---|
+| `p50k_base` | GPT-3 era | **2.16×** English |
+| `cl100k_base` | GPT-3.5 / GPT-4 | **1.73×** |
+| `o200k_base` | **GPT-4o / GPT-5 era** | **1.35×** |
+| Qwen3-8B | Qwen (**ours**) | 1.53× |
+| mBERT | multilingual BERT | 1.29× |
+| **BERTurk** | Turkish-specific | **0.57× — Turkish is CHEAPER** |
 
-**Why not just use a Turkish tokenizer?** Because we measure what *real models we
-test* actually pay. No frontier model uses BERTurk.
+**Look at the top three rows — that is a clear trend over time.** As OpenAI's
+tokenizers got newer, the Turkish penalty fell from 2.16× to 1.35×. Newer
+tokenizers were trained on more non-English text. **That is strong evidence the
+number measures the tokenizer's training diet, not Turkish grammar.**
 
-**Should we mention this? Yes — it is a finding, not a weakness.** "The widely
-repeated claim that Turkish costs more tokens depends entirely on the tokenizer,
-and can even reverse" is a small, publishable observation. Hiding it would be the
-risk — a Turkish NLP reviewer would spot it instantly.
+#### Why didn't we use GPT's or Claude's tokenizer?
+
+| | Available? | Cost | Could we build with it? |
+|---|---|---|---|
+| **OpenAI (`tiktoken`)** | ✅ Open source | **Free**, works offline | **Yes** — we just did, for the table above |
+| **Claude** | ❌ **Not published** | Free API endpoint, but needs a key and internet per call | **No** — it would make our build non-reproducible offline |
+| **Qwen** (ours) | ✅ Open | Free, offline | Yes |
+
+**So it is not about money.** OpenAI's is free and we used it. Claude's tokenizer
+is simply not public — Anthropic only offers a counting endpoint over the network,
+and building a benchmark that phones a company's server to measure itself would
+make it unreproducible.
+
+**We chose Qwen because it is the model family the experiments will actually run
+on**, and it is open and offline.
+
+#### Could a jury attack us? Yes — here is the defence
+
+**The attack:** *"Your headline 'Turkish costs 1.3× more tokens' is an artifact of
+picking one tokenizer."*
+
+**Four answers, in order of strength:**
+
+1. **We say so ourselves, and we publish the whole spread** (the table above). We
+   are not hiding it — we are reporting it as a finding.
+2. **We record the character count of every document**, so anyone can re-derive
+   sizes under their own tokenizer without rebuilding anything.
+3. **Our strongest comparison has no tokenizer involvement at all.** The
+   record-matched pair (§4.5, Version 2) uses the *same sentences* in both
+   languages. There is no token budget to bias.
+4. **The generational trend is itself the result.** "The Turkish token penalty
+   halved between GPT-3 and GPT-5 tokenizers" is a cleaner, more interesting
+   claim than any single number.
+
+**Turning the weakness into the finding is the right move here**, and it is what
+we now do.
 
 ### 4.4 Is our data real or synthetic?
 
@@ -280,28 +317,80 @@ matched pair) is a **human translation** of English sentences into Turkish. So
 that Turkish is real Turkish, but *translated* Turkish, not originally-written
 Turkish. Our review datasets have no such issue.
 
-### 4.5 `tr_intent` vs `tr_intent_paired`, and what language are the labels?
+### 4.5 `tr_intent` vs `tr_intent_paired` — the clearest way to see it
 
-We built the same data two ways, because they answer different questions:
+**Start from what makes this data special.** The MASSIVE dataset contains the
+*same sentences* in Turkish and English. Sentence #4021 is:
 
-| | Matched on | Asks |
+> Turkish: *"beni cuma günü sabah dokuzda uyandır"*
+> English: *"wake me up at nine am on friday"*
+
+Same meaning, same label (`alarm_set`). This lets us ask an identical question in
+both languages — but only if we build the documents carefully. There are two ways
+to do it, and they answer different questions.
+
+#### Version 1 — `tr_intent` / `en_intent`: **same size**
+
+> **Rule: fill both documents to exactly 100,000 tokens.**
+
+Turkish words cost more tokens than English ones, so at the same size the Turkish
+document **runs out of room sooner** and holds fewer sentences:
+
+| | Turkish doc | English doc |
 |---|---|---|
-| `tr_intent` / `en_intent` | **Same token budget** (both 100,000 tokens) | *"At equal cost, which language is harder?"* |
-| `tr_intent_paired` / `en_intent_paired` | **Same records**, same order | *"At equal content, which language is harder?"* |
+| Size | 100,000 tokens | 100,000 tokens |
+| **Sentences that fit** | **6,169** | **8,122** |
+| Correct answer to *"how many are `alarm_set`?"* | 122 | 161 |
 
-The paired version is the powerful one: **100 of 120 questions have exactly the
-same correct answer in both languages.**
+**The two answers are different, and that is correct** — they are different piles
+of sentences. This version asks: *"given the same budget, which language is
+harder?"*
 
-> Turkish: *"Bu kayıtlarda kaç tane 'transport_taxi' etiketli kayıt var?"* → **18**
-> English: *"How many utterances have the intent 'transport_taxi'?"* → **18**
+#### Version 2 — `tr_intent_paired` / `en_intent_paired`: **same content**
 
-Same question, same answer, different language. Any score difference **is** a
-language difference.
+> **Rule: use exactly these 3,000 sentences, in this order, in both languages.**
 
-**The labels are in English** (`transport_taxi`) even in the Turkish set — because
-they are database codes from the original dataset, not words. On the review sets
-the labels *are* Turkish (`olumlu`, `olumsuz`, `nötr`), because there they are
-ordinary words.
+Now the documents hold **the same sentences**, so the Turkish one is simply
+**longer** in tokens:
+
+| | Turkish doc | English doc |
+|---|---|---|
+| Sentences | **3,000 — the same ones** | **3,000 — the same ones** |
+| Size | 99,057 tokens | 75,187 tokens |
+| Correct answer to *"how many are `transport_taxi`?"* | **18** | **18** |
+
+**Same question, same answer, different language.** So if a model scores 18 on
+English and 12 on Turkish, that gap **is** the language. Nothing else changed.
+
+#### The analogy that makes it click
+
+> Two students, one reading Turkish, one reading English.
+>
+> - **Version 1** gives each of them **300 pages**. But the Turkish book is
+>   printed in bigger type, so the Turkish student gets through **fewer chapters**.
+> - **Version 2** gives each of them **the same 20 chapters**. The Turkish book is
+>   simply a **thicker book**.
+>
+> Version 1 asks *"who does more with the same reading time?"*
+> Version 2 asks *"who understands the same material better?"*
+
+**Only Version 2 lets us make the strong claim**, because only there is the
+correct answer identical. **100 of its 120 questions have the same answer in both
+languages.** We ship both because they are genuinely different questions.
+
+### 4.5b Have we translated the labels and brands into Turkish?
+
+**Partly — and the answer is different for each of the three things.**
+
+| | Translated? | Why |
+|---|---|---|
+| **Review labels** | ✅ **Already Turkish** — `olumlu` / `olumsuz` / `nötr` | They come from star ratings, and we chose the words. The English twin uses `positive` / `negative` / `neutral` |
+| **Intent labels** | ❌ **Still English** — `transport_taxi` in both languages | These are database codes from the original dataset, not words. §4.6 is about whether to change this |
+| **Brand names** | ❌ **Never** — `Nutraxin`, `Balen`, `Nbt İlaç` | They are proper nouns. Translating a brand would be wrong, not helpful |
+
+**So: 4 of our 8 sets already have Turkish labels.** The only open question is the
+intent sets, which is exactly §4.6 below. **We have not done that translation** —
+it is an experiment we have measured the cost of, not a change we have made.
 
 ### 4.6 Should we translate the labels into Turkish? (`play_music` → `müzik_çal`)
 
@@ -514,16 +603,16 @@ python scripts/check_pair.py configs/musteri_tr.json configs/marc_en.json
 
 ### What it checks, and why each one matters
 
-| Check | Why | Fails when |
-|---|---|---|
-| **Label origin** | both sides' labels must be made the same way | one is star ratings, the other is human guesses |
-| **Same number of classes** | can't compare 3 categories against 5 | 3 vs 5 |
-| **Record length** | changes what "one chunk" means | 14 words vs 72 words |
-| **Length spread gap** (§4.7) | lopsided length-cheating breaks the comparison | one side 3.6×, other 1.1× |
-| **Class balance** | one class dominating makes guessing easy | 90% positive |
-| **Reaches the same sizes** | both must reach 500,000 tokens | small side runs out of data |
-| **Brand column on both** | or the two halves ask different questions | one has brands, one doesn't |
-| **Licence** ← veto | a better match is worthless if we can't republish it | licence unknown |
+| Check | What it means | ✅ Passes | ❌ Fails |
+|---|---|---|---|
+| **Label origin** | both sides' labels must be produced the same way | TR = customer's own stars, EN = customer's own stars | TR = customer's stars, EN = strangers guessing the mood |
+| **Number of classes** | you cannot compare 3 buckets against 5 | both have 3 (`olumlu`/`olumsuz`/`nötr` ↔ `positive`/`negative`/`neutral`) | TR has 3, EN has 5 (1–5 stars kept separate) |
+| **Record length** | changes what "one chunk" means for the model | 14 words vs 34 words (2.4×) | 13 words vs 72 words (5.4×) — this killed a real candidate |
+| **Length spread gap** (§4.7) | one-sided length-cheating fakes the comparison | TR 1.19× and EN 1.12× → gap 0.06 | TR 3.6× and EN 1.4× → the model reads English but measures Turkish |
+| **Class balance** | one dominant class makes guessing easy | 33% / 33% / 33% on both sides | 90% positive — always answer "positive", score 90% |
+| **Reaches the same sizes** | both halves must build the same length documents | both reach 500,000 tokens | TR runs out at 200,000 — no comparison above that |
+| **Brand column on both** | or the halves ask different questions | neither has brands → both ask the same 6 question types | EN has 13,033 brands, TR has 0 → EN gets 9 types, TR gets 6 |
+| **Licence** ← **veto** | a better match is worthless if we cannot republish it | `cc-by-sa-4.0` ↔ `apache-2.0` | `unknown` — which means *no permission*, not *probably fine* |
 
 ### Real output — a pair that works
 
@@ -641,19 +730,62 @@ about each chunk, and how it added the results up. **We record every trail, keep
 only the ones that reached the correct answer, and publish that as a second
 dataset** — training material rather than a test.
 
-### What one entry would look like
+### What one row of the dataset would actually look like
 
+Think of it as a table where **each row is one complete solved problem**. Here is
+one row written out in full:
+
+```json
+{
+  "question":  "Bu yorumlardan kaç tanesi 'olumsuz' etiketli?",
+  "language":  "tr",
+  "gold":      1046,
+
+  "steps": [
+    { "n": 1,
+      "code":   "chunks = context.split('<<<###>>>')",
+      "output": "2847",
+      "correct": true },
+
+    { "n": 2,
+      "code":   "counts = [ask_helper('Kaç tanesi olumsuz?', c) for c in groups]",
+      "output": "[41, 38, 44, 29, ...]",
+      "correct": true,
+      "we_can_verify": "group 1 truly contains 41 → step is right" },
+
+    { "n": 3,
+      "code":   "answer = sum(counts)",
+      "output": "1046",
+      "correct": true }
+  ],
+
+  "final_answer": 1046,
+  "kept": true
+}
 ```
-QUESTION  "Bu yorumlardan kaç tanesi 'olumsuz' etiketli?"
 
-STEP 1    chunks = context.split("<<<###>>>")        → 2,847 reviews
-STEP 2    for each group of 100, ask a helper:
-            "Kaç tanesi olumsuz?"  + [100 Turkish reviews]
-            → 41, 38, 44, 29, ...
-STEP 3    total = sum(answers)                        → 1,046
+**How to read that:**
 
-GOLD      1,046  ✓   → keep this trail
-```
+- `question` + `gold` — the input and the known correct answer
+- `steps` — **the model's working**, in order
+- `final_answer` — what it concluded
+- `kept: true` — it matched the gold answer, so this row goes in the dataset
+
+### What is the training target?
+
+**This is the key design choice, and it is not obvious.**
+
+| Bad target | Good target |
+|---|---|
+| `question → 1046` | `question → the list of steps` |
+| Teaches the model to **guess a number** | Teaches the model to **plan a method** |
+
+A model trained on the left learns to blurt out a plausible-looking number. A
+model trained on the right learns *"first split the document, then ask about each
+piece, then add it up"* — a habit that transfers to problems it has never seen.
+
+**Concretely, the model is trained to produce the `steps` field**, given the
+question. The final number is just how we decide whether to keep the row.
 
 ### Is this Turkish-specific, or a general contribution?
 
@@ -740,17 +872,44 @@ an evaluation script. The pipeline that *builds* the benchmark is explicitly
 marked **"coming soon"**. So we still had to rebuild everything from the paper
 description, and our independent implementation stands.
 
-**2. ⚠️ Someone has done a close cousin of our trajectory idea** —
-*π²: Structure-Originated Reasoning Data* (arXiv:2604.05114, 2026). They generate
-reasoning training data from Wikipedia tables, and — strikingly — **verify answers
-by two independent code paths, which is exactly our method**. Fine-tuning gives
-**+4.3%**. It is English-only, from tables rather than an aggregation benchmark,
-and has no verified intermediate steps.
+**2. ⚠️ Someone has done a close cousin of our trajectory idea.**
+*π²: Structure-Originated Reasoning Data Improves Long-Context Reasoning*
+(arXiv:2604.05114, 2026). **This is the most relevant new paper for us and we must
+cite it.**
 
-> **Impact on us: it strengthens the case and shrinks the claim.** The approach is
-> now published and works, so we no longer have to argue it *might*. But we must
-> cite it and stop implying we invented the idea. It also gives us a realistic
-> expectation: **+4%, not +28%**.
+**What they did**, in plain terms:
+
+1. They took **Wikipedia tables** — structured data where the facts are already
+   organised in rows and columns.
+2. They **generated hard questions** from those tables automatically — questions
+   needing several steps, like *"which country in this table had the biggest
+   increase between 2010 and 2015?"*
+3. They **checked every answer by running code two separate ways** and confirming
+   the two agreed.
+4. They wrote out **step-by-step solutions**, and fine-tuned models on those.
+5. Result: **+4.3% and +2.7%** on long-context reasoning benchmarks.
+
+**Why this matters so much to us — the overlap is uncomfortably close:**
+
+| | π² (them) | TR-OOLONG (us) |
+|---|---|---|
+| Source of correct answers | structured Wikipedia tables | labelled review datasets |
+| How answers are verified | **two independent code paths** | **two independent code paths** ← identical idea |
+| What they train on | step-by-step solutions | the trail of steps (§10) |
+| Language | **English only** | **Turkish + matched English** |
+| Verified *intermediate* steps | ❌ final answer only | ✅ we know every record's label |
+| Comes from a benchmark | ❌ built for training | ✅ ours is an evaluation set first |
+
+> **What this changes for us — three things, and we should say all of them:**
+>
+> 1. **It validates the approach.** We no longer have to argue this *might* work.
+>    It is published and it works.
+> 2. **It shrinks our claim.** We are not first to the general idea, and we must
+>    stop writing as if we were. We are first *in Turkish*, first *from an
+>    aggregation benchmark*, and first *with checkable intermediate steps*.
+> 3. **It sets a realistic expectation: around +4%, not +28%.** The +28.3% figure
+>    from RLM-Qwen3-8B came from a different kind of training. Promising +28%
+>    would be overselling.
 
 **3. Still no multilingual OOLONG, and still no Turkish long-context aggregation
 benchmark.** I searched again. TurkBench and Cetvel are Turkish but short-context;
@@ -758,7 +917,108 @@ OOLONG is English-only. **Our novelty claim holds.**
 
 ---
 
-## 12. Where this leaves us — next steps
+## 12. How do we stop a model just guessing?
+
+**We thought about this a lot — it is the single biggest threat to a benchmark
+like ours.** If a question can be answered without reading, the benchmark measures
+nothing. Five defences, each added because an earlier version failed:
+
+### 1. The answer is never written in the text
+
+The label (`olumsuz`) must be *worked out*. Any review that literally contains a
+label word is **deleted before we build**.
+
+> **Why:** an early version had a program that did nothing but search for three
+> Turkish words. It got `most_common` right **73% of the time** (chance: 33%). Only
+> **0.84%** of records leaked — and that was enough. *Leak rate is not the same as
+> exploitability.*
+
+### 2. We name the options, then make them equally likely
+
+Every ranking question lists its candidates:
+
+> *"Which brand got the most positive reviews: Beeo, NBL, Nbt İlaç, Smartcaps,
+> Suda Collagen?"*
+
+The five are chosen to have **near-identical counts in the source data**, so the
+biggest brand overall is not automatically the answer.
+
+> **Why:** before this, **every single** `pairwise` question on one set was
+> answerable **with no document at all** — just by knowing which brand is more
+> popular in general. And it got *worse* with longer documents.
+
+### 3. We check "always answer the most common thing"
+
+For every question type we compute what a model scores by ignoring the document
+and always giving the most frequent answer. If that scores well, the type is
+broken.
+
+> **Why:** one question type had a "just guess" score of **1.00** — a rare label
+> was the correct answer in **10 out of 10** documents.
+
+### 4. We reject questions that are too close to call
+
+If the top two options differ by less than 10%, we **throw the question away**
+rather than ship a coin flip.
+
+> Also: we count how many records decide the answer. One question rested on
+> **8 records out of 3,919**. Deleted.
+
+### 5. Four "cheating programs" must all fail before we ship
+
+| Program | Cheats by |
+|---|---|
+| Word search | looking for label words |
+| Always-the-same-answer | ignoring the document |
+| Statistics-only | using general facts, never opening the document |
+| Length-and-punctuation | measuring sentences, reading nothing (§4.8) |
+
+**All four must fail.** Their results are published with the dataset as evidence.
+
+### And the honest gap
+
+**These all test "is it too easy". Until this week, nothing tested "is it possible
+at all"** — which is exactly how the brand bug (§1) survived. That check is now a
+build-time rule, and running a real model is the last piece.
+
+---
+
+## 13. What else could still be analysed?
+
+Nothing here blocks publication. These are the questions a thorough reviewer might
+ask that we have not yet answered.
+
+| Analysis | Why it would help | Effort |
+|---|---|---|
+| **Split translation errors from labelling errors** (§6) | our one measured weakness; would turn a confound into a number | 30 min (you) |
+| **Does difficulty actually rise with length?** | we assume 900K is harder than 100K; never measured | needs model runs |
+| **Per-question-type difficulty** | which of the 10 types is hardest? Currently unknown | needs model runs |
+| **Documents in the same size tier share 21–39% of their records** | means confidence intervals need a statistical correction; currently noted but not applied | half a day |
+| **Is `shift` salvageable?** | it is our weakest type; maybe a different threshold helps | half a day |
+| **Human baseline on 20 questions** | "can a person even do this?" is a question reviewers love | ~2 hours |
+| **5 classes instead of 3 on the review sets** | we merge 1–5 stars into 3 buckets; keeping 5 would make guessing harder | 1 hour |
+
+**The middle two need a model.** That is the theme of everything below.
+
+---
+
+## 14. Blockers — what is actually stopping us
+
+**Be precise here, because "blocker" is being used for three different things.**
+
+| | Blocks what? | Blocked by | In our control? |
+|---|---|---|---|
+| **No model has been run** | the **paper** — not the dataset | GPU access | ⏳ waiting |
+| **Translation vs labelling errors unsplit** | a clean cross-lingual claim | 30 min of annotation | ✅ **yes** |
+| **No date questions** | closing our one structural gap | Interpress licence answer | ❌ **needs an email** |
+| **Brand questions rest on one Turkish dataset** | breadth, not correctness | no other Turkish source has a usable brand column | ❌ state as limitation |
+
+**Nothing blocks releasing the dataset.** One item blocks the paper, and it is
+compute, not correctness.
+
+---
+
+## 15. Where this leaves us — next steps
 
 **Done this week:** the entity bug fixed and rebuilt · the label-vs-label question
 type added · `check_pair.py` written and tested · label noise measured · a wrong
@@ -766,15 +1026,15 @@ claim withdrawn · all five checks green · everything committed and pushed.
 
 **Next, in order:**
 
-1. **Run one small model on a handful of questions.** This is the only real gap.
-   It is also the check that would have caught our bug in an hour. *(A first
-   attempt is already wired up and revealed a setup bug of its own, now fixed.)*
-2. **The 30-minute two-column re-pass** on the same 150 rows, to separate
-   translation errors from labelling errors (§6).
-3. **Decide: publish the dataset now, or wait for model scores?** My recommendation
-   is publish now — it timestamps the work and costs nothing.
-4. **Optional:** email Interpress about their licence, which would unlock the
-   missing date questions (§8).
+| # | Step | Who | Unblocks |
+|---|---|---|---|
+| **1** | **Run one small model on a few questions** | needs a GPU or an API key | the paper. It is also the check that would have caught our bug in an hour *(already wired up; a first attempt found a setup bug of its own, now fixed)* |
+| **2** | **The 30-minute two-column re-pass** (§6) | **you** | our one measured weakness |
+| **3** | **Decide: release the dataset now?** | **you** | my recommendation is **yes** — it timestamps the work and costs nothing |
+| **4** | Email Interpress about their licence (§8) | **you** | the missing date questions — optional |
 
-**What we do NOT need: more data.** We looked, and nothing available beats what we
-have.
+**What we do NOT need: more data.** We reviewed a fresh list this week and nothing
+available beats what we already have (§8).
+
+**One thing worth repeating:** steps 2, 3 and 4 are all yours and none needs a
+GPU. Step 1 is the only one waiting on hardware.

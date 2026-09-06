@@ -1,5 +1,40 @@
 # TR-OOLONG
 
+> ### In one minute, without the jargon
+>
+> **What this is.** A test that is deliberately hard for AI models. We glue
+> thousands of real Turkish product reviews into one enormous document — up to
+> ~2,000 pages — and ask questions about the *whole pile*:
+>
+> > *"How many of these reviews are negative?"* → **1,046**
+> > *"Which brand received the most positive reviews?"* → **Smartcaps**
+>
+> **Why it is hard.** The answer is not written anywhere. Searching does not help.
+> To answer, a model must read **every single review**, judge each one, and add up
+> the results. Skimming fails.
+>
+> **Why Turkish.** Nobody had built one. The nearest multilingual benchmark covers
+> 26 languages and Turkish is not among them.
+>
+> **The trick that makes it work.** Every review already carries a label — the
+> star rating its own author gave it. So the correct answer is just a count over
+> labels we already have. **No human ever writes an answer key**, which is the
+> only reason this can scale to a million tokens.
+>
+> **The matched twin.** Every Turkish set has an English partner built by the
+> identical pipeline, and on one pair the *same question has the same correct
+> answer in both languages*. So any score difference is caused by the language and
+> nothing else.
+>
+> **Numbers:** 110 documents · 1,254 questions · 28.3M tokens · 10 question types
+> · 2 languages.
+>
+> A fuller plain-language walkthrough, including what we got wrong and fixed, is
+> in [`weekly_summaries/W2_Summary.md`](weekly_summaries/W2_Summary.md).
+> Everything below this box assumes you want the technical detail.
+
+---
+
 The first Turkish long-context **aggregation** benchmark, with a matched English
 twin built by the identical pipeline. The nearest multilingual long-context
 benchmark, ONERULER (arXiv:2503.01996), covers 26 languages and **Turkish is not
@@ -19,8 +54,13 @@ manual annotation.
 > 3,000 pair-aligned utterances the ratio is **2.16x** under GPT-2, **1.53x**
 > under Qwen3-8B, **1.29x** under mBERT and **0.57x** under BERTurk — where
 > Turkish is *cheaper* than English. It measures how much Turkish a tokenizer
-> saw, not agglutination. See [`PAPER_NOTES.md`](PAPER_NOTES.md) §1 for how to
-> state it correctly.
+> saw, not agglutination.
+>
+> **Measured 2026-09-07, and this is the cleaner form of the claim:** across three
+> generations of *the same vendor's* tokenizer the penalty halves — **2.16x**
+> (`p50k_base`, GPT-3), **1.73x** (`cl100k_base`, GPT-4), **1.35x** (`o200k_base`,
+> GPT-4o/5). Same language pair, same sentences, only the training diet changed.
+> See [`PAPER_NOTES.md`](PAPER_NOTES.md) §1 for how to state it correctly.
 
 **Where to start.** [`PAPER_NOTES.md`](PAPER_NOTES.md) lists every claim worth
 carrying into a write-up, and what must not be claimed yet.

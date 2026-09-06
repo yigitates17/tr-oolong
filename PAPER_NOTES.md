@@ -48,6 +48,34 @@ claim.
 
 ---
 
+
+### NEW 2026-09-07 — the generational trend, and it is the better claim
+
+Measured on the same 3,000 pair-aligned MASSIVE utterances, across three
+generations of OpenAI tokenizer (`tiktoken`, open source, free, offline):
+
+| tokenizer | generation | TR/EN |
+|---|---|---|
+| `p50k_base` | GPT-3 | **2.16×** |
+| `cl100k_base` | GPT-3.5 / GPT-4 | **1.73×** |
+| `o200k_base` | GPT-4o / GPT-5 | **1.35×** |
+
+**The penalty halves across generations of the same vendor.** That is much
+stronger evidence than the cross-vendor spread alone: it is the same organisation,
+the same language pair, the same sentences — only the training diet changed.
+
+**Write it as:** *"the Turkish token penalty is a property of the tokenizer's
+training data, not of Turkish morphology; it fell from 2.16× to 1.35× across three
+generations of OpenAI tokenizer and reverses entirely (0.57×) under a
+Turkish-specific one."* That is a small, self-contained, defensible finding.
+
+**On tokenizer choice, for the methods section:** we build with Qwen3-8B because it
+is the family evaluated and it is open and offline. OpenAI's `tiktoken` is equally
+usable (free, open) and is what the table above uses. **Anthropic publishes no
+tokenizer** — only a network token-counting endpoint — so it cannot be a build
+dependency without making the build unreproducible offline. We record `n_chars`
+per haystack so any reader can re-derive lengths under their own tokenizer.
+
 ## 2. Source-level shortcut measurements do not predict question-level ones
 
 This is the strongest methodological finding in the project and it has a
@@ -220,6 +248,42 @@ does perfectly and what next-token prediction does badly.
 
 ---
 
+## 8a. ⚠️ RELATED WORK THAT LANDED AFTER WE DESIGNED THIS — cite it, do not ignore it
+
+**π²: Structure-Originated Reasoning Data Improves Long-Context Reasoning Ability
+of Large Language Models** (arXiv:2604.05114, 2026).
+
+**What they do:** harvest Wikipedia tables → auto-generate multi-hop analytical
+questions over them → **verify each answer by dual-path code execution** →
+back-translate step-by-step solution traces → fine-tune. Reports **+4.3% and
++2.7%** average accuracy on long-context benchmarks, plus a **+4.4%**
+self-distillation gain. English-only. Code, data and models open-sourced.
+
+**Why this is the closest work to our §8/§8b proposal, and closer than anything in
+the RLM literature:**
+
+| | π² | this work |
+|---|---|---|
+| ground-truth source | structured Wikipedia tables | labelled classification corpora |
+| answer verification | **dual-path code execution** | **dual-path, asserted equal** — the same idea, arrived at independently |
+| training signal | step-by-step solution traces | decomposition trajectories |
+| language | English | **Turkish + record-matched English** |
+| intermediate-step verification | ❌ final answer only | ✅ every record's label is known, so any chunk boundary can be checked |
+| artifact is primarily | training data | **an evaluation benchmark** that can also emit training data |
+
+**Three consequences for how we write:**
+
+1. **The dual-path ground truth is no longer a distinctive method claim.** π² does
+   the same thing. Keep it as a correctness guarantee, drop it as novelty.
+2. **Stop implying the trajectory idea is unexplored.** It is published and it
+   works. The honest claim is *first in Turkish*, *first from an aggregation
+   benchmark*, and *first with verifiable intermediate steps* — that last one is
+   the strongest and is genuinely ours.
+3. **Anchor expectations at ~+4%, not +28.3%.** The RLM-Qwen3-8B figure came from a
+   different training regime. Quoting +28% for our proposal would be overselling.
+
+---
+
 ## 8b. FUTURE WORK — the two-release plan
 
 **The idea, and it is a good one: this project can produce two datasets, not one.**
@@ -268,6 +332,22 @@ and the second is the one that answers "what is this for beyond a leaderboard."
 
 ---
 
+## 8c. OOLONG's code status, verified 2026-09-07
+
+Their repository (`github.com/abertsch72/oolong`, MIT) **now exists** and contains
+an evaluation script (`src/eval/eval_script_batched.py`). **The construction
+pipeline is still unreleased** — the README marks oolong-synth construction,
+oolong-real construction, scoring, validated splits and analysis scripts as
+"coming soon".
+
+**So the claim to write is precise, not blanket:** *"OOLONG's benchmark
+construction code was unreleased at the time of writing; we reimplemented the
+construction principle, the counting typology and the numeric metric from the
+paper's published description."* Do not write "no code is available" — an eval
+script is. Re-check at submission time.
+
+---
+
 ## 9. Headline numbers, current
 
 8 sets · 110 haystacks · **1,254 questions** · **28.3M tokens** ·
@@ -302,11 +382,20 @@ the concrete argument for running a baseline before release rather than after.
 
 - **No model has ever been run.** No baseline numbers exist. Do not write
   anything about difficulty that is not a chance rate or a solver ceiling.
-- **Label noise ε is unmeasured.** Its *consequence* is bounded (§4); its
-  *magnitude* is not.
-- **`--certify` has never been run at scale.** The committed audit is n=8–56 per
-  family, and README's own text says n=10–20 certifies nothing. One family
-  (`en_intent` `most_common`, p=0.033, n=10) is flagged and unresolved.
+- ~~Label noise ε is unmeasured.~~ ✅ **Measured 2026-09-04**: ε = 9.3%, n=150,
+  CI [5.6%, 15.1%]; defensible range [2.7%, 9.3%] after a second review. §5b.
+  **Still not true:** that the whole of it is *annotation* noise — part is
+  mistranslation, and that part is asymmetric across the twin.
+- ~~`--certify` has never been run at scale.~~ ✅ **Run 2026-09-05 at 250
+  draws/haystack/family.** Every family on every set passes; the `en_intent`
+  `most_common` flag resolved at 152 distinct draws (prior 0.263 vs chance 0.200,
+  z=+1.9). **Re-run before submission.**
 - **No human ceiling.** Nobody knows what a Turkish reader scores.
-- **Haystacks within a tier are not independent** (20–38% record overlap at the
-  longest tiers), so tier-level confidence intervals need clustered errors.
+- **Haystacks within a tier are not independent** (21–39% record overlap at the
+  longest tiers), so tier-level confidence intervals need clustered errors. Noted,
+  not yet applied.
+- **The trajectory proposal is not unexplored territory.** π² (§8a) published a
+  close cousin in English. Claim *first in Turkish*, *first from an aggregation
+  benchmark*, *first with verifiable intermediate steps* — not *first*.
+- **No difficulty-vs-length curve.** We assume 900K is harder than 100K and have
+  never measured it. Needs model runs.
