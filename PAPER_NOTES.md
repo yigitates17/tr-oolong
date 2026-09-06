@@ -373,6 +373,31 @@ and the second is the one that answers "what is this for beyond a leaderboard."
 
 ---
 
+## 8b-bis. WHAT THE HARNESS MUST LOG FROM THE VERY FIRST RUN
+
+**None of this is recoverable afterwards.** Re-running to add a field costs the
+whole evaluation again, and on a rented GPU that is the difference between one
+experiment and two. Decide once, before the first real run.
+
+| Field | Why it cannot wait | Feeds |
+|---|---|---|
+| **Full trajectory** — every code cell, REPL output, sub-call prompt and sub-call answer | it *is* release 2 | §8b |
+| **Both roles**, root and child, not just the root | the Turkish signal lives almost entirely in the child calls; root traces are language-neutral | §8b |
+| **Per-chunk sub-call inputs and outputs** | lets us verify *intermediate* steps against known record labels — the one thing π² cannot do | §8a |
+| **`shortcut_attempted`** — did the root try string-matching a label before dispatching any classification sub-call? | one boolean; settles §5c. At n≥20 per language it is a paired test on the record-matched pair | §5c |
+| **Iterations used, and why the run ended** (answer / timeout / error / max-iterations) | the first trial's two languages ended at different depths, which is itself a confound to control | §5c |
+| **Wall-clock and token cost per run** | the EuroHPC resource estimate must be computed, not guessed | HPC application |
+| **Model, prompt condition, seed** | the TR/EN prompt-language ablation is meaningless without it | §8b |
+
+**The cheapest of these is `shortcut_attempted`** — a regex over the root's emitted
+code for any label string, evaluated before the first sub-call. It costs one field
+and turns an anecdote into a measurable proportion.
+
+**Rule of thumb:** if a question about *how* the model solved it could ever be
+interesting, log it now. Storage is free; GPU hours are not.
+
+---
+
 ## 8c. OOLONG's code status, verified 2026-09-07
 
 Their repository (`github.com/abertsch72/oolong`, MIT) **now exists** and contains
