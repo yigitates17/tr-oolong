@@ -953,6 +953,53 @@ OOLONG is English-only. **Our novelty claim holds.**
 
 ---
 
+## 11b. One observation from the first trial run — worth watching, NOT a finding
+
+We wired up a first trial run (§15, step 1). It timed out before finishing, but
+the log of what the model *tried* contained something we should keep an eye on.
+
+**The model was given the same question in both languages, and approached them
+differently.**
+
+| | What it did |
+|---|---|
+| **English** | Split the document into utterances, then: *"Since the intent isn't explicitly labeled in the text, I will use a sub-model to classify each utterance."* → **the intended method** |
+| **Turkish** | Ran `context.count('transport_taxi')` — **counting how many times the label appears as a literal string** — then went hunting for that string inside each record |
+
+**In plain terms: on English it reasoned "I'll have to read these and judge them".
+On Turkish it first tried to just search for the answer.**
+
+**Our benchmark blocked the shortcut**, exactly as designed — no record contains a
+label word, so the search returned nothing and the model had to move on.
+
+### Why this is interesting if it holds up
+
+Our whole grep-proofness design exists to stop a model answering by string
+matching instead of reading. If models reach for that shortcut **more readily in
+languages they are weaker at**, that is:
+
+- a real phenomenon worth publishing,
+- directly relevant to why this benchmark exists,
+- and something only a matched-twin design like ours can even detect.
+
+### Why we must NOT claim it yet — three serious problems
+
+1. **n = 1.** One run per language. This could be pure chance.
+2. **Our own bug invited it.** In that run the question text was accidentally
+   glued into the document — and the question *contains* the string
+   `'transport_taxi'`. So the model had a reason to search that it would not have
+   in a correct run. That bug is now fixed.
+3. **The two runs never reached the same stage.** Turkish got 4 steps in before
+   timing out; English only got 2. English may simply not have reached the point
+   where it would have tried the same thing.
+
+**Status: a hypothesis to test, written down so we do not forget it.** The clean
+version is easy — same question, both languages, correct harness, several
+repetitions, and count how often each language reaches for string matching before
+classification.
+
+---
+
 ## 12. How do we stop a model just guessing?
 
 **We thought about this a lot — it is the single biggest threat to a benchmark

@@ -200,6 +200,38 @@ protocol (does the label fit the English / does it fit the Turkish) over the sam
 
 ---
 
+## 5c. HYPOTHESIS, NOT A RESULT — does the shortcut reflex differ by language?
+
+**Observed once, in a trial run that timed out.** Same question, both languages,
+same model. The English root reasoned that the intent is not written in the text
+and dispatched sub-calls to classify each utterance. The Turkish root instead ran
+`context.count('transport_taxi')` and then searched for that string inside each
+record before abandoning it.
+
+**If it replicates it is a genuine result**, and one only a matched-twin design
+can detect: models may fall back on lexical heuristics more readily in languages
+they are weaker at. That is precisely the behaviour `drop_label_leakage` exists to
+block, and it would connect directly to the ONERULER critique (their aggregation
+tasks are lexical and therefore cannot see this at all).
+
+**Three reasons it is currently worth nothing:**
+
+1. **n = 1 per language.**
+2. **Confounded by a harness bug.** The question string — which contains the label
+   `'transport_taxi'` — was concatenated into the context, so the label WAS
+   present and greppable. A correct run has no such invitation. Bug fixed.
+3. **Unequal depth.** Turkish reached iteration 4, English iteration 2, before the
+   timeout. English may never have got to the point of trying it.
+
+**To test it properly:** correct harness, both languages, n >= 20 per language,
+and a simple coded outcome per run — did the root attempt string matching on the
+label before dispatching a classification sub-call? Report as a proportion with a
+paired test across the record-matched pair.
+
+**Do not put this in a paper as anything but future work until that run exists.**
+
+---
+
 ## 6. `shift` is style-solvable and should not carry a headline
 
 The only family the format solver beats: **+0.400** (`amazon_hpc_en`), **+0.300**
