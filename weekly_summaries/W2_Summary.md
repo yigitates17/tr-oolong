@@ -1,459 +1,780 @@
-# TR-OOLONG — Week 2: advisor follow-up
+# TR-OOLONG — Week 2
 
-*Prepared 2026-09-03. Numbers recomputed from the built data today.*
+*Written for someone who has not read the code. Every number here comes from the
+built dataset, not from a plan. Updated 2026-09-07.*
 
 ---
 
-## 0. FIRST — a serious bug, found while answering question 2. **Now fixed.**
+## 0. Where we are, in one glance
 
-**All 118 entity questions (9.7% of the benchmark) were unanswerable. The
-benchmark has been fixed, rebuilt, and re-gated — see §10 for what changed.**
-
-The entity families ask about **brand attribution** — *"which of these brands got
-the most positive reviews?"*, *"how many of brand X's reviews are neutral?"* But
-the brand lives in a **metadata column that is never shown to the model**. The
-haystack is review text joined by a separator and nothing else
-([build_tr_oolong.py:632-648](src/build_tr_oolong.py#L632-L648) appends `text`
-only — there is no branch that renders the entity).
-
-**The evidence.** Gold answers against how often the brand appears anywhere in the
-haystack, `vitamins_tr` `entity_count`:
-
-| brand | gold answer | times the brand appears in the text |
-|---|---|---|
-| New Life | 20 | **0** |
-| Aksu Vital | 21 | **0** |
-| Selfit | 18 | **0** |
-| Natures Supreme | 14 | **0** |
-| Grintuss | 14 | **0** |
-| Ocean | 92 | 11 |
-| NBL | 12 | 3 |
-
-The two columns are uncorrelated. Only **2.0%** of source reviews mention their own
-brand. Across both entity-bearing sets, **22–25% of entity questions have no
-candidate appearing anywhere in the haystack at all** — and even when a brand is
-mentioned, the mention count has no relation to the gold count, because the gold
-count comes from the hidden column.
-
-**Why all four gates missed it.** Every solver we built tests for **shortcuts** —
-can this be answered *too easily*. None tests **solvability** — can it be answered
-*at all*. Worse, the prior oracle found `entity_argmax` answerable from corpus
-priors (0.55–0.87) and we fixed it with per-haystack jitter, which pushed it
-further from guessable — in the direction of impossible.
-
-**Why OOLONG does not have this problem.** They print the conditioning variable on
-every line: `Date: Dec 28, 2022 || User: 76063 || Instance: …`. Our
-`COMPARISON.md` argues our entity "does not need to be printed inline" because it
-is a real corpus column rather than synthetic metadata. **That reasoning is
-wrong** — being real in the source does not help a model that only ever sees the
-haystack.
-
-**Options:**
-
-| | effect |
+| | |
 |---|---|
-| **(a) Print the entity inline and rebuild** — *recommended* | restores all 118 questions; costs ~5–8 tokens/record so lengths shift and all four gates must be re-run |
-| (b) Drop the entity families | 1,221 → 1,103 questions, 9 → 6 families, and we lose the entity axis that makes `vitamins_tr`↔`amazon_hpc_en` the primary pair and is our main structural advantage over OOLONG |
-| (c) Ship as-is | not viable |
+| **Built** | 110 documents · **1,254 questions** · 28.3 million tokens |
+| **Languages** | Turkish 630 questions · English 624 |
+| **Question types** | 10 |
+| **Document sizes** | 36,000 → 988,000 tokens (the biggest is ~2,000 pages of text) |
+| **Automatic checks** | 5, all passing |
+| **Can it be published?** | **Yes — the dataset could go out tomorrow.** The *paper* needs one more thing (§2) |
 
-**One check that (a) needs.** Printing the brand makes it string-matchable, so
-`entity_count` must not become a counting-strings task — the exact "lexical, not
-latent" criticism we level at ONERULER. It does not: the **label** stays latent, so
-*"how many of brand X's reviews are negative"* still requires classifying every one
-of brand X's records. Filtering becomes lexical; aggregation stays latent. That is
-precisely OOLONG's design.
-
-**The wider point for the meeting, and it is the publishable one:** every solver
-we built asks whether a question is answerable **too easily**. None asks whether
-it is answerable **at all**. A shortcut audit is not a validity audit, and the two
-failure modes point in opposite directions — the prior-neutrality fix pushed
-`entity_argmax` away from guessable and therefore further into impossible. One 4B
-run over 20 entity questions would have caught this in an hour. It argues for
-running the cheap baseline **now**, not for building more audits.
+**What changed this week:** we found and fixed a serious bug, measured something
+we had only guessed at, and withdrew a claim that turned out to be wrong.
 
 ---
 
-## 1. What is long context? Are we solving the cross-reference problem?
+## 1. The bug we found — and why it is the most important thing here
 
-**"Long context" is not one task.** The useful axis is *what fraction of the
-document you must process to answer correctly*:
+### What was broken
 
-| task type | what it needs | example | solvable by search? |
+Some of our questions ask about **brands**, like:
+
+> *"Which of these brands got the most positive reviews: Beeo, NBL, Nbt İlaç,
+> Smartcaps, Suda Collagen?"* → **Smartcaps**
+
+The brand name was stored in a **separate column in our files** — but it was
+**never printed into the text the model actually reads**. The model saw only
+review text:
+
+```
+İndirim zamanı buradan alınabilir, paketlemesi de gayet güzel
+<<<###>>>
+Başkası için aldım ama sürekli kullanıyor 🙏🏻
+```
+
+No brand anywhere. So the model was asked *"how many Venatura reviews are
+neutral?"* — answer **10** — while the word "Venatura" appeared **zero times** in
+the document. **Nobody and nothing could have answered it.**
+
+**118 questions — 9.7% of the whole benchmark — were impossible.**
+
+### Why our automatic checks did not catch it
+
+This is the part worth explaining, because it is a lesson rather than an accident.
+
+We had built four "cheating detectors". Each one asks: **can this question be
+answered too easily, without really reading?** None of them asked the opposite
+question: **can it be answered at all?**
+
+> **Simple analogy:** we had built four different anti-cheating systems for an
+> exam, and never checked that the exam questions had answers.
+
+One detector even made it worse. It noticed that brand questions were slightly
+guessable from general statistics, so we added randomisation to make them harder.
+That pushed them further from "guessable" — in the direction of "impossible".
+
+### How we fixed it
+
+Every record now prints its brand in front of it:
+
+```
+[[Nutraxin]] ürün güzel fakat kokusu çok ağır
+<<<###>>>
+[[GetDirect]] orijinal ürün, güvenilir mağaza
+```
+
+**Why the double brackets instead of writing "Marka:" or "Brand:"?** Because a
+real word would be a different word in each language, and would be split into a
+different number of tokens in Turkish than in English. That would quietly make
+the two halves of our comparison unequal. Symbols are identical in both.
+
+**Does printing the brand make the question too easy now?** No, and this matters:
+
+- Finding **which** records are Nutraxin → now easy (search for `[[Nutraxin]]`)
+- Deciding **which of those are positive** → still requires reading Turkish
+
+The brand appears 47 times; the answer is 10. You still have to read 47 reviews
+and judge each one. **The easy half became possible; the hard half is untouched.**
+
+### The safety net
+
+The builder now **refuses to run** if a config asks brand questions without
+printing brands. This exact bug cannot come back silently.
+
+---
+
+## 2. Can we publish tomorrow?
+
+**The dataset: yes.** Nothing blocks it.
+
+- All licences are resolved. Seven of our eight sets can be redistributed freely.
+- The eighth (Amazon) has **no licence at all**, so we ship its questions and
+  answers but **not its text** — users rebuild the text locally from a script.
+  Silence from Amazon is not permission.
+- We tested the publishing script end to end this week. It works.
+
+**The paper: not yet — one thing is missing.**
+
+> **No model has ever been run on our benchmark.**
+
+Everything we say about difficulty today is *theoretical* — "a random guess would
+score 20%". We have never said "GPT-5 scores 34%". A reviewer will ask for that
+immediately, and they should.
+
+**Recommended order:** release the dataset now (it timestamps the work and costs
+nothing), run the models, then submit the paper.
+
+---
+
+## 3. OOLONG vs TR-OOLONG, with real examples
+
+**OOLONG** (Bertsch et al., 2025) is the English benchmark we build on. It glues
+together thousands of labelled records and asks questions about the *statistics*
+of the whole pile — so you cannot answer by searching, you must read everything
+and count.
+
+**TR-OOLONG** does the same for **Turkish**, and pairs every Turkish set with an
+English twin built by the identical pipeline — so any difference we measure is
+about *the language*, not about the benchmark.
+
+### The same question, both benchmarks
+
+| | OOLONG | TR-OOLONG |
+|---|---|---|
+| **Most common label** | *"Which label is most common: ham, spam?"* → `spam` | *"Bu yorumlarda en sık görülen etiket hangisi?"* → `olumlu` |
+| **Count one label** | *"How many are 'ham'?"* → `4` | *"Bu yorumlardan kaç tanesi 'nötr'?"* → `881` |
+
+**Notice the size difference.** Their answers are single digits. Ours run to the
+thousands. That broke their scoring formula, so we added a second one (§4.7).
+
+### What each of us has that the other does not
+
+| Question type | OOLONG | TR-OOLONG |
+|---|:---:|:---:|
+| Most / least common label | ✅ | ✅ |
+| Count a label | ✅ | ✅ |
+| **Label A vs label B** (more / less / equal) | ✅ | ✅ **added this week** |
+| **What percentage** have label X | ❌ | ✅ |
+| **Second** most common label | ❌ | ✅ |
+| Group by **brand** (real brands) | ❌ | ✅ |
+| Group by **user ID** (invented IDs) | ✅ | ❌ |
+| **Questions about real dates** | ✅ | ❌ **our real gap** |
+
+### The gap we cannot close yet — dates
+
+OOLONG stamps a **date on every line**, so it can ask things we simply cannot:
+
+> *"Only consider instances from October — which label is most common?"*
+> *"How many dates appear exactly once?"*
+
+We have **no date column in any Turkish dataset we could find**. Instead of time,
+we split the document in half by **position** and ask:
+
+> *"In the second half of the reviews, did 'olumsuz' go up or down compared to the
+> first half?"* → **azaldı** (went down)
+
+**This is our weakest question type**, and we say so openly: it has only two
+possible answers (so guessing scores 50%), and it is the only type our
+"dumb program" test can partly beat.
+
+**It is blocked on data, not on effort.** More in §7.
+
+---
+
+## 4. The advisor's questions, answered
+
+### 4.1 What is "long context"? Are we solving the legal cross-reference problem?
+
+"Long context" is not one problem. The useful way to split it is: **how much of
+the document must you read to answer?**
+
+| Type | What it needs | Example | Can you just search? |
 |---|---|---|---|
-| **Retrieval / needle** | find one span | "what is the passkey?" | **yes** — grep works |
-| **Multi-hop / cross-reference** | find a span, follow its reference, resolve the chain | **your law example** | partly |
-| **Aggregation** | classify **every** record, then combine | OOLONG, TR-OOLONG | **no** |
-| **Global summarisation** | compress everything | book summarisation | no, but no exact answer either |
+| **Find a needle** | one sentence | *"What is the password?"* | **Yes** |
+| **Follow a reference** | a chain of links | *"Article 4 refers to a definition in Article 1"* | Partly |
+| **Aggregate** ← **us** | **every single record** | *"How many are negative?"* | **No** |
+| **Summarise** | everything, loosely | *"Summarise this book"* | No |
 
-**Our working definition, and we enforce it in code:** a task is long-context
-*aggregation* if **the answer is a function of every record, and no proper subset
-of the document determines it.** We measure this — the audit reports how many
-records determine each answer, and questions resting on too few are rejected. An
-early `pairwise` family rested on **8 records out of 3,919** with a margin of 2;
-that is needle-retrieval with a coin flip, and it is the thing this benchmark
-exists to replace. Depth and margin floors are now enforced in both ground-truth
-paths.
+**Our definition, which we enforce in code:** the answer must depend on *every*
+record, and **no small piece of the document may determine it**. We measure this.
+An early version had a question whose answer rested on **8 records out of 3,919** —
+that is a needle hunt with a coin flip, and we deleted it.
 
-**Are we solving your law-document problem? No — and I would not try to.** That is
-*multi-hop reference resolution over discourse-structured documents*, and it
-differs from ours on a property that matters:
+**Are we solving the legal cross-reference problem? No — and we should not try.**
 
-- Our haystacks are **order-independent**. Shuffle the records and every answer is
-  unchanged (except `shift`). They are a *bag* of records.
-- A legal corpus is **order-dependent and referential**. Shuffle it and it is
-  destroyed. Article 4 means nothing without the definition in Article 1.
+The difference is real:
 
-Three reasons not to bolt it on: ground truth would need expert annotation of the
-reference chains, which destroys the property that makes this benchmark exact and
-free at 1M tokens; it is a different literature (legal NLP, multi-hop QA); and no
-Turkish legal corpus with resolved cross-references exists as a labelled resource.
+- **Our documents are a bag.** Shuffle the records and every answer stays the
+  same. Order carries no meaning.
+- **A legal document is a chain.** Shuffle it and it is destroyed. Article 4
+  means nothing without Article 1.
 
-**It is the right thing to name as a limitation and as future work** — "we cover
-aggregation, not referential resolution" — and it pairs well with the missing
-timeline axis as the two axes we do not touch.
+Three reasons not to add it: the correct answers would need expert lawyers
+(destroying the thing that makes our benchmark free and exact); it is a different
+research field; and no Turkish legal corpus with resolved references exists.
 
-**One thing worth saying back to him:** artificial construction does not mean easy.
-OOLONG's own result is that handing models the gold labels for free improves scores
-by only 0.79–10.9 points. Concatenated records are not solved.
+**We name it as a limitation.** That is the honest and correct move.
 
----
+> **Worth saying to him:** artificial construction does not mean easy. OOLONG's
+> own finding is that *giving models all the correct labels for free* improves
+> their scores by only 0.79–10.9 points. The hard part is not reading each item.
+> It is combining thousands of them.
 
-## 2. Label vs entity
+### 4.2 What is the difference between a label and an entity?
 
-- **Label** = the class being counted. It is **latent** — never written in the
-  text, and we enforce that by dropping any record containing any label's surface
-  form. You must *read and infer* it. (`olumlu`, `alarm_set`)
-- **Entity** = a second field attached to each record that is **not** what is being
-  classified and is **orthogonal** to the label (every brand receives all three
-  sentiments). It is used to *condition*. (`Nutraxin`)
+| | **Label** | **Entity** |
+|---|---|---|
+| What it is | the thing we count | the thing we group by |
+| Example | `olumlu` / `olumsuz` / `nötr` | `Nutraxin`, `Solgar` |
+| Is it written in the text? | **No — it must be worked out** | Yes (we print it, §1) |
 
-**Spreadsheet analogy:** the label is the column you compute statistics over; the
-entity is the column you `GROUP BY`.
+> **Spreadsheet analogy:** the label is the column you compute statistics on. The
+> entity is the column you group by.
 
-**On his specific question — "label A vs label B, more/less/same".** That is
-OOLONG's family, and **we do not have it.** Ours is `pairwise`, which compares two
-**entities**: *"'olumsuz' yorumu hangisinde daha çok: 'Centrum' mu yoksa 'Ncs'
-mi?"* — same label, two brands. Theirs holds the population fixed and compares two
-labels; ours holds the label fixed and compares two subsets. **Theirs is the easier
-one to add and it needs no entity column**, so it would work on all eight sets
-including the intent axis. Worth adding — it is a genuine gap and it is cheap.
+**On his specific question — "label A vs label B":** that was OOLONG's, and we did
+not have it. **We added it this week.** It needs no brand column, so it works on
+all eight sets:
 
----
+> *"Are there more 'olumsuz' records or more 'olumlu' records, or the same
+> number?"* → **daha az** (fewer)
 
-## 3. The tokenizer — is using Qwen wrong?
+Our older `pairwise` type compares two **brands**, not two labels — a different
+question:
 
-**No, but the claim we draw from it has to be scoped.** Two separate uses:
+> *"Which has more 'olumlu' reviews: Shorne or Tab?"* → **Tab**
 
-**(a) As a ruler for haystack length — correct and necessary.** You need one fixed
-tokenizer to define "100K tokens" consistently. `Qwen/Qwen3-8B` is the right choice
-because it is the family we intend to evaluate. We also record `n_chars` in every
-output so a reader can re-derive lengths under a different tokenizer.
+### 4.3 The tokenizer — we used Qwen. Is that wrong?
 
-**(b) As evidence that "Turkish costs 1.30–1.34× the tokens of English" — this is
-where it breaks.** On the *same* 3,000 pair-aligned utterances:
+A **tokenizer** is the tool that chops text into the pieces a model actually
+counts. Different models chop differently.
 
-| tokenizer | TR/EN token ratio |
+**Using Qwen as a ruler: correct.** You need one fixed ruler to say "this document
+is 100,000 tokens", and Qwen is the model family we plan to test.
+
+**Using it to prove "Turkish costs more tokens than English": not safe.** On the
+*exact same sentences*:
+
+| Tokenizer | Turkish costs |
 |---|---|
-| GPT-2 | **2.16×** |
+| GPT-2 | **2.16×** English |
 | Qwen3-8B | 1.53× |
-| mBERT cased | 1.29× |
-| **BERTurk** | **0.57× — Turkish is cheaper** |
+| mBERT | 1.29× |
+| **BERTurk** (Turkish-specific) | **0.57× — Turkish is CHEAPER** |
 
-The ratio measures **how much Turkish the tokenizer saw in training**, not
-agglutination.
+So the number measures **how much Turkish the tokenizer was trained on**, not
+Turkish grammar.
 
-**Why not a Turkish tokenizer?** Because the benchmark measures what *the models we
-evaluate* actually pay. No frontier LLM uses BERTurk; using it would measure a
-property of Turkish under a tokenizer nobody deploys.
+**Why not just use a Turkish tokenizer?** Because we measure what *real models we
+test* actually pay. No frontier model uses BERTurk.
 
-**Should we mention it? Yes — it is a finding, not a weakness.** "The commonly
-cited Turkish token-cost penalty is tokenizer-dependent and can reverse" is a small
-publishable observation, and a reviewer from the Turkish NLP community would catch
-it if we hid it. The safe framing: **name the tokenizer, report the spread, and
-anchor the cross-lingual claim on the record-matched pair**, which compares at
-equal *content* and therefore carries no token-budget confound at all.
+**Should we mention this? Yes — it is a finding, not a weakness.** "The widely
+repeated claim that Turkish costs more tokens depends entirely on the tokenizer,
+and can even reverse" is a small, publishable observation. Hiding it would be the
+risk — a Turkish NLP reviewer would spot it instantly.
 
----
+### 4.4 Is our data real or synthetic?
 
-## 4. Is the data real or synthetic?
+**Real text. Real labels. Artificial assembly.**
 
-**Real text, real labels, synthetic assembly.**
-
-| layer | status |
+| Part | Status |
 |---|---|
-| the text | **100% real** — customer reviews from Vitaminler.com, Hepsiburada, Trendyol, Amazon; real assistant utterances from MASSIVE |
-| the labels | **real, and in 5 of 8 sets not annotations at all** — the star rating typed by the person who wrote the review. MASSIVE: professional annotation |
-| **the assembly** | **synthetic** — which records go into which document, in what order, at what length, plus deliberate drift injection for `shift` |
-| the questions | templated by the builder |
+| The review text | **100% real** — written by real customers on real sites |
+| The labels | **Real, and mostly not opinions** — 5 of 8 sets use the star rating the reviewer themselves gave |
+| **The documents** | **Artificial** — *we* choose which reviews go together, in what order, and how long |
+| The questions | Generated from templates |
 
-Same as OOLONG, which also concatenates real labelled datasets — except they
-*additionally* synthesise the dates and user IDs, where our entity is a real column.
-**We are less synthetic than they are on the metadata axis**, which is precisely
-what made the §0 bug possible.
+**Why "the writer's own star rating" matters so much:** nobody had to guess
+whether a review was positive. The customer clicked 5 stars. There is no
+annotator to disagree with.
 
-**One caveat worth knowing before he asks.** MASSIVE is a human *localisation* of
-English SLURP utterances into 51 languages. The Turkish is human-produced but
-translation-originated, not natively authored — so there is a translationese risk
-on the intent axis. The review corpora are natively written Turkish and carry no
-such risk. Worth one line in the limitations.
+**One caveat to know before he asks:** the MASSIVE dataset (our Turkish/English
+matched pair) is a **human translation** of English sentences into Turkish. So
+that Turkish is real Turkish, but *translated* Turkish, not originally-written
+Turkish. Our review datasets have no such issue.
 
----
+### 4.5 `tr_intent` vs `tr_intent_paired`, and what language are the labels?
 
-## 5. `tr_intent` vs `tr_intent_paired`, and what language are the labels?
+We built the same data two ways, because they answer different questions:
 
-| | matched on | Turkish document holds | answers correspond? | answers |
-|---|---|---|---|---|
-| `tr_intent` / `en_intent` | equal **token** budget (50K/100K) | **fewer** records (Turkish costs more tokens) | no | different |
-| `tr_intent_paired` / `en_intent_paired` | equal **record** count (3K/6K), same records, same order | the same records, more tokens | **yes** | **110 of 120 byte-identical** |
+| | Matched on | Asks |
+|---|---|---|
+| `tr_intent` / `en_intent` | **Same token budget** (both 100,000 tokens) | *"At equal cost, which language is harder?"* |
+| `tr_intent_paired` / `en_intent_paired` | **Same records**, same order | *"At equal content, which language is harder?"* |
 
-They answer different questions — *"at equal cost, which language degrades
-faster?"* versus *"at equal content, which degrades faster?"* Only the paired one
-supports a paired statistical test.
+The paired version is the powerful one: **100 of 120 questions have exactly the
+same correct answer in both languages.**
 
-**The labels are English**, in both halves. A Turkish question reads: *"Bu
-kayıtlarda kaç tane **'recommendation_locations'** etiketli kayıt var?"* — Turkish
-wording, Turkish text, English label identifier. This is only true on the intent
-axis; on the review axis the labels **are** Turkish (`olumlu` / `olumsuz` /
-`nötr`).
+> Turkish: *"Bu kayıtlarda kaç tane 'transport_taxi' etiketli kayıt var?"* → **18**
+> English: *"How many utterances have the intent 'transport_taxi'?"* → **18**
 
----
+Same question, same answer, different language. Any score difference **is** a
+language difference.
 
-## 6. Should we translate the labels to Turkish? (`play_music` → `müzik_çal`)
+**The labels are in English** (`transport_taxi`) even in the Turkish set — because
+they are database codes from the original dataset, not words. On the review sets
+the labels *are* Turkish (`olumlu`, `olumsuz`, `nötr`), because there they are
+ordinary words.
 
-**You were right and my first answer was wrong. Corrected below, with the
-measurement.**
+### 4.6 Should we translate the labels into Turkish? (`play_music` → `müzik_çal`)
 
-I argued translation would destroy a leakage asymmetry of 0.00% (Turkish) versus
-0.68% (English). **That asymmetry is not in the build** — both intent sets record
-`label_leakage_rate: 0.0`. The figure was stale. And the argument was wrong
-anyway: Turkish text showing 0% against *English* label strings is a tautology,
-not a finding. Turkish utterances do not contain the string `play_music` because
-they are Turkish, not because Turkish morphology hides anything.
+**You were right to push on this, and my first answer was wrong.** I claimed it
+would break a finding about Turkish grammar. Checking the actual data:
 
-**What the measurement actually shows**, comparing each language against labels in
-its *own* language:
+- That finding **is not in our current dataset** — the number I cited was from an
+  older version. Withdrawn (§5).
+- Your reasoning was sound: `play_music` gives the answer away in English, so
+  `müzik_çal` giving it away in Turkish is **symmetric**, which is fair.
 
-| | leak rate |
+But measuring it properly showed something real, in the **opposite** direction
+from what I said:
+
+| | How often the text gives away its own label |
 |---|---|
-| EN text vs **English** labels (`alarm_set`) | **0.00%** (0 / 15,075) |
-| TR text vs **Turkish** labels (`alarm_kur`) | **0.91%** (137 / 15,075) |
+| English text vs English labels (`alarm_set`) | **0.00%** |
+| Turkish text vs Turkish labels (`alarm_kur`) | **0.91%** |
+
+**The reason is word order, not grammar complexity.** Turkish puts the verb last,
+so a label named `alarm_kur` matches a natural Turkish sentence exactly:
+
+> *"iki saat sonrasına **alarm kur**"* → label `alarm_kur` ✗ gives itself away
+
+English never does this — you say *"set an alarm"*, never *"alarm set"*.
+
+**Conclusion: translating is possible and costs ~0.9% of the data** (those rows get
+filtered out). It is a reasonable experiment, not a default. Keeping English codes
+loses **no Turkish signal**, because the Turkish is in the *text* the model reads —
+the label is just the name of the bucket.
+
+> Sorting Turkish emails into folders labelled in English does not make the emails
+> less Turkish.
+
+### 4.7 What does "spread" mean? — with an example
+
+**Spread = how much longer the wordiest class is than the shortest class.**
+
+Concretely, on our Turkish vitamin reviews:
+
+- `olumsuz` (negative) reviews average **15.0 words**
+- `olumlu` (positive) reviews average **9.8 words**
+- **15.0 ÷ 9.8 = 1.5×** ← that is the spread
+
+**What it means in plain terms:** negative reviews are one and a half times longer
+than positive ones.
+
+**Why we care:** if that number is big, you can guess the label **without reading
+the words at all** — just by measuring how long the review is.
+
+| Spread | Meaning |
+|---|---|
+| **1.0×** | Length tells you nothing. Perfect. |
+| **1.5×** | Mild. Fine. |
+| **2.0×** | Our warning line |
+| **3.6×** | The dataset we deleted (§5) |
+
+### 4.8 "Long comment = negative" — and the case where it reverses
+
+The common pattern: **unhappy customers write more.** An angry customer explains
+what went wrong; a happy one writes "güzel ürün".
+
+We wrote a deliberately stupid program to test this. It reads **no words at all**.
+It only looks at:
+1. how long the text is
+2. does it end with a full stop
+3. does it contain `!` or `?`
+
+Then it tries to answer our questions. Here is what it found:
+
+| Dataset | Longest class | Shortest class | Spread |
+|---|---|---|---|
+| `vitamins_tr` | olumsuz 15.0 w | olumlu 9.8 w | 1.5× |
+| `musteri_tr` | olumsuz | olumlu | 1.2× |
+| `marc_en` | negative | positive | 1.1× |
+| **`amazon_hpc_en`** | **positive 46.9 w** | negative 41.8 w | 1.1× |
+| *deleted dataset* | *olumsuz 33.1 w* | *olumlu 9.1 w* | ***3.6×*** |
+
+### **The reversal — this is the interesting bit**
+
+Look at `amazon_hpc_en`. **The positive reviews are the LONGER ones.**
+
+The "angry customers write more" rule is **not universal**. On Amazon
+health products, satisfied buyers write long enthusiastic reviews — *"I have been
+suffering for months with heel pain and this finally…"* — while unhappy ones write
+*"Didn't work."*
+
+**So the direction depends on the website, not on human nature.** This is exactly
+why we measure it per dataset instead of assuming.
+
+### How we handle it
+
+A dataset where length predicts the label is **still a valid counting task** — the
+model must still classify thousands of records and add them up. What it stops
+being is a test of **reading Turkish**.
+
+That only becomes fatal when the effect is **lopsided between our two languages**.
+If Turkish leaked through length but English did not, a model could score well on
+Turkish by measuring sentence lengths — and our whole comparison would be fake.
+
+**So the number we actually check is the GAP between the two halves of a pair:**
+
+| Pair | Gap |
+|---|---|
+| Turkish/English matched records | **0.014** |
+| `vitamins_tr` ↔ `amazon_hpc_en` | 0.020 |
+| Turkish/English matched tokens | 0.028 |
+| `musteri_tr` ↔ `marc_en` | 0.030 |
+| *the pair we deleted* | ***0.108*** |
+
+Small = the two halves behave the same = the comparison is trustworthy.
+
+---
+
+## 5. What we withdrew — an honest correction
+
+We had been claiming, in five documents:
+
+> *"English text reveals its own label 0.68% of the time; Turkish never does.
+> Turkish grammar hides labels."*
+
+**We deleted this claim.** Two independent problems:
+
+1. **It is not true of our current dataset.** Both languages measure **0.00%**. The
+   0.68% came from an older, larger version of the data.
+2. **It was never a fair comparison anyway.** Both languages were being checked
+   against *English* label names. Of course a Turkish sentence does not contain
+   the English word `play_music`. That is not a discovery about Turkish grammar —
+   it is a tautology about two different languages.
+
+**Why this is worth showing him:** finding and removing your own wrong claim is a
+better sign than never having made one. It was in the README, the datacard, the
+design log, the roadmap, and a numbered section of the paper notes. All corrected.
+
+---
+
+## 6. Label noise — now measured, and it found something bigger
+
+**Label noise = how often the "correct answer" in our data is actually wrong.**
+It matters because it is the ceiling on any model's score. If 10% of our labels
+are wrong, a perfect model still cannot score 100%.
+
+**You annotated 150 rows by hand.** Result:
+
+| | |
+|---|---|
+| Rows judged | 150 |
+| Marked wrong | 14 |
+| **Error rate** | **9.3%** (95% confidence: 5.6% – 15.1%) |
+
+**A second review disagreed with 3 of your 14.** For example you flagged *"how
+many meetings have there been"* labelled `calendar_query` — but that dataset uses
+`calendar_query` for exactly this kind of lookup elsewhere, so it stands.
+
+**So we report a range: 2.7% – 9.3%**, not a single number. The disagreement is
+itself part of the result, and hiding it would be dishonest.
+
+### The bigger finding: some of it is bad *translation*, not bad *labelling*
+
+Three of the errors you caught are a different species:
+
+| English original | Turkish as shipped | Label |
+|---|---|---|
+| *put a record on* | *bir kayıt koy* | `play_music` |
+| *how to spell the word treble* | *üç kat kelimesi nasıl kodlanır* | `qa_definition` |
+| *when does olive garden close* | *hanım eli bugün ne zaman kapanıyor* | `recommendation_locations` |
+
+**Take the first one.** In English, "put a record on" means *play a vinyl* — so
+`play_music` is correct. In Turkish, *kayıt* means a record in the **filing-cabinet**
+sense. **No Turkish speaker reads "bir kayıt koy" and thinks about music.**
+
+The idiom was translated word by word, and died.
+
+### Why this is the most important thing in this section
+
+**The English label is right. The Turkish label is wrong. Same record.**
+
+That means the Turkish half of our comparison is being graded against a **noisier
+answer key** than the English half — on records that are supposed to be identical.
+
+So any Turkish-vs-English difference we measure is:
+
+> (a real language difference) **+** (translation errors we have not separated out)
+
+**This is a genuine weakness in our headline claim**, and it is now written into
+the datacard as a limitation. **Our review datasets are unaffected** — they are
+Turkish written by Turkish people, with no translation step to corrupt.
+
+**Fix:** the same 150 rows again, with two columns instead of one — *does the label
+fit the English?* and *does it fit the Turkish?* — judged separately. ~30 minutes.
+
+---
+
+## 7. The compatibility tool (`check_pair.py`)
+
+### The problem it solves
+
+Our benchmark works by **pairing** a Turkish dataset with an English one. If
+somebody else wants to add a new pair — or another language entirely — how do they
+know their two datasets can actually be compared?
+
+Before this, the answer was "read a 60-line document and check eight things by
+hand." Now it is one command.
+
+### Using it
+
+```bash
+python scripts/check_pair.py configs/musteri_tr.json configs/marc_en.json
+```
+
+### What it checks, and why each one matters
+
+| Check | Why | Fails when |
+|---|---|---|
+| **Label origin** | both sides' labels must be made the same way | one is star ratings, the other is human guesses |
+| **Same number of classes** | can't compare 3 categories against 5 | 3 vs 5 |
+| **Record length** | changes what "one chunk" means | 14 words vs 72 words |
+| **Length spread gap** (§4.7) | lopsided length-cheating breaks the comparison | one side 3.6×, other 1.1× |
+| **Class balance** | one class dominating makes guessing easy | 90% positive |
+| **Reaches the same sizes** | both must reach 500,000 tokens | small side runs out of data |
+| **Brand column on both** | or the two halves ask different questions | one has brands, one doesn't |
+| **Licence** ← veto | a better match is worthless if we can't republish it | licence unknown |
+
+### Real output — a pair that works
 
 ```
-label=alarm_kur   matched 'alarm kur'  | iki saat sonrasına alarm kur
-label=alarm_kur   matched 'alarm kur'  | on ikiye alarm kur
-label=alarm_kur   matched 'alarm kur'  | öğleden sonra dörde alarm kur
+PAIR: musteri_tr (tr, 36,924 rows) <-> marc_en (en, 118,779 rows)
+
+label provenance      ok    both author_stars
+label space           ok    both 3 classes
+record length         ok    14.3 vs 34.2 words (2.4x)
+surface-shape gap     ok    spread 1.19x vs 1.12x  (gap 0.06)
+class balance         ok    entropy 1.000 vs 1.000
+entity axis           ok    neither -- 6 symmetric families
+licence               ok    cc-by-sa-4.0 / apache-2.0
+
+=== COMPATIBLE ===
 ```
 
-**The cause is word order, not morphology.** Turkish is verb-final, so a
-`noun_verb` label name matches the natural phrase exactly. English `alarm_set`
-never appears, because you say "set an alarm," not "alarm set."
+### Real output — a pair with problems
 
-**So the consequence of translating is real but mild:** ~137 records (0.9%) get
-dropped by the leakage filter, and since the filter applies as a union over the
-pair, the English half loses the same `pair_id`s. That is a 0.9% pool cost, not a
-destroyed finding — and it is avoidable by naming labels non-phrasally
-(`alarm_kurma`).
+```
+record length        warn   14.3 vs 43.0 words (3.0x)
+                            -> usable, but state it as a limitation
+entity axis          warn   only amazon_hpc_en has one (0 vs 13033)
+                            -> the halves would ask different questions
+licence              warn   unknown
+                            -> text cannot be redistributed
 
-**My two remaining objections were also weak, and worth retracting explicitly:**
+=== COMPATIBLE WITH CAVEATS ===
+```
 
-- *"It breaks the byte-identical answer."* `shift` answers were **already**
-  language-specific (`arttı` / `rose`), and `label_vs_label` now is too. The twin
-  check maps them to a canonical outcome and verifies they agree. Translated
-  labels would work the same way.
-- *"It adds a hand-made artifact."* We already hand-map stars to
-  `olumlu`/`olumsuz`/`nötr`. The intent axis is the inconsistent one.
+**The verdict has three levels, not two:** `COMPATIBLE`, `COMPATIBLE WITH
+CAVEATS`, `INCOMPATIBLE` — because most real pairs are usable *with a stated
+limitation*, and a yes/no answer would throw them away.
 
-**Where it lands:** the decision is defensible either way, and `licence` /
-`label_provenance` style declaration is the right pattern — so it belongs in the
-config, not hardcoded. It is worth building `tr_intent_translated` as an ablation:
-the "English label as a free hint in the language the model is stronger in"
-question is real, and the extra filter drop is now measured rather than guessed.
+### The best argument for it
 
-## 7. What "spread" means in the length table
-
-**`spread = mean words of the longest-averaging class ÷ mean words of the
-shortest-averaging class`.**
-
-So `vitamins_tr` at 1.5× means: `olumsuz` records average **15.0 words**, `olumlu`
-records average **9.8 words**, and 15.0 / 9.8 = 1.53. A spread of 1.0 means length
-tells you nothing about the label.
-
-It is a crude ceiling on how much of the label a **length-only** classifier could
-recover. The builder warns at **≥ 2.0×**; the withdrawn We-Bears corpus was 3.6×.
-
-**It is a screening heuristic, not the gate.** The real gate is the style solver's
-measured lift on *built questions*, because source-level spread does not predict
-question-level exploitability — the lesson that cost us a whole rebuilt corpus pair.
+**Run it on our own history and it would have rejected the dataset we deleted —
+before we spent weeks building it.**
 
 ---
 
-## 8. Synthetic data and synthetic labels — pros and cons?
+## 8. If we receive new Turkish data, what should we check?
 
-Three different things, and they have different answers:
+In priority order. The tool checks 1–6 automatically.
 
-**(a) Synthetic *composition* — what we do. Right call.**
-*Pro:* ground truth is **exact and free at any length**. Nobody could hand-annotate
-"how many negative reviews are in this 1M-token document"; we get it for nothing.
-Length, class balance and drift become controllable knobs, so difficulty is a
-gradient we set. Fully reproducible and regenerable, which is what makes twins
-possible at all.
-*Con:* the document is not a naturally occurring document — no discourse, no
-coreference, no cross-references (§1).
+1. **Does it have labels?** No labels = unusable, whatever the size. The label is
+   the answer key. *(This alone killed a 745,000-article Turkish news corpus.)*
+2. **Where did the labels come from?** Best: the writer's own star rating. Worst:
+   undocumented. **This is not automatable — someone must read the dataset card.**
+3. **Is it big enough?** We need ~40,000+ rows to build million-token documents.
+4. **Is the licence clear?** "Unknown" means *no permission*, not *probably fine*.
+5. **Is there an English partner** with the same label origin and similar length?
+6. **Does length give away the label?** (§4.7)
+7. **⭐ Does it have DATES?** — this is the one that would unlock our missing
+   question type. Almost nothing Turkish does.
 
-**(b) Synthetic *text* (LLM-generated reviews) — no.**
-*Pro:* unlimited data, perfect control, and it would solve our Amazon licensing
-problem outright.
-*Con:* it would **destroy the cross-lingual claim.** LLM-written Turkish is not
-Turkish as written by Turkish speakers; measuring "does Turkish degrade recursive
-compression" on model-generated Turkish measures the *generator*. It is also
-circular — evaluating LLMs on LLM-written text — and reviewers are increasingly
-hostile to it.
+**What we found this week:** we reviewed a fresh list of Turkish datasets. **None
+of them beats what we already have.**
 
-**(c) Synthetic *labels* (model-assigned) — definitely not.** The benchmark would
-measure agreement with the labelling model rather than correctness, and it is
-exactly what we suspect We-Bears of (§4.2 of last week's summary). We cannot drop a
-corpus for undocumented label provenance and then generate our own.
-
-**"Can synthetic give better results?"** Better *numbers*, sometimes — zero label
-noise, perfect balance. Better *evidence*, no: you have swapped a measurement of
-real-language ability for a measurement of imitation-language ability.
-
-**The one legitimate use** is as a **diagnostic control**, not as the benchmark —
-e.g. a synthetic set with perfectly uniform record length to isolate the length
-confound from the language effect. That is a good use and worth keeping in mind.
+- **SentiTurca** — looked promising, but its own documentation says it is three
+  datasets we had already evaluated, repackaged. Two of them we had rejected.
+- **winvoker** (490,000 rows, the biggest) — rejected. Its card openly states it
+  includes *"random text inputs marked as neutral"*. That is a machine assigning
+  labels, which is exactly why we deleted our own bad dataset.
+- **Interpress news** — **273,000 Turkish news articles WITH REAL DATES,
+  2010–2017.** This would close our missing question type. **Blocked on one thing:
+  its licence says "unknown".** That needs an email to the publisher — nobody else
+  can answer it. Until then it stays blocked and we state it as a limitation.
 
 ---
 
-## 9. A compatibility checker for new language pairs — should we build it?
+## 9. Real vs synthetic data — would synthetic be better?
 
-**Yes. This is the strongest suggestion of the batch, and we already have most of
-it.**
+Three different things get called "synthetic". They have different answers.
 
-Three reasons it is worth doing:
+### (a) Artificial *assembly* — what we do. **Correct choice.**
 
-1. It converts the project from *"a Turkish benchmark"* into *"a method for building
-   matched-twin benchmarks in any language pair"* — a larger and more citable
-   contribution, and it is what makes the repo reusable by anyone else.
-2. **~70% already exists.** `--audit` already reports, per source: rows after
-   cleaning, label space, entity askability, mean tokens per record, feasibility at
-   each length tier, class imbalance and normalised entropy, per-class surface shape
-   with the length-spread warning, entity-axis viability, and trial-haystack rank
-   gaps. After a build, three more solvers run.
-3. **What is missing is exactly what he described: a pairwise mode.** Everything
-   today judges one source at a time; nothing compares two.
+Real reviews, but *we* decide which ones go into each document.
 
-**What `check_pair.py` would report**, mapping onto the four twin criteria:
+- ✅ **The correct answer is free and exact at any size.** Nobody could hand-count
+  "how many negative reviews in this 900,000-token document". We get it for
+  nothing, because we assembled it.
+- ✅ Length and difficulty become dials we control.
+- ❌ It is not a naturally occurring document — no story, no cross-references.
 
-| check | pass condition | why it matters |
-|---|---|---|
-| label provenance | both **declared**, and the same kind | the defect that killed We-Bears; cannot be automated — must be a declared field |
-| label space | same K, with a declared 1:1 mapping | a 3-class vs 5-class pair is not a twin |
-| record length | ratio under ~2.5× | changes what "one chunk" means |
-| surface-shape gap | \|spread_A − spread_B\| small | an asymmetric format shortcut is what breaks the cross-lingual claim |
-| class balance | both entropies, and the gap | |
-| reachable tiers | `R_max = smallest_class × K` on both halves | both must reach the same lengths |
-| entity axis | present or absent on **both**; MI(entity, label) low | a twin whose halves support different families is not a twin |
-| **licence** | both redistributable, else flag | the veto |
+### (b) Synthetic *text* (asking an AI to write fake reviews) — **no.**
 
-**The verdict should not be binary** — `compatible` / `compatible with caveats` /
-`incompatible`, each with the reason and the number.
+- ✅ Unlimited data, no licence problems
+- ❌ **It would destroy our main claim.** AI-written Turkish is not Turkish as
+  Turkish people write it. Measuring "is Turkish harder for AI" using
+  AI-generated Turkish measures the *generator*, not the language.
+- ❌ Circular: testing AI on AI-written text.
 
-**And the validation story is already sitting in our history:** run it on our own
-candidates and it should return `musteri↔marc` compatible, `vitamins↔amazon`
-compatible-with-caveats (3.7× length mismatch, licence asymmetry), and
-**`We-Bears↔airline` incompatible** — i.e. **the tool would have rejected the pair
-we dropped, before we spent weeks building it.** That is the argument for it.
+### (c) Synthetic *labels* (an AI decides positive/negative) — **definitely not.**
 
-**Turkish-only or Turkish-English?** Turkish-English. A Turkish-only set is
-buildable, but without a twin you cannot separate *"the model is bad at this task"*
-from *"the model is bad at Turkish"* — the twin **is** the methodology. The tool
-should still keep a single-source mode, since that is what `--audit` already is.
+The benchmark would measure *agreement with the labelling AI*, not correctness.
+And we **deleted a whole dataset** this project because we suspected its labels
+were machine-made. We cannot condemn that and then do it ourselves.
 
-**Effort:** mostly assembling existing measurements into a pairwise report plus a
-small declared-metadata schema. Two or three days.
+**Would synthetic give better numbers? Yes. Better evidence? No.** You would trade
+a measurement of real-language ability for a measurement of imitation ability.
+
+**One legitimate use:** as a *control experiment* — e.g. synthetic reviews all the
+exact same length, to isolate the length effect from the language effect.
 
 ---
 
-## 10. What was actually done this week (v0.6.0)
+## 10. The trajectory dataset — final conclusion
 
-All five gates are green and the benchmark is rebuilt.
+### The idea in one paragraph
 
-**1. The entity bug is fixed.** Records now render as `[[Nutraxin]] <review text>`.
-The marker is symbol-only on purpose: `Marka:` / `Brand:` would tokenize
-differently in each language and reintroduce a confound into the matched twin.
+When a model solves one of our questions using the RLM method, it leaves a
+**trail**: the code it wrote, how it split the document, what it asked itself
+about each chunk, and how it added the results up. **We record every trail, keep
+only the ones that reached the correct answer, and publish that as a second
+dataset** — training material rather than a test.
 
-Three follow-on changes the fix required, each found by a gate:
+### What one entry would look like
 
-- **A build-time guard.** Emitting an entity family with `render_entity=false` now
-  **raises**. The defect cannot recur silently.
-- **The leakage filter now masks the rendered record, not the raw text.** Printing
-  brand names ships them, and `verify_release` caught `The Pressure Positive Co.`
-  in `amazon_hpc_en` handing the label `positive` to a substring solver — 1 brand,
-  52 rows, 0.09%. Dropped.
-- **`verify_release` reconstructs haystacks with the prefix**, or every set fails.
+```
+QUESTION  "Bu yorumlardan kaç tanesi 'olumsuz' etiketli?"
 
-**Does printing the brand make the family lexical?** No — and this was the check
-that mattered, because "lexical rather than latent" is exactly our criticism of
-ONERULER. The **label stays latent**: *"how many of brand X's records are
-negative"* still requires classifying every one of them. Verified on the rebuild —
-e.g. `Venatura` appears 47 times, and the gold answer for one label is 10.
+STEP 1    chunks = context.split("<<<###>>>")        → 2,847 reviews
+STEP 2    for each group of 100, ask a helper:
+            "Kaç tanesi olumsuz?"  + [100 Turkish reviews]
+            → 41, 38, 44, 29, ...
+STEP 3    total = sum(answers)                        → 1,046
 
-**2. `label_vs_label` added** — OOLONG's "is A more, less, or equally common than
-B", which we lacked (§2). It needs no entity column, so it ships on all eight sets.
-The outcome is drawn first and a label pair searched for that realizes it,
-otherwise "same" would never be the gold answer and a model that never says "same"
-would lose nothing.
+GOLD      1,046  ✓   → keep this trail
+```
 
-Two honest notes: it is **3-way at 48 classes and 2-way at 3** ("eşit" is 5 of 10
-answers on `tr_intent_paired`, and never fires on the 3-class review sets, because
-Dirichlet-drawn class shares are far apart). And it is **the least stable family** —
-it widened the `musteri_tr`↔`marc_en` twin asymmetry from **0.010 to 0.070**, still
-well inside the +0.15 gate but now the worst of the four pairs.
+### Is this Turkish-specific, or a general contribution?
 
-**3. `scripts/check_pair.py`** (§9). Reproduces our own §11 verdicts:
+**Honestly: mostly general, with a Turkish angle.** We should say both.
 
-| pair | verdict |
+| | |
 |---|---|
-| `musteri_tr` ↔ `marc_en` | **COMPATIBLE** |
-| `vitamins_tr` ↔ `amazon_hpc_en` | COMPATIBLE WITH CAVEATS (3.3× length, Amazon licence) |
-| `tr_intent` ↔ `en_intent` | COMPATIBLE WITH CAVEATS |
-| `tr_intent` ↔ `marc_en` | **INCOMPATIBLE** (provenance, label space, 6.1× length) |
+| **General (the bigger contribution)** | Teaching a model *how to break a huge problem into pieces* is language-neutral. That part helps English equally. |
+| **Turkish-specific** | The helper calls contain thousands of tokens of **real Turkish**, and the skill of "read this Turkish and classify it under compression" is Turkish-specific. |
 
-It required declaring `licence` and `label_provenance` in every config — neither
-is measurable from the data, and undeclared provenance is what withdrew a pair in
-v0.5.0, so the checker **fails** a pair that leaves either blank.
+So it is **a general RLM contribution with a Turkish component**, and claiming it
+is Turkish-only would undersell it while claiming it is Turkish-specific would
+oversell it.
 
-**The benchmark after the rebuild:**
+### What we could offer that nobody else can
 
-| | before (v0.5.0) | after (v0.6.0) |
-|---|---|---|
-| questions | 1,221 | **1,254** (630 tr / 624 en) |
-| families | 9 | **10** |
-| haystacks | 110 | 110 |
-| tokens | 28.2M | **28.3M** |
-| **answerable entity questions** | **0 of 118** | **all 94** |
-| gates | 4 green | **5 green** |
+**We can check the model's *working*, not just its final answer.**
 
-*(Entity questions went 118 → 94 because rendering costs ~5–8 tokens per record,
-so each haystack holds fewer records and some draws no longer clear the
-difficulty floors.)*
+Every existing dataset of this kind keeps a trail if the final number was right —
+so a lucky guess survives. **We built the document, so we know the label of every
+single record.** For any chunk the model picks, we can compute the true answer:
+
+```
+model said:  "chunk 12 has 37 negatives"
+we know:     chunk 12 (records 2400–2600) has 41
+             → that step is wrong by 4, and we can prove it
+```
+
+Nobody can do this on real books or papers, because there is no correct answer
+below the final one.
+
+### What could a Turkish LLM expect from being trained on it?
+
+**Set expectations low and specific.**
+
+- ❌ **This is NOT Turkish pre-training data.** Those are tens of *billions* of
+  tokens. Ours is 28 million, half of it English.
+- ✅ **It is fine-tuning data.** The comparable result: RLM-Qwen3-8B gained
+  **+28.3%** from just **1,000** trails — an amount we could realistically produce.
+- 🎯 **The realistic gain: better at breaking down long Turkish documents.** Not
+  "better Turkish".
+
+### Is fine-tuning a Turkish LLM on this unexplored?
+
+**Yes — and honestly so.** Nobody has trained a model on an aggregation benchmark
+in *any* language, let alone Turkish. That is a genuine gap.
+
+**But the closest work now exists**, and we must cite it (§11): a 2026 paper does
+almost exactly this in English, from Wikipedia tables, and reports **+4.3%**. So:
+
+- The idea is **validated** — it works.
+- We are **not first** to the general idea.
+- We would be **first in Turkish**, **first from an aggregation benchmark**, and
+  **first with verifiable intermediate steps**.
+- **Expect gains near +4%, not +28%.**
+
+### The honest objection
+
+OOLONG showed that giving models the correct labels for free helps only 0.79–10.9
+points. The bottleneck is not reading — it is **adding thousands of things up**,
+which is what a `for` loop does perfectly. So training a model to count in its
+head may be optimising the part that should have been replaced by code.
+
+**Our answer:** that objection kills the naive version (train on *question →
+answer*) and **strengthens** ours (train on *question → the sequence of moves*).
+If the arithmetic should be code, the skill worth learning is **deciding how to
+break the problem up** — which is exactly what a trail records.
+
+### Verdict
+
+**Worth doing. Future work, not a promise.** One decision must be taken *now*: the
+evaluation harness must **record the trails from the very first run**. That is a
+day of engineering. If we skip it, we pay for every experiment twice.
 
 ---
 
-## Where this leaves us
+## 11. Literature check — anything that changes our direction?
 
-**Done since the meeting (v0.6.0):** entity rendering fixed and rebuilt (§0);
-OOLONG's label-vs-label family added on all eight sets (§2); `check_pair.py`
-written and tested (§9); all five gates green. One stale claim was withdrawn in
-the process — the MASSIVE leakage asymmetry (en 0.68% vs tr 0.00%) is **not in
-the shipped build**, which measures 0.00% on both, and the comparison was
-confounded by matching both locales against the *English* label vocabulary.
+Three findings this week.
 
-**Do first:** run one 4B model over a handful of questions per family. That is
-the check that would have caught §0 in an hour, and it is still the top open item.
+**1. OOLONG's construction code is still not released** — this is the claim you
+asked me to verify. Their GitHub repo now exists (MIT licence) but contains only
+an evaluation script. The pipeline that *builds* the benchmark is explicitly
+marked **"coming soon"**. So we still had to rebuild everything from the paper
+description, and our independent implementation stands.
 
-**Ablations, not blockers:** Turkish label translation (§6), the trajectory
-language conditions (last week's §8.4).
+**2. ⚠️ Someone has done a close cousin of our trajectory idea** —
+*π²: Structure-Originated Reasoning Data* (arXiv:2604.05114, 2026). They generate
+reasoning training data from Wikipedia tables, and — strikingly — **verify answers
+by two independent code paths, which is exactly our method**. Fine-tuning gives
+**+4.3%**. It is English-only, from tables rather than an aggregation benchmark,
+and has no verified intermediate steps.
 
-**State as limitations:** no referential/multi-hop axis (§1), no timeline axis,
-MASSIVE translationese (§4), tokenizer-dependence of the token-cost claim (§3).
+> **Impact on us: it strengthens the case and shrinks the claim.** The approach is
+> now published and works, so we no longer have to argue it *might*. But we must
+> cite it and stop implying we invented the idea. It also gives us a realistic
+> expectation: **+4%, not +28%**.
+
+**3. Still no multilingual OOLONG, and still no Turkish long-context aggregation
+benchmark.** I searched again. TurkBench and Cetvel are Turkish but short-context;
+OOLONG is English-only. **Our novelty claim holds.**
+
+---
+
+## 12. Where this leaves us — next steps
+
+**Done this week:** the entity bug fixed and rebuilt · the label-vs-label question
+type added · `check_pair.py` written and tested · label noise measured · a wrong
+claim withdrawn · all five checks green · everything committed and pushed.
+
+**Next, in order:**
+
+1. **Run one small model on a handful of questions.** This is the only real gap.
+   It is also the check that would have caught our bug in an hour. *(A first
+   attempt is already wired up and revealed a setup bug of its own, now fixed.)*
+2. **The 30-minute two-column re-pass** on the same 150 rows, to separate
+   translation errors from labelling errors (§6).
+3. **Decide: publish the dataset now, or wait for model scores?** My recommendation
+   is publish now — it timestamps the work and costs nothing.
+4. **Optional:** email Interpress about their licence, which would unlock the
+   missing date questions (§8).
+
+**What we do NOT need: more data.** We looked, and nothing available beats what we
+have.
