@@ -276,6 +276,42 @@ make it unreproducible.
 **We chose Qwen because it is the model family the experiments will actually run
 on**, and it is open and offline.
 
+#### Would OpenAI's tokenizer make our dataset longer or shorter?
+
+**Measured on our actual documents — the answer differs for the two languages, and
+that is the interesting part.**
+
+The same document, counted twice:
+
+| Document | Qwen (what we built with) | OpenAI `o200k_base` | Change |
+|---|---|---|---|
+| Turkish, 100K tier | 99,266 tokens | **89,178** | **−10%** |
+| English, 100K tier | 98,246 tokens | **96,477** | **−2%** |
+
+**So OpenAI's tokenizer counts the same text as SHORTER — and it shortens Turkish
+about five times more than English.**
+
+Two consequences, depending on what you do with it:
+
+1. **If we only re-label the existing documents**, our "100,000-token" Turkish
+   document becomes a "89,000-token" document. **Same text, smaller number.**
+2. **If we rebuilt to the same 100,000-token target**, the builder would pack in
+   **~10% more Turkish reviews** before hitting the limit. **Same number, more
+   content** — and a genuinely harder task, because there is more to count.
+
+**And it changes the headline number.** On the record-matched pair — the *same
+3,000 sentences* in both languages:
+
+| Tokenizer | Turkish costs |
+|---|---|
+| Qwen3-8B (ours) | **1.34×** English |
+| OpenAI `o200k_base` | **1.22×** English |
+
+**This is the cleanest demonstration of the whole point.** Identical sentences,
+identical content, and the "Turkish penalty" moves from 34% to 22% purely by
+changing which company's tokenizer you count with. It is a property of the
+measuring instrument, not of Turkish.
+
 #### Could a jury attack us? Yes — here is the defence
 
 **The attack:** *"Your headline 'Turkish costs 1.3× more tokens' is an artifact of

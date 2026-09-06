@@ -60,6 +60,16 @@ manual annotation.
 > generations of *the same vendor's* tokenizer the penalty halves — **2.16x**
 > (`p50k_base`, GPT-3), **1.73x** (`cl100k_base`, GPT-4), **1.35x** (`o200k_base`,
 > GPT-4o/5). Same language pair, same sentences, only the training diet changed.
+>
+> **On the built haystacks it moves the headline directly.** On the
+> record-matched pair — the *same 3,000 utterances* in both languages — Turkish
+> costs **1.34x** English under Qwen3-8B and **1.22x** under `o200k_base`. The
+> same Turkish text counts **10% fewer** tokens under OpenAI's tokenizer, against
+> **2% fewer** for English, so a "100K" Turkish haystack re-measures at ~89K.
+> Rebuilding to the same target under `o200k_base` would pack in ~10% more
+> Turkish records. `n_chars` is recorded per haystack so any reader can re-derive
+> lengths without a rebuild.
+>
 > See [`PAPER_NOTES.md`](PAPER_NOTES.md) §1 for how to state it correctly.
 
 **Where to start.** [`PAPER_NOTES.md`](PAPER_NOTES.md) lists every claim worth

@@ -69,6 +69,15 @@ training data, not of Turkish morphology; it fell from 2.16× to 1.35× across t
 generations of OpenAI tokenizer and reverses entirely (0.57×) under a
 Turkish-specific one."* That is a small, self-contained, defensible finding.
 
+**Measured on the built haystacks, not just the source utterances** (2026-09-07).
+On the record-matched pair, which holds the *same 3,000 utterances* in both
+languages, the penalty is **1.34x under Qwen3-8B and 1.22x under `o200k_base`**.
+Per-language re-measurement of identical text: Turkish falls to **91%** of its
+Qwen count, English to **99%**. So the choice of reference tokenizer moves the
+headline cross-lingual number by 12 points, and shifts Turkish roughly five times
+more than English. **Any paper sentence quoting a TR/EN token ratio must name the
+tokenizer in the same sentence.**
+
 **On tokenizer choice, for the methods section:** we build with Qwen3-8B because it
 is the family evaluated and it is open and offline. OpenAI's `tiktoken` is equally
 usable (free, open) and is what the table above uses. **Anthropic publishes no
