@@ -953,50 +953,66 @@ OOLONG is English-only. **Our novelty claim holds.**
 
 ---
 
-## 11b. One observation from the first trial run — worth watching, NOT a finding
+## 11b. A curiosity from the first trial run — probably nothing, but let's check later
 
-We wired up a first trial run (§15, step 1). It timed out before finishing, but
-the log of what the model *tried* contained something we should keep an eye on.
+**Filed under "interesting if true".** Nothing depends on it and no plan changes
+because of it — but it is cheap to look for when we do the real runs, so it is
+worth writing down now.
 
-**The model was given the same question in both languages, and approached them
-differently.**
+### What we saw
 
-| | What it did |
+We wired up a first trial run and gave the model **the same question in both
+languages**. It timed out before finishing, but the log of what it *tried* was
+different on each side:
+
+| | What it did first |
 |---|---|
-| **English** | Split the document into utterances, then: *"Since the intent isn't explicitly labeled in the text, I will use a sub-model to classify each utterance."* → **the intended method** |
-| **Turkish** | Ran `context.count('transport_taxi')` — **counting how many times the label appears as a literal string** — then went hunting for that string inside each record |
+| **English** | *"Since the intent isn't explicitly labeled in the text, I will use a sub-model to classify each utterance."* → went straight to the intended method |
+| **Turkish** | Searched the document for the label as a **literal string** — `count('transport_taxi')` — before giving up on that and moving on |
 
-**In plain terms: on English it reasoned "I'll have to read these and judge them".
-On Turkish it first tried to just search for the answer.**
+**In plain terms: on English it reasoned "I'll have to read these and judge each
+one." On Turkish it first tried to just look the answer up.**
 
-**Our benchmark blocked the shortcut**, exactly as designed — no record contains a
-label word, so the search returned nothing and the model had to move on.
+**Our design blocked the shortcut**, exactly as intended — no review contains a
+label word, so the search found nothing.
 
-### Why this is interesting if it holds up
+### Why it would be interesting if it turned out to be real
 
-Our whole grep-proofness design exists to stop a model answering by string
-matching instead of reading. If models reach for that shortcut **more readily in
-languages they are weaker at**, that is:
+The idea: **a model might reach for lazy shortcuts more readily in a language it
+is weaker at.** If so, that is a genuine phenomenon, it is directly relevant to
+why we built the grep-proofing in the first place, and — this is the nice part —
+**only a matched-twin benchmark like ours could spot it.** You need the *same
+question with the same answer in two languages* to see a difference in *approach*.
 
-- a real phenomenon worth publishing,
-- directly relevant to why this benchmark exists,
-- and something only a matched-twin design like ours can even detect.
+### Why it is not a big deal right now
 
-### Why we must NOT claim it yet — three serious problems
+**Most likely it is just noise.** Three ordinary explanations, any of which would
+fully account for it:
 
-1. **n = 1.** One run per language. This could be pure chance.
-2. **Our own bug invited it.** In that run the question text was accidentally
-   glued into the document — and the question *contains* the string
-   `'transport_taxi'`. So the model had a reason to search that it would not have
-   in a correct run. That bug is now fixed.
-3. **The two runs never reached the same stage.** Turkish got 4 steps in before
-   timing out; English only got 2. English may simply not have reached the point
-   where it would have tried the same thing.
+1. **We ran it once per language.** One run each. Models vary between runs.
+2. **Our own bug probably caused it.** In that run the question was accidentally
+   pasted into the document — and the question contains the words
+   `transport_taxi`. So the label really *was* there to find, and searching for it
+   was a reasonable thing to try. **That bug is fixed.**
+3. **The two runs did not get equally far.** Turkish managed 4 steps before timing
+   out; English only 2. English may simply never have reached the point where it
+   would have tried the same thing.
 
-**Status: a hypothesis to test, written down so we do not forget it.** The clean
-version is easy — same question, both languages, correct harness, several
-repetitions, and count how often each language reaches for string matching before
-classification.
+**So: nothing is riding on this.** We are not planning around it, no claim depends
+on it, and if it evaporates we lose nothing.
+
+### What it costs to check properly: almost nothing
+
+When we do the real runs, we record **one extra yes/no per run**: *did the model
+try searching for the label before it started classifying?*
+
+Run that 20 times per language on our matched pair and it stops being an anecdote
+and becomes a number. If it shows nothing, we drop it in a sentence. If it holds,
+it is a small result we would not otherwise have gone looking for.
+
+> **The only thing we must not do is forget to log it** — that field cannot be
+> recovered after the fact, and re-running everything to get it would be
+> expensive. It is already written into the harness notes.
 
 ---
 
