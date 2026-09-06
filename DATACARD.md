@@ -342,12 +342,13 @@ ships text-free, and the per-source config split handles share-alike.
    at least one frontier model and one open model across the length gradient.
    *This is the only item I would call a genuine blocker for a venue submission —
    though not for a Hugging Face release, which can precede the paper.*
-2. **`--certify` has never been run at scale.** README §4 states the rule that
-   n = 10–20 per family certifies nothing, and the committed audit is exactly
-   that size. ✅ **Closed 2026-09-05:** `--certify 250` now runs clean on every
-   family of every set, and the one flagged family (`en_intent` `most_common`,
-   p = 0.033, n = 10) measures z = +1.9 `ok` at 152 draws. Formerly this
-   flagged and unresolved in either direction.
+2. ✅ **`--certify` has now been run at scale (2026-09-05).** README §4 states
+   that n = 10–20 per family certifies nothing, and the committed audit used to be
+   exactly that size. `--certify 250` now runs clean on every family of every set,
+   and the one family that had been flagged and unresolved (`en_intent`
+   `most_common`, prior 0.50 vs chance 0.20, p = 0.033 at n = 10) measures
+   **z = +1.9, `ok`, at 152 distinct draws** — small-sample noise, as §4's own
+   rule predicted. Takes ~2 minutes; re-run before release.
 
 **Three that should be stated rather than fixed:**
 

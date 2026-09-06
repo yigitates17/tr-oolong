@@ -1,5 +1,11 @@
 # TR-OOLONG — Week 1 summary
 
+> **Historical snapshot — Week 1.** Numbers here describe the benchmark as it
+> stood at the time of writing (1,221 questions, 9 question families). It has since
+> changed: see [`W2_Summary.md`](W2_Summary.md) for the current state (1,254
+> questions, 10 families) and for the entity bug that was found and fixed after
+> this was written. Left unedited on purpose, as a record of what was believed then.
+
 *Prepared 2026-08-31. Every number below was recomputed from the built dataset on
 this date, not copied from an earlier note. Written for a reader who has not seen
 the code.*

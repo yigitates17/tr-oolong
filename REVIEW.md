@@ -75,11 +75,17 @@ modest: 1,506 questions, most under 500K tokens. A pinned API model over the
 
 README §4 states the rule itself: "Per-family samples of 10–20 cannot certify a
 family, so the audit runs on hundreds of deduplicated candidate draws." But the
-committed `manifests/quality_audit.json` is **n = 8–56 per family**, mostly
-10–20. The `--certify` path exists and has never been run at scale and committed.
+committed `manifests/quality_audit.json` was **n = 8–56 per family**, mostly
+10–20.
 
-One family is currently flagged in that manifest — `en_intent` `most_common`,
-prior 0.50 against chance 0.20, p = 0.033, n = 10 — and is unresolved in either
+✅ **Resolved 2026-09-05.** `--certify 250` has now been run at scale and
+committed. Every family on every set passes. The family that had been flagged —
+`en_intent` `most_common`, prior 0.50 against chance 0.20, p = 0.033, n = 10 —
+measures **prior 0.263 vs chance 0.200, z = +1.9, `ok`** at 152 distinct draws.
+Small-sample noise, exactly as §4's own rule predicts.
+
+The original finding is kept below because the reasoning is still the point: it
+was unresolved in either
 direction.
 
 **Verdict: doable, it is a compute run.** `--certify 250` across ten sets. Until
