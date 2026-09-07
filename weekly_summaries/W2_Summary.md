@@ -3,6 +3,11 @@
 *Written for someone who has not read the code. Every number here comes from the
 built dataset, not from a plan. Updated 2026-09-07.*
 
+> **Presenting this?** [`W2_Talking_Points.md`](W2_Talking_Points.md) is a
+> one-page sheet of "say it like this, not like that" for the eight places the
+> wording is easy to get backwards — plus answers to the questions most likely to
+> come back at you.
+
 ---
 
 ## 0. Where we are, in one glance
@@ -45,6 +50,11 @@ neutral?"* — answer **10** — while the word "Venatura" appeared **zero times
 the document. **Nobody and nothing could have answered it.**
 
 **118 questions — 9.7% of the whole benchmark — were impossible.**
+
+> **Say it precisely.** We never put answers into a haystack — that is the whole
+> design. What was missing is the *information needed to work the answer out*. The
+> brand sat in a metadata column **we** had, so our answer key was correct; it just
+> never reached the text the model reads.
 
 ### Why our automatic checks did not catch it
 
@@ -173,6 +183,10 @@ possible answers (so guessing scores 50%), and it is the only type our
 
 ### 4.1 What is "long context"? Are we solving the legal cross-reference problem?
 
+**Length alone is not the definition, and this is the point people miss.** A
+1-million-token needle hunt is *easy* — you just search for it. Same length,
+completely different difficulty.
+
 "Long context" is not one problem. The useful way to split it is: **how much of
 the document must you read to answer?**
 
@@ -218,6 +232,12 @@ research field; and no Turkish legal corpus with resolved references exists.
 
 > **Spreadsheet analogy:** the label is the column you compute statistics on. The
 > entity is the column you group by.
+
+**⚠️ The one that trips people up: intents are LABELS, not entities.**
+`transport_taxi` is a thing we *count*, exactly like `olumsuz`. **Brands are our
+only entity in practice** — the intent sets have no usable entity axis at all,
+because `scenario` sits *inside* `intent` (every `transport_taxi` is in the
+`transport` scenario), so grouping by it is either trivial or impossible.
 
 **On his specific question — "label A vs label B":** that was OOLONG's, and we did
 not have it. **We added it this week.** It needs no brand column, so it works on
@@ -274,7 +294,14 @@ and building a benchmark that phones a company's server to measure itself would
 make it unreproducible.
 
 **We chose Qwen because it is the model family the experiments will actually run
-on**, and it is open and offline.
+on**, and it is open and offline. **It is already a config parameter**
+(`"reference_tokenizer": "Qwen/Qwen3-8B"`), so switching is one line plus a
+rebuild.
+
+> **"But what if we test Claude, OpenAI *and* Qwen?"** — not a problem. The
+> tokenizer only decides **how long a document is**. We pick one, name it, and
+> report it. After that the text is fixed, and each model consumes it however it
+> does. You need one ruler, not one ruler per model.
 
 #### Would OpenAI's tokenizer make our dataset longer or shorter?
 
@@ -453,10 +480,17 @@ so a label named `alarm_kur` matches a natural Turkish sentence exactly:
 
 English never does this — you say *"set an alarm"*, never *"alarm set"*.
 
-**Conclusion: translating is possible and costs ~0.9% of the data** (those rows get
-filtered out). It is a reasonable experiment, not a default. Keeping English codes
-loses **no Turkish signal**, because the Turkish is in the *text* the model reads —
-the label is just the name of the bucket.
+> ### ⚠️ Read the direction carefully — it is the opposite of what it feels like
+>
+> Translating **creates** leakage; it does not remove it. Today we are at 0%
+> **because** the labels are English. A Turkish sentence cannot contain
+> `alarm_set`. Translate it and the sentence starts containing its own answer.
+
+**Conclusion: translating is possible and costs about 1% of the data** — those 137
+rows get deleted by the leakage filter. It is a reasonable experiment, **not a
+free upgrade**. And keeping English codes loses **no Turkish signal**, because the
+Turkish is in the *text* the model reads — the label is only the name of the
+bucket.
 
 > Sorting Turkish emails into folders labelled in English does not make the emails
 > less Turkish.
@@ -518,6 +552,9 @@ suffering for months with heel pain and this finally…"* — while unhappy ones
 why we measure it per dataset instead of assuming.
 
 ### How we handle it
+
+**We do not "fix" it — we measure it.** Nothing is removed or rebalanced. Amazon's
+1.1× spread stays exactly as it is.
 
 A dataset where length predicts the label is **still a valid counting task** — the
 model must still classify thousands of records and add them up. What it stops
@@ -615,8 +652,18 @@ So any Turkish-vs-English difference we measure is:
 the datacard as a limitation. **Our review datasets are unaffected** — they are
 Turkish written by Turkish people, with no translation step to corrupt.
 
-**Fix:** the same 150 rows again, with two columns instead of one — *does the label
-fit the English?* and *does it fit the Turkish?* — judged separately. ~30 minutes.
+**Fix: the SAME 150 rows again — not a new sample** — with two columns instead of
+one: *does the label fit the English?* and *does it fit the Turkish?*, judged
+separately. ~30 minutes.
+
+> **Why not fresh rows?** A new 150 would just re-measure the same combined number
+> with different sampling error. Only the two-column pass **separates translation
+> errors from labelling errors**, which is the actual open question.
+
+> **And note the goal is not "make the noise minimal".** We cannot reduce it — it
+> is in the source data, upstream of us. We **measure** it and **bound its
+> consequence**: ranking questions are almost immune to label noise, raw counts are
+> not. That is why headline results go on the ranking families.
 
 ---
 
@@ -946,6 +993,17 @@ cite it.**
 > 3. **It sets a realistic expectation: around +4%, not +28%.** The +28.3% figure
 >    from RLM-Qwen3-8B came from a different kind of training. Promising +28%
 >    would be overselling.
+
+**⚠️ Be careful what you say is "validated".**
+
+| ✅ True | ❌ Overclaiming |
+|---|---|
+| π² trained on **table-based multi-hop reasoning** → +4.3% | *"aggregation fine-tuning is validated"* |
+| RLM-Qwen3-8B trained on **recursion trajectories** → +28.3% | |
+| **Neither trained on aggregation.** That gap is still open, in every language | |
+
+**Say:** *"the family of approaches works; nobody has done aggregation
+trajectories, in any language."*
 
 **3. Still no multilingual OOLONG, and still no Turkish long-context aggregation
 benchmark.** I searched again. TurkBench and Cetvel are Turkish but short-context;
