@@ -1,140 +1,159 @@
-# NotebookLM prompt — Week 2 slides for a non-technical audience
+# NotebookLM prompt — Week 2 **progress** slides
 
-**How to use:** upload `W2_Summary.md` to NotebookLM as a source, then paste
-everything in the box below as your prompt.
+**How to use:** upload `W2_Summary.md` to NotebookLM as a source, then paste the
+block below.
 
-**Audience assumed:** one English language teacher, no AI background. You present;
-the slides only anchor you.
+**What this produces:** a deck about **what I did this week** — the problems I
+found, what I fixed, what I decided. Not an introduction to the project. One
+slide of context, then the week's work.
 
 ---
 
 ```
-Create a short slide deck from the attached document.
+Create a slide deck reporting ONE WEEK OF PROGRESS on a research project.
+
+WHAT THIS DECK IS
+This is a weekly progress report, like a work update to a manager. It is NOT an
+introduction to the project. Do not spend slides explaining what the project is,
+why it matters, or how it works in general. Give that exactly ONE slide of
+background at the start, then spend every other slide on WHAT HAPPENED THIS WEEK:
+what I looked into, what I discovered, what I fixed, what I decided, what I got
+wrong.
 
 AUDIENCE
-The audience is one person: an English language teacher with no background in
-computer science, artificial intelligence, or statistics. Assume they have never
-heard of a "language model", a "dataset", or a "benchmark". They are intelligent
-and curious, and they are interested in LANGUAGE — so where a point touches on
-Turkish vs English, lean into that, because it is the part they will connect with.
+One English language teacher. No background in computer science, artificial
+intelligence, or statistics. Assume they have never heard of a "language model",
+a "dataset", or a "benchmark". They are intelligent and curious, and they are
+interested in LANGUAGE — so lean into anything about Turkish versus English,
+because that is what they will connect with.
 
 MY ROLE
-I am the presenter and I will do all the talking. The slides are only my anchor
-points. Do NOT write explanations, paragraphs, or speaker notes that say what I
-would say out loud. If a slide can be read aloud word for word, it has too much
-text on it.
+I am presenting and I do all the talking. Each slide must give me roughly two
+minutes of material to speak about. The bullets are prompts for ME to expand on,
+not sentences to read aloud. If a slide can be read out word for word, it has too
+much text.
 
-FORMAT RULES
-- 12 slides maximum.
-- Each slide: one clear title, and 3 to 5 short bullet points.
-- Each bullet: 12 words maximum. Fragments are better than sentences.
-- No paragraphs anywhere.
-- Every slide that introduces an idea must include ONE concrete example, clearly
-  marked as an example. The example may exceed 12 words.
-- Plain English. If a technical word is unavoidable, put a 5-word plain
-  definition in brackets after it the first time.
-- BANNED WORDS, with what to use instead:
+FORMAT
+- 12 slides.
+- Each slide: a title, 3 to 5 bullets, and one concrete example.
+- Each bullet: 12 words maximum. Fragments, not sentences.
+- The example may be longer, and should be specific: a real number, a real
+  question, a real sentence.
+- No paragraphs anywhere. No speaker notes.
+
+BANNED WORDS, and what to say instead:
     tokenizer          -> "the software that counts text"
     token              -> "unit of text"
-    corpus / dataset   -> "collection of reviews"
+    dataset / corpus   -> "collection of reviews"
     annotation         -> "labelling"
-    provenance         -> "where the labels came from"
     aggregation        -> "counting across everything"
     entity             -> "brand"
     label              -> "tag" or "category"
     benchmark          -> "test" or "exam"
     model              -> "AI system"
-    epsilon / CI       -> "error rate", no ranges
-- No formulas, no statistical notation, no confidence intervals.
+    query / parse      -> "ask" / "read"
+No formulas, no statistics notation, no percentage ranges.
 
-WHAT THE DECK SHOULD COVER, IN THIS ORDER
+THE TWELVE SLIDES
 
-1.  What the project is. Analogy: we are writing an exam that is deliberately
-    very hard for AI systems to pass.
+1.  ONE slide of background only. What the project is: an exam that is
+    deliberately very hard for AI systems. Example: glue 3,000 real Turkish
+    product reviews into one huge document, then ask "how many of these are
+    negative?" — answer 1,046. Searching does not help; you must read them all.
 
-2.  Why Turkish. Nobody had built this. The closest existing test covers 26
-    languages and Turkish is not one of them.
+2.  What I set out to do this week: check the work for mistakes before publishing
+    it, and answer a list of questions from my supervisor.
 
-3.  How the test works. Example: glue together 3,000 real Turkish product
-    reviews, then ask "how many of these are negative?" — answer 1,046. A person
-    could do it, but it would take hours.
+3.  THE BIG PROBLEM I FOUND. Some questions asked about brands, but I had never
+    printed the brand names into the document. Example: the question asked how
+    many "Venatura" reviews were neutral — the answer is 10 — but the word
+    "Venatura" appeared ZERO times in the text. Nobody could have answered it.
+    That was 118 questions, about one in ten.
 
-4.  Why searching does not help. The answer is not written anywhere in the text.
-    You must read every single review and judge each one.
+4.  Why my safety checks did not catch it. I had four automatic checks, all
+    asking "is this question TOO EASY?". None asked "can this be answered AT
+    ALL?". Analogy: four anti-cheating systems for an exam, and nobody checked
+    the exam had answers.
 
-5.  Where the correct answers come from, and why this is the clever part. Every
-    review already carries the star rating its own author gave it. So nobody has
-    to write an answer key by hand — which is the only reason this can work at
-    this size.
+5.  How I fixed it, and the safeguard. Brand names now appear in the text, and
+    the system now REFUSES to build a test that asks about brands without showing
+    them. The mistake cannot happen silently again.
 
-6.  The mistake we found this week. We asked questions about brands, but had
-    forgotten to print the brand names into the text. Example: the question asked
-    how many "Venatura" reviews were neutral — answer 10 — but the word
-    "Venatura" appeared ZERO times in the document. Nobody could have answered.
+6.  A missing feature I added. The English test we are based on could ask "are
+    there more of category A or category B?" — mine could not. I added it. I also
+    had to fix a fairness problem: at first the answer was "more" far too often,
+    so a lazy system could score well by always guessing "more".
 
-7.  Why our automatic checks missed it. We had four systems checking whether the
-    exam was TOO EASY. None of them checked whether the questions could be
-    answered at all. Analogy: four anti-cheating systems, and nobody checked the
-    exam had answers.
+7.  Checking the data by hand. I read 150 Turkish sentences one by one and judged
+    whether each was labelled correctly. Result: about 9 in 100 were wrong. I
+    also built a small tool so the checking could be done without a spreadsheet.
 
-8.  How we fixed it, plus the safeguard: the system now refuses to build a test
-    that asks about brands without showing them.
+8.  WHAT THAT REVEALED — the most interesting discovery of the week. Some errors
+    were not bad labelling, they were bad TRANSLATION. Example: "put a record on"
+    in English means "play some music". The Turkish translation came out meaning
+    "place a document in a filing cabinet". The tag still said "music", but the
+    Turkish no longer did.
 
-9.  A LANGUAGE finding the audience will enjoy. The same Turkish sentence costs
-    different amounts of "text units" depending on whose software counts it.
-    Example: the same 3,000 sentences make Turkish 34% longer than English under
-    one company's counter, but only 22% longer under another's. So "Turkish is a
-    longer language" turns out to be partly about the measuring tool, not the
-    language.
+9.  Why that discovery matters, and why it is uncomfortable. The English side is
+    correct and the Turkish side is wrong, on sentences that are supposed to be
+    identical. So the Turkish half is being marked against a worse answer key.
+    That weakens my main comparison, and I wrote it down as a known weakness
+    instead of hiding it.
 
-10. A translation discovery. Some of our Turkish came from translated English,
-    and idioms broke in translation. Example: "put a record on" means "play some
-    music" in English; the Turkish translation came out meaning "place a document
-    in a filing cabinet". The label said "music" but the Turkish no longer did.
+10. A claim I deleted. I had written in five documents that Turkish grammar hides
+    information in a way English does not. I checked, and it was not true of my
+    current data — and the comparison had been unfair anyway. I removed it
+    everywhere. Finding your own mistake is a good sign, not a bad one.
 
-11. A claim we deleted because we discovered it was wrong — and why finding your
-    own mistake is a good sign, not a bad one.
+11. A LANGUAGE finding. The same Turkish sentence costs different amounts of
+    "text units" depending on whose software counts it. Example: the same 3,000
+    sentences make Turkish 34% longer than English under one company's counter,
+    but only 22% under another's — and under a Turkish-made one, Turkish comes
+    out SHORTER. So "Turkish is a longer language" is partly about the ruler, not
+    the language.
 
-12. Where the project stands, and what happens next.
+12. Where things stand, and next week. The work is published and all checks pass.
+    Everything is ready except one thing: no AI system has actually taken the
+    exam yet. That needs a powerful computer I do not have access to yet.
 
 TONE
-Confident and plain. This is a progress report on real work, including two real
-mistakes that we found ourselves and fixed. Do not oversell, do not apologise,
-do not use marketing language.
+Confident, plain, factual. This was a productive week that included finding two
+of my own mistakes and fixing them. Do not oversell, do not apologise, and do not
+use marketing language.
 
 OUTPUT
-For each slide give me only: the slide title, the bullet points, and the example.
-Nothing else.
+For each slide give me only: the title, the bullets, and the example.
 ```
 
 ---
 
-## Follow-up prompts, if the first attempt is off
+## Follow-ups if the first attempt is off
+
+**It drifted back into explaining the project:**
+
+```
+Slides [N] and [M] explain the project instead of reporting this week's work.
+Replace them with things that happened this week: a problem found, a fix made,
+a decision taken, or a discovery.
+```
+
+**Not enough for me to talk about:**
+
+```
+Each slide needs about two minutes of speaking material. Add one more bullet to
+each slide giving me an angle to expand on — a consequence, a comparison, or
+what I would do differently.
+```
 
 **Too wordy:**
 
 ```
-Too much text. Cut every bullet to 12 words or fewer, delete any bullet that
-explains something I could say out loud instead, and keep the examples.
+Cut every bullet to 12 words or fewer. Delete anything I could say out loud
+instead. Keep the examples.
 ```
 
-**Still using jargon:**
+**If you are short on time:**
 
 ```
-Slide [N] uses words my audience will not know. Rewrite it in everyday English
-and add one concrete example.
-```
-
-**Not enough examples:**
-
-```
-Slides [N] and [M] state an idea without showing one. Add a specific example to
-each — a real question, a real number, or a real sentence.
-```
-
-**If you want a shorter version for time:**
-
-```
-Cut this to 8 slides. Keep slides 1, 3, 6, 7, 9, 10 and 12 as the priority, and
-merge the rest.
+Cut to 8 slides. Priority: 1, 3, 4, 5, 8, 9, 11, 12.
 ```
