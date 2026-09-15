@@ -78,7 +78,7 @@ CARD = """---
 license: {licenses}
 language: [tr, en]
 task_categories: [question-answering]
-tags: [long-context, aggregation, turkish, benchmark, oolong]
+tags: [long-context, aggregation, turkish, benchmark, oolong, rlm, cross-lingual]
 configs:
 {configs}
 ---
@@ -95,6 +95,131 @@ grep-solvable.
 Built with [`tr-oolong`]({repo_url}) v{version}. See that repository for the
 builder, the configs that reproduce every set byte-for-byte, and
 `DESIGN_DECISIONS.md` for why each construction choice was made.
+
+## At a glance
+
+**8 subsets · 110 documents · 1,254 questions · 28.3M tokens · 2 languages · 10 question families**
+
+| subset | lang | classes | docs | questions | shortest | longest | max records in one doc |
+|---|---|---:|---:|---:|---:|---:|---:|
+| `vitamins_tr` | tr | 3 | 20 | 237 | 99,217 | 744,785 | 19,774 |
+| `amazon_hpc_en` | en | 3 | 20 | 236 | 98,672 | **987,623** | 16,116 |
+| `musteri_tr` | tr | 3 | 15 | 153 | 99,137 | 496,238 | 13,618 |
+| `marc_en` | en | 3 | 15 | 148 | 98,232 | 491,821 | 11,080 |
+| `tr_intent` | tr | **48** | 10 | 120 | 49,981 | 99,998 | 6,169 |
+| `en_intent` | en | **48** | 10 | 120 | 49,921 | 99,871 | 8,122 |
+| `tr_intent_paired` | tr | **48** | 10 | 120 | 47,629 | 99,057 | 6,000 |
+| `en_intent_paired` | en | **48** | 10 | 120 | 36,250 | 75,187 | 6,000 |
+
+Lengths are tokens under `Qwen/Qwen3-8B`. Every document also records `n_chars`,
+so lengths can be re-derived under a different tokenizer without rebuilding —
+which matters, because the Turkish/English token ratio on identical content runs
+from 0.57x to 2.16x depending on whose tokenizer counts it.
+
+**Question families** (1,254 total): `count` 353 · `proportion` 300 ·
+`shift` 110 · `label_vs_label` 109 · `most_common` 99 · `least_common` 98 ·
+`second_most` 91 · `entity_count` 39 · `pairwise` 35 · `entity_argmax` 20.
+
+## What the questions look like
+
+Real questions from the release, with their gold answers:
+
+```
+[count/tr]         Bu yorumlardan kaç tanesi 'olumlu' etiketli?              -> 1600
+[proportion/tr]    Yorumların yüzde kaçı 'olumlu' etiketli?                  -> 62
+[most_common/tr]   Bu yorumlarda en sık görülen etiket hangisi?
+                   Etiketler: 'nötr', 'olumlu', 'olumsuz'.                   -> olumlu
+[entity_count/tr]  'Venatura' markası hakkındaki yorumlardan kaç tanesi
+                   'nötr'?                                                    -> 10
+[pairwise/tr]      'olumlu' yorumu hangisinde daha çok: 'Shorne' mi yoksa
+                   'Tab' mı?                                                  -> Tab
+[shift/tr]         Yorumların ikinci yarısında 'olumsuz' oranı ilk yarıya
+                   göre arttı mı azaldı mı?                                   -> azaldı
+
+[least_common/en]  Which label is the least common in these records?
+                   Labels: 'alarm_set', 'lists_createoradd', 'music_query',
+                   'play_audiobook', 'qa_currency'.                          -> play_audiobook
+[label_vs_label/en] Are records labeled 'datetime_query' more common, less
+                   common, or the same frequency as 'audio_volume_up'?       -> the same
+```
+
+None of these answers appears anywhere in the text. The label is latent: a model
+has to decide what each record *means* before it can count anything. Records
+whose text contains any label's surface form are dropped at build time, so a
+substring search returns nothing useful.
+
+### Why the Turkish intent questions name English labels
+
+This is deliberate, not an oversight. In `tr_intent` and `tr_intent_paired` the
+question is Turkish but the label is the source corpus's English identifier
+(`transport_taxi`, `play_music`), because **translating the labels into Turkish
+puts the answer back into the text**. Turkish is verb-final, so a `noun_verb`
+label reproduces a natural Turkish phrase: the label `alarm_kur` appears
+verbatim inside utterances like *"iki saat sonrasına alarm kur"*.
+
+Measured over the full 48-label space on the same 15,075 utterances:
+
+| labels used | records leaking their own label |
+|---|---|
+| English identifiers (**what ships**) | **0.00%** |
+| Turkish, imperative form (`müzik_çal`) | **3.13%** (472 records) |
+| Turkish, dictionary form (`müzik_çalmak`) | 0.14% (21 records) |
+
+Keeping the English identifiers loses no Turkish signal, because the Turkish is
+in the *text* being classified — the label is only the name of the bucket. The
+translated variants exist in the repository under `configs/experimental/` for
+anyone who wants to study the trade-off, and are deliberately not part of this
+release.
+
+## The matched twin
+
+`tr_intent_paired` and `en_intent_paired` contain **the same utterances, in the
+same order, with the same labels** — one is the translation of the other. So the
+same question has the same correct answer in both languages:
+
+```
+TR: Bu kayıtlarda kaç tane 'transport_taxi' etiketli kayıt var?   -> 18
+EN: How many utterances have the intent 'transport_taxi'?          -> 18
+```
+
+**100 of 120 question pairs share a byte-identical gold answer** (the other 20
+are `shift`, where the same fact is written `arttı` / `rose`). Any score
+difference between the two halves is therefore a property of the language rather
+than of the question, and the two can be compared with a paired test.
+
+`tr_intent` / `en_intent` are the same corpus matched on **token budget** instead
+of record count — so the two halves hold different numbers of records and their
+answers do not correspond. That pair asks "at equal cost"; the paired sets ask
+"at equal content".
+
+## Relation to Oolong
+
+This follows the construction principle of
+[Oolong](https://arxiv.org/abs/2511.02817) (Bertsch et al., 2025) and extends it.
+Their construction code was unreleased at the time of writing, so the pipeline
+here is an independent reimplementation from the paper's description.
+
+| | Oolong | TR-OOLONG |
+|---|---|---|
+| languages | English | **Turkish + a matched English twin** |
+| documents | not reported per split | **110**, 28.3M tokens |
+| context length | reported at 8K-128K | **36K-988K** |
+| label space | 2-10 classes | **3 and 48** |
+| grouping axis | synthetic user IDs | **real brands** |
+| timeline questions over real dates | **6 families** | ✗ none — no Turkish source carries dates |
+| cross-lingual | ✗ | **✓ same question, same answer, two languages** |
+| numeric metric | `0.75^\|y-yhat\|` | same **+ a scale-free one** |
+| shortcut audit | not reported | **5 solvers, reports shipped** |
+
+**Where Oolong is harder:** it has six question families conditioned on real
+calendar dates, which its paper reports as its hardest group. There is no
+equivalent here, because no Turkish labelled corpus with dates was found. The
+substitute — comparing the first half of a document to the second — is binary
+and is the weakest family in this release.
+
+**Where this is harder:** 48 classes against their 2-10, documents to 988K
+tokens, and answers in the thousands where theirs are single digits. That last
+difference is not purely an advantage — see Limitations.
 
 ## Subsets and their licenses
 
