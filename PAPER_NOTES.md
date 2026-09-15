@@ -684,9 +684,53 @@ listed in §11 as "untested by anyone." That was wrong. It has been tested, and
 tested on **OOLONG** — the benchmark this one is modelled on. Running it here
 would be a replication on a Turkish variant, not a new result. Downgraded.
 
-**What is still unexamined, if it is ever wanted:** depth 2 on a *non-English*
-axis, and depth 2 at the 1M-token tier where the single-split fan-out is
-largest. Both are narrow, and neither is worth displacing anything above it.
+**What is still unexamined, and it is better than the forced-depth experiment:**
+**optional** depth. Zhang et al. list adaptive recursion depth as future work —
+"whether a sub-call's answer is itself worth recursing on, instead of treating
+the recursion depth as fixed at 1" — and Wang tested depth 2 *forced*, not
+*offered*. **Nobody has measured what a model chooses when the choice exists.**
+
+Run on the record-matched pair, this becomes a cross-lingual behavioural
+measure: same question, same gold answer, different language, so a difference in
+how often the model elects to decompose further is attributable to the language.
+It is the same design shape as `shortcut_attempted` (§5c) and should be logged
+the same way.
+
+⚠️ **Do not interpret "chose to recurse" as "low confidence."** It may track
+chunk difficulty, prompt phrasing, or verbosity. Report it as behaviour
+observed, not as a belief inferred.
+
+**Also verified from the paper (§12d) and relevant here:** chunk sizes are not
+uniform — the root writes the splitting code, so decomposition is a per-query
+model decision. Weak roots get this badly wrong, which is why the authors added
+a prompt line warning their open-weight model not to sub-call everything.
+
+---
+
+## 12d. Sub-call structure, verified from the paper PDF (2026-09-15)
+
+Three facts extracted directly from arXiv:2512.24601v3, all bearing on planned
+experiments:
+
+1. **Chunk sizes are not fixed and not equal.** The root authors the splitting
+   code, so the number and size of chunks is decided per query by the model.
+2. **Weak roots over-dispatch, and the authors patched it with a prompt.** Their
+   system prompt for Qwen3-Coder differs from the GPT-5 one by one added line
+   warning it not to use too many sub-LM calls — *"without this warning, the
+   model will try to perform a subcall on everything, leading to thousands of LM
+   subcalls for basic tasks."* Context windows also differ sharply (GPT-5 272k
+   vs Qwen3-8B 32k) and prompts were adjusted accordingly.
+   **This is prior evidence for both the capability-floor question and the
+   guided-vs-vanilla prompt ablation.** Cite it rather than rediscovering it.
+3. **The paper has an architecture figure — Figure 2**, showing the prompt
+   treated as part of the environment, loaded as a variable in a REPL. A figure
+   is still worth drawing here, for a claim theirs does not make: the difference
+   between one level of delegation and genuine nesting.
+
+**Bonus, from Figure 8:** the authors observed RLMs "filtering and interacting
+with their context through regex code" as a common trajectory pattern. That is
+the same reflex `drop_label_leakage` exists to defeat, and it is independent
+support for the grep-proofing design.
 
 **A second finding in that paper, which is more useful to us than the depth
 result:** depth-1 RLM **performs worse than a vanilla LLM on simple retrieval
