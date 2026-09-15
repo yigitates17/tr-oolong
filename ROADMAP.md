@@ -294,7 +294,7 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [x] Twin count stated consistently everywhere (was 100, 110 and "20 shift"
       in three places).
 
-## v0.6.3 addendum, part 2 (2026-09-16) — the readers the gate was missing
+## v0.6.3 addendum, part 2 (2026-09-16): the readers the gate was missing
 
 - [x] **`headtail` and `stride` readers added to `sampling_solver.py`.** Both
       cost exactly what the `prefix` reader costs. The haystack is two

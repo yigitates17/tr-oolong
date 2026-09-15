@@ -813,7 +813,7 @@ less filtering cost, no measured downside on any of the three gates.
 
 ---
 
-## D20 — `shift` is withdrawn: one bit, recoverable from two cheap windows (v0.7.0)
+## D20. `shift` is withdrawn: one bit, recoverable from two cheap windows (v0.7.0)
 
 `shift` asked whether a label's share **rose or fell** between the first and
 second half of the haystack. It is disabled in every config as of v0.7.0

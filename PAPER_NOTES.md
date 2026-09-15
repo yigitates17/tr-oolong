@@ -268,7 +268,7 @@ paired test across the record-matched pair.
 
 ---
 
-## 6. `shift` is style-solvable and should not carry a headline — SUPERSEDED, the family is withdrawn (see 13d)
+## 6. `shift` is style-solvable and should not carry a headline. SUPERSEDED: the family is withdrawn (see 13d)
 
 The only family the format solver beats: **+0.400** (`amazon_hpc_en`), **+0.300**
 (`vitamins_tr`), **+0.267** (`musteri_tr`, `marc_en`), +0.100 (`en_intent`). Highest majority baseline in the
@@ -1009,7 +1009,7 @@ without the qualifier "under `exact`, or under `relative` as lift over `blind`
 with the reading protocol stated". The unqualified sentence is false on 64% of
 the questions.
 
-### 13d. ⚠️ 2026-09-16 — `shift` is withdrawn, and the reason generalises
+### 13d. ⚠️ 2026-09-16. `shift` is withdrawn, and the reason generalises
 
 **WRITE this as a methods finding, not as an apology.** The partial-coverage
 gate modelled only two readers: a uniform random sample and a contiguous head
