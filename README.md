@@ -9,9 +9,11 @@
 > > *"How many of these reviews are negative?"* → **1,046**
 > > *"Which brand received the most positive reviews?"* → **Smartcaps**
 >
-> **Why it is hard.** The answer is not written anywhere. Searching does not help.
-> To answer, a model must read **every single review**, judge each one, and add up
-> the results. Skimming fails.
+> **Why it is hard.** The answer is not written anywhere, so searching does not
+> help. A model has to judge what each review *means* and add the judgements up.
+> **Measured caveat:** because the answers are large numbers, judging a random
+> sample and scaling up gets close — so this tests classifying Turkish at scale,
+> not reading every word. See §4e.
 >
 > **Why Turkish.** Nobody had built one. The nearest multilingual benchmark covers
 > 26 languages and Turkish is not among them.
@@ -28,6 +30,11 @@
 >
 > **Numbers:** 110 documents · 1,254 questions · 28.3M tokens · 10 question types
 > · 2 languages.
+>
+> **Released:** <https://huggingface.co/datasets/yigitates17/tr-oolong>
+> (15 September 2026, tag `v0.6.2`). Seven subsets ship their text; `amazon_hpc_en`
+> ships questions and answers only and is rebuilt locally, because Amazon grants
+> no redistribution.
 >
 > A fuller plain-language walkthrough, including what we got wrong and fixed, is
 > in [`weekly_summaries/W2_Summary.md`](weekly_summaries/W2_Summary.md).
@@ -90,7 +97,7 @@ considered and why each was kept or rejected.
 
 Most long-context benchmarks test **retrieval** ("find the needle"). TR-OOLONG
 tests **aggregation**: to answer *"how many records have intent X?"* a model must
-classify every atom in the haystack and combine the results. The label never
+classify records by their latent label and combine the results. The label never
 appears verbatim in the text, so nothing is grep-solvable — every question forces
 latent classification plus counting, not string matching. This makes it a probe
 for whether a model actually *ingests* a long context rather than skimming it.
@@ -684,6 +691,56 @@ positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
 highest in the suite (mean 0.61). A binary rose/fell over
 positional halves is simply too coarse. See §10.
 
+**(e) Reading only part of it — the sampling solver** (`scripts/sampling_solver.py`,
+added 2026-09-15). Solvers (a)–(d) all ask whether a question can be answered
+*without* reading the haystack. This one asks whether it can be answered by
+reading a **fraction** of it: sample records at random, answer from the sample,
+scale back up.
+
+**It works, and unlike the other four this one is reported as a limitation
+rather than as a gate that passes.**
+
+| set | family | majority | 5% sample | 25% |
+|---|---|---|---|---|
+| `vitamins_tr` | `count` | 0.05 | **0.95** | 0.98 |
+| `musteri_tr` | `most_common` | 0.545 | **0.99** | 1.00 |
+| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.67 |
+| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.54 |
+
+The mechanism is margin width. On `most_common` the relative gap between the top
+two classes is a **median of 38%** (`vitamins_tr`) and **48%** (`musteri_tr`),
+far above the 10% floor the builder enforces, and a small sample settles a 38%
+gap almost every time. The 48-class intent axis has a median gap of 14% and
+resists better. `label_vs_label` resists only where its 2% "equal" dead band
+fires — which is the intent axis, not the 3-class sets (D18).
+
+Three qualifications travel with the number: the solver is handed the true label
+of every record it samples, so it bounds a *perfect classifier reading a
+fraction* rather than any real model; it bites `relative`, while `exact` is
+immune; and it is a consequence of **scale**, since a benchmark with
+single-digit answers cannot be sampled at all.
+
+**What this bounds.** Ground truth is unaffected. The supported claim is that
+this benchmark requires **classifying latent Turkish labels and aggregating
+them** — it does *not* establish that a model processed the whole document.
+
+**This is a property of the task family, not of this benchmark.** Any
+label-derived aggregation benchmark whose gold answers are large inherits it,
+which includes OOLONG at its longer settings. We have not measured theirs —
+their construction code is unreleased, so their data cannot be rebuilt — and we
+do not claim a defect in it on the strength of an argument. What we do claim is
+narrower and checkable: **nobody in this family has tested for this, and we
+did.** If OOLONG's validated splits are released, running this solver on them is
+a direct follow-up.
+
+**The fix, for a future version: a margin band rather than a margin floor.** The
+builder rejects questions whose decision margin is too *narrow*; it should also
+reject those too *wide*. Measured trade-off: capping at 0.15 drops the 5%-sample
+score on ranking families from 0.755 to 0.393, at the cost of 384 of 452 ranking
+questions — and it cannot help `count`/`proportion` at all, which is 64% of the
+benchmark. Removal is therefore not a viable fix; disclosure is.
+`manifests/sampling_audit.json` is the committed record.
+
 **Questions must be answerable only by aggregating.** The same audit measures how
 much of the haystack determines each answer. The median `tr_oolong` `pairwise`
 question used to rest on **8 records out of 3,919**, with a margin of 2 — that is
@@ -916,7 +973,7 @@ which their paper reports as the hardest of the three.
 | **timeline axis** | **6 families over real dates** | 1 binary family over positional halves |
 | ordered ranking | — | implemented, withdrawn with its only corpus in v0.5.0 |
 | numeric metric | `0.75^\|y-ŷ\|` | same **+ `relative`** (theirs degenerates at our counts) |
-| shortcut audit | not reported | **4 solvers, committed manifests** |
+| shortcut audit | not reported | **5 solvers, committed manifests** (4 fail as intended, 1 partly succeeds — §4e) |
 
 **The timeline gap is the one real deficit, and it is blocked on data, not code.**
 It needs a labelled corpus with real dates in *both* languages. English has
@@ -957,9 +1014,10 @@ one turned out to be insufficient. The method generalises to any language pair.
    answer cannot be recovered from corpus-level statistics.
 7. **Compute every answer twice.** Two independent code paths, asserted equal.
    This is what makes "no manual annotation" safe rather than merely cheap.
-8. **Run four solvers and ship only what survives.** Leakage, majority skew,
-   corpus priors, surface format. Each was added *after* a version of the
-   benchmark was found solvable by it. A family that fails on a given source is
+8. **Run five solvers and ship only what survives.** Leakage, majority skew,
+   corpus priors, surface format, and sampling. Each was added *after* a version
+   of the benchmark was found solvable by it — the fifth still partly succeeds,
+   and is reported rather than hidden (§4e). A family that fails on a given source is
    switched off for that source and the omission is recorded, not hidden.
 9. **Certify the generator, not the sample.** At n = 13 the `tr_oolong`
    `pairwise` prior measured 0.85; at n = 235 it measured 0.53. Per-family
