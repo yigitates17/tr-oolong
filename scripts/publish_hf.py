@@ -141,6 +141,36 @@ Use `src/scoring.py` from the repository. It reports `exact`, `partial`
 (`0.75**|y-yhat|`, matching Oolong) and `relative` (scale-free). Do not
 re-implement it; the metric is frozen.
 
+## Limitations
+
+Five shortcut solvers are run against every build. Four fail, as intended:
+substring search over label names, always answering the most frequent label,
+answering from corpus statistics without opening the haystack, and classifying
+records from length and punctuation alone. Their reports ship in the repository
+under `manifests/`.
+
+**The fifth partly succeeds, and it bounds what this benchmark shows.** Because
+gold answers are large (median `count` near 1,000), most question families can
+be answered by classifying a random *sample* of the records and scaling up
+rather than by reading all of them. Measured with a solver given the true label
+of every record it samples -- an upper bound, not a model result -- a 5% sample
+scores 0.95 on `count` and 0.99 on `most_common` on the review sets, against
+majority baselines of 0.05 and 0.55. The 48-class intent axis resists better
+(0.39 on `most_common`) because its decision margins are narrower.
+
+**So the supported claim is that this benchmark requires classifying latent
+Turkish labels and aggregating them. It does not establish that a model has
+processed the entire document.** Exact-match scoring is immune to this;
+`relative` is not.
+
+Other limitations, with numbers, are in `DATACARD.md`: label noise as a
+per-family ceiling (measured 2.7-9.3% on the intent axis, part of it
+mistranslation and asymmetric across the twin), documents within a length tier
+sharing 21-39% of their records, no timeline axis, `shift` being the weakest
+family and the only one the format solver beats, entity families being available
+only at 500K tokens and above, small per-family sample sizes, and all lengths
+measured under a single tokenizer.
+
 ## Citation
 
 ```bibtex
@@ -223,7 +253,10 @@ def main() -> None:
     table = ("| subset | lang | source | license | text included | questions | note |\n"
              "|---|---|---|---|---|---|---|\n" + "\n".join(rows))
     card = CARD.format(
-        licenses="\n".join(f"- {l}" for l in sorted(licenses)) if len(licenses) > 1
+        # A block sequence cannot follow "license:" on the same line -- that is
+        # invalid YAML and the card's front matter silently fails to parse on
+        # the Hub. Flow style keeps it on one line and valid for both cases.
+        licenses=("[" + ", ".join(sorted(licenses)) + "]") if len(licenses) > 1
                  else sorted(licenses)[0],
         configs="\n".join(cfg_lines), table=table,
         withheld="\n".join(withheld) or "_(none)_",
