@@ -12,7 +12,16 @@
         "prior_acc": 0.0,
         "chance": 0.018,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.426,
+        "blind_rel": 0.426,
+        "prior_rel_by_tier": {
+          "100000": 0.356,
+          "250000": 0.387,
+          "500000": 0.565,
+          "1000000": 0.398
+        },
+        "prior_rel_watch": false
       },
       "entity_argmax": {
         "n": 8,
@@ -32,7 +41,16 @@
         "prior_acc": 0.0,
         "chance": 0.158,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.406,
+        "blind_rel": null,
+        "prior_rel_by_tier": {
+          "100000": 0.108,
+          "250000": 0.456,
+          "500000": 0.407,
+          "1000000": 0.595
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 20,
@@ -82,7 +100,16 @@
         "prior_acc": 0.02,
         "chance": 0.061,
         "p_value": 0.95476,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.425,
+        "blind_rel": 0.427,
+        "prior_rel_by_tier": {
+          "100000": 0.356,
+          "250000": 0.399,
+          "500000": 0.566,
+          "1000000": 0.377
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 15,
@@ -119,7 +146,14 @@
         "prior_acc": 0.0,
         "chance": 0.05,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.501,
+        "blind_rel": 0.499,
+        "prior_rel_by_tier": {
+          "50000": 0.441,
+          "100000": 0.562
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 10,
@@ -159,7 +193,14 @@
         "prior_acc": 0.033,
         "chance": 0.1,
         "p_value": 0.95761,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.557,
+        "blind_rel": 0.507,
+        "prior_rel_by_tier": {
+          "50000": 0.461,
+          "100000": 0.653
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 10,
@@ -196,7 +237,14 @@
         "prior_acc": 0.0,
         "chance": 0.05,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.469,
+        "blind_rel": 0.47,
+        "prior_rel_by_tier": {
+          "3000": 0.441,
+          "6000": 0.498
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 10,
@@ -236,7 +284,14 @@
         "prior_acc": 0.033,
         "chance": 0.1,
         "p_value": 0.95761,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.404,
+        "blind_rel": 0.408,
+        "prior_rel_by_tier": {
+          "3000": 0.358,
+          "6000": 0.449
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 10,
@@ -273,7 +328,15 @@
         "prior_acc": 0.0,
         "chance": 0.044,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.427,
+        "blind_rel": 0.427,
+        "prior_rel_by_tier": {
+          "100000": 0.354,
+          "250000": 0.357,
+          "500000": 0.57
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 14,
@@ -313,7 +376,15 @@
         "prior_acc": 0.022,
         "chance": 0.089,
         "p_value": 0.98484,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.427,
+        "blind_rel": 0.427,
+        "prior_rel_by_tier": {
+          "100000": 0.354,
+          "250000": 0.356,
+          "500000": 0.571
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 8,
@@ -350,7 +421,15 @@
         "prior_acc": 0.0,
         "chance": 0.022,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.549,
+        "blind_rel": 0.549,
+        "prior_rel_by_tier": {
+          "100000": 0.546,
+          "250000": 0.508,
+          "500000": 0.593
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 15,
@@ -390,7 +469,15 @@
         "prior_acc": 0.023,
         "chance": 0.068,
         "p_value": 0.95527,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.56,
+        "blind_rel": 0.563,
+        "prior_rel_by_tier": {
+          "100000": 0.542,
+          "250000": 0.545,
+          "500000": 0.591
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 10,
@@ -427,7 +514,14 @@
         "prior_acc": 0.0,
         "chance": 0.05,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.452,
+        "blind_rel": 0.511,
+        "prior_rel_by_tier": {
+          "50000": 0.395,
+          "100000": 0.509
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 10,
@@ -467,7 +561,14 @@
         "prior_acc": 0.0,
         "chance": 0.1,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.287,
+        "blind_rel": 0.445,
+        "prior_rel_by_tier": {
+          "50000": 0.319,
+          "100000": 0.255
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 10,
@@ -504,7 +605,14 @@
         "prior_acc": 0.0,
         "chance": 0.05,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.469,
+        "blind_rel": 0.47,
+        "prior_rel_by_tier": {
+          "3000": 0.441,
+          "6000": 0.498
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 10,
@@ -544,7 +652,14 @@
         "prior_acc": 0.033,
         "chance": 0.1,
         "p_value": 0.95761,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.404,
+        "blind_rel": 0.408,
+        "prior_rel_by_tier": {
+          "3000": 0.358,
+          "6000": 0.449
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 10,
@@ -581,7 +696,16 @@
         "prior_acc": 0.0,
         "chance": 0.021,
         "p_value": 1.0,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.594,
+        "blind_rel": 0.625,
+        "prior_rel_by_tier": {
+          "100000": 0.546,
+          "250000": 0.494,
+          "500000": 0.617,
+          "750000": 0.746
+        },
+        "prior_rel_watch": true
       },
       "entity_argmax": {
         "n": 12,
@@ -601,7 +725,16 @@
         "prior_acc": 0.05,
         "chance": 0.2,
         "p_value": 0.98847,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.483,
+        "blind_rel": null,
+        "prior_rel_by_tier": {
+          "100000": 0.371,
+          "250000": 0.433,
+          "500000": 0.437,
+          "750000": 0.691
+        },
+        "prior_rel_watch": false
       },
       "label_vs_label": {
         "n": 20,
@@ -651,7 +784,16 @@
         "prior_acc": 0.024,
         "chance": 0.071,
         "p_value": 0.95551,
-        "prior_shortcut": false
+        "prior_shortcut": false,
+        "prior_rel": 0.58,
+        "blind_rel": 0.626,
+        "prior_rel_by_tier": {
+          "100000": 0.61,
+          "250000": 0.458,
+          "500000": 0.588,
+          "750000": 0.67
+        },
+        "prior_rel_watch": false
       },
       "second_most": {
         "n": 18,

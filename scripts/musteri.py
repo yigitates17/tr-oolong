@@ -12,11 +12,17 @@ and the four entity-relational families are omitted by construction. Its twin
 import polars as pl
 from datasets import load_dataset
 
+# Pinned Hub revision: the commit that was HEAD when this source was fetched
+# (August 2026). The build is byte-identical only against these bytes, and the
+# manifest records their hash; an upstream change would otherwise make a
+# text-withheld set unrebuildable with no way back.
+REVISION = "7579c67929d30832253649fb21bab99185c8b9cd"
+
 # source labels are 0-4 (zero-indexed stars) over the card's 1-5 scale
 STAR_TO_LABEL = {0: "olumsuz", 1: "olumsuz", 2: "nötr", 3: "olumlu", 4: "olumlu"}
 
 df = (
-    pl.from_arrow(load_dataset("turkish-nlp-suite/MusteriYorumlari", split="train").data.table)
+    pl.from_arrow(load_dataset("turkish-nlp-suite/MusteriYorumlari", split="train", revision=REVISION).data.table)
     .select(
         pl.col("text").cast(pl.Utf8).alias("text"),
         pl.col("label").cast(pl.Int64).replace_strict(STAR_TO_LABEL, default=None).alias("label"),

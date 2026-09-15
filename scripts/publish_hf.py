@@ -41,8 +41,9 @@ POLICY = {
         license="cc-by-4.0", full_text=True,
         source="AmazonScience/massive (tr-TR), record-matched",
         note="RECORD-MATCHED twin: the same utterances, in the same order, as "
-             "en_intent_paired. 110 of 120 questions share a gold answer, so the "
-             "two can be compared with a paired test."),
+             "en_intent_paired. 100 of 120 questions share a byte-identical gold "
+             "answer and the other 20 the same fact in language-specific strings, "
+             "so the two can be compared with a paired test."),
     "en_intent_paired_out": dict(
         license="cc-by-4.0", full_text=True,
         source="AmazonScience/massive (en-US), record-matched",
@@ -185,10 +186,14 @@ TR: Bu kayıtlarda kaç tane 'transport_taxi' etiketli kayıt var?   -> 18
 EN: How many utterances have the intent 'transport_taxi'?          -> 18
 ```
 
-**100 of 120 question pairs share a byte-identical gold answer** (the other 20
-are `shift`, where the same fact is written `arttı` / `rose`). Any score
-difference between the two halves is therefore a property of the language rather
-than of the question, and the two can be compared with a paired test.
+**100 of 120 question pairs share a byte-identical gold answer**; the other 20
+(10 `shift`, 10 `label_vs_label`) state the same fact in language-specific
+strings (`arttı` / `rose`, `eşit` / `the same`), so all 120 are paired. A score
+difference between the two halves is therefore not a property of the question.
+It can still come from the language, from the translation (the Turkish half is
+a human localization, and part of its measured label noise is mistranslation),
+or from the Turkish text costing 1.3x the tokens under the reference tokenizer.
+The two halves can be compared with a paired test.
 
 `tr_intent` / `en_intent` are the same corpus matched on **token budget** instead
 of record count — so the two halves hold different numbers of records and their
@@ -269,6 +274,15 @@ Use `src/scoring.py` from the repository. It reports `exact`, `partial`
 (`0.75**|y-yhat|`, matching Oolong) and `relative` (scale-free). Do not
 re-implement it; the metric is frozen.
 
+**Report `relative` as lift over the `blind` reference, and state the reading
+protocol.** Under `relative` a reader that opens nothing, counts the records and
+answers N/K already scores 0.43-0.63 on `count` and `proportion`. The
+per-family reference is in `manifests/sampling_audit.json` in the repository.
+State whether the model was given the document in a single prompt
+(`scripts/run_eval.py`) or run agentically with tools or code execution over
+it, and whether it was permitted to sample; these are different benchmark
+conditions and score very differently (see Limitations).
+
 ## Limitations
 
 Five shortcut solvers are run against every build. Four fail, as intended:
@@ -279,25 +293,40 @@ under `manifests/`.
 
 **The fifth partly succeeds, and it bounds what this benchmark shows.** Because
 gold answers are large (median `count` near 1,000), most question families can
-be answered by classifying a random *sample* of the records and scaling up
-rather than by reading all of them. Measured with a solver given the true label
-of every record it samples -- an upper bound, not a model result -- a 5% sample
-scores 0.95 on `count` and 0.99 on `most_common` on the review sets, against
-majority baselines of 0.05 and 0.55. The 48-class intent axis resists better
+be answered by classifying a *part* of the records and scaling up rather than
+by reading all of them. Measured with solvers given the true label of every
+record they read -- upper bounds, not model results -- a 5% random sample scores
+0.89-0.92 on `count` and 0.99 on `most_common` on the review sets, against a
+read-nothing reference of 0.43-0.63 and 0.55. Reading only the first 5% of the
+document (truncation) scores 0.65-0.70. The 48-class intent axis resists better
 (0.39 on `most_common`) because its decision margins are narrower.
+
+**Under `relative`, the length axis is flat.** A fixed budget of 1,000 randomly
+read records scores 0.94-0.97 on `count` at every tier from 100K to 1M tokens,
+because a proportion's error depends on how many records were read, not on how
+many exist. On the numeric families (64% of the questions) a `relative` score
+therefore cannot tell a model that read 1,000 records from one that read
+16,000. What the length axis still tests is whether a model survives ingestion
+at all. A single `relative` score also cannot say whether a model read more or
+classified better: a perfect classifier reading 5% outscores a 90%-accurate
+classifier reading everything.
 
 **So the supported claim is that this benchmark requires classifying latent
 Turkish labels and aggregating them. It does not establish that a model has
-processed the entire document.** Exact-match scoring is immune to this;
-`relative` is not.
+processed the entire document, and under `relative` it does not establish that a
+longer document was harder.** Exact-match scoring is immune to this; `relative`
+is not.
 
-Other limitations, with numbers, are in `DATACARD.md`: label noise as a
-per-family ceiling (measured 2.7-9.3% on the intent axis, part of it
-mistranslation and asymmetric across the twin), documents within a length tier
-sharing 21-39% of their records, no timeline axis, `shift` being the weakest
-family and the only one the format solver beats, entity families being available
-only at 500K tokens and above, small per-family sample sizes, and all lengths
-measured under a single tokenizer.
+Other limitations, with numbers, are in `DATACARD.md`: the twelve questions on
+each 3-class document carry about two degrees of freedom (the unit of evidence
+is the document, not the question), the 750K tier of `vitamins_tr` is
+prior-exposed on the numeric families (the corpus-share guess scores 0.75 there),
+label noise as a per-family ceiling (measured 2.7-9.3% on the intent axis, part
+of it mistranslation and asymmetric across the twin), documents within a length
+tier sharing 21-39% of their records, no timeline axis, `shift` being the
+weakest family and the only one the format solver beats, entity families being
+available only at 500K tokens and above, small per-family sample sizes, and all
+lengths measured under a single tokenizer.
 
 ## Citation
 

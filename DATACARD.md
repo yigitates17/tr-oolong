@@ -229,55 +229,90 @@ a question can be answered by reading only a *fraction* of the haystack:
 sample records at random, compute the answer on the sample, scale back up. The
 other four solvers are structurally blind to this, because none of them samples.
 
-**It works, and on most families it works very well.** Scores are `relative`,
-averaged over 10 random samples per question, against each family's majority
-baseline:
+**It works, and on most families it works very well.** Extended 2026-09-16
+with a *prefix* reader (the first k records: truncation, which is what a
+context-limited model does by default) and with fixed record budgets per length
+tier. Scores are `relative`; every partial reader is handed the true label of
+each record it reads, so these are upper bounds:
 
-| set | family | majority | 5% sample | 10% | 25% |
-|---|---|---|---|---|---|
-| `vitamins_tr` | `count` | 0.05 | **0.95** | 0.96 | 0.98 |
-| `musteri_tr` | `most_common` | 0.545 | **0.99** | 0.99 | 1.00 |
-| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.54 | 0.67 |
-| `tr_intent` | `count` | 0.05 | 0.62 | 0.73 | 0.83 |
-| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.55 | 0.54 |
+| set | family | blind | 5% random | 25% random | 5% prefix | 25% prefix |
+|---|---|---|---|---|---|---|
+| `vitamins_tr` | `count` | 0.63 | **0.92** | 0.97 | 0.65 | 0.69 |
+| `musteri_tr` | `count` | 0.55 | **0.90** | 0.96 | 0.66 | 0.70 |
+| `amazon_hpc_en` | `count` | 0.43 | **0.89** | 0.96 | 0.70 | 0.71 |
+| `musteri_tr` | `most_common` | 0.545 | **0.99** | 1.00 | 0.82 | 0.82 |
+| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.67 | 0.50 | 0.70 |
+| `tr_intent_paired` | `count` | 0.47 | 0.55 | 0.80 | 0.55 | 0.81 |
+| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.54 | 0.60 | 0.50 |
 
-**The mechanism is margin width, and it is measurable.** On `most_common` the
-gap between the top two classes is a *median of 38%* (`vitamins_tr`) and *48%*
-(`musteri_tr`) relative — far above the 10% floor the builder enforces. A 5%
-sample resolves a 38% gap almost every time. The 48-class intent axis has a
-median gap of 14% and is correspondingly harder to sample.
+**`blind` is the reference, not the majority baseline, and this corrects the
+first version of this section.** The majority baseline (0.02–0.05 on `count`)
+is exact-match answer frequency. Under `relative`, a reader that opens nothing,
+counts the separators and answers N/3 already scores 0.43–0.63 on `count` and
+`proportion`. Every numeric score must be read as lift over that floor.
+`quality_audit.py` now prints it (`blind`) beside the corpus-prior guess scored
+the same way (`p.rel`); its exact-match prior gate had passed the numeric
+families by construction.
 
-**`label_vs_label` is the one family that resists it, and the reason is
-instructive.** It resists only where its 2% "equal" dead band actually fires —
-the 48-class intent axis (+0.02 to +0.08 over majority). On the 3-class review
-sets "equal" never fires (see D18), the family is effectively binary, and
-sampling beats it by +0.40. **Resistance comes from requiring a distinction
-finer than sampling error can resolve.**
+**Under `relative`, the length axis is flat.** A fixed budget of 1,000 randomly
+read records scores 0.94–0.97 on `count` at every tier from 100K to 1M on all
+four review sets, because a proportion's standard error depends on how many
+records were read, not on how many exist. A 1,000-record prefix reader degrades
+only mildly (0.88 to 0.53 on `amazon_hpc_en`; 0.72 to 0.71 on `vitamins_tr`),
+and what degradation exists comes from the injected drift. On the numeric
+families (64% of the questions) a `relative` score therefore cannot distinguish
+a model that read 1,000 records from one that read 16,000. What the length axis
+still tests is whether a model survives ingestion at all.
+
+**A single score cannot attribute credit between reading and classifying.** A
+perfect classifier reading a random 5% (0.89–0.92 on `count`) outscores a
+classifier that reads every record at 90% accuracy (0.74–0.90) and at 70%
+(0.57–0.79; symmetric confusion). The ranking families are immune to classifier
+noise (1.00 at 70% on every 3-class set) *and* sampling-solvable. Full grid:
+`fullread_by_accuracy` in `manifests/sampling_audit.json`.
+
+**Corpus priors leak back in at the longest Turkish tier.** Under `relative`,
+the corpus-share oracle on `vitamins_tr` `count` rises from 0.54 at 100K to
+**0.75 at 750K**: that haystack consumes 54% of a 43K-record pool, so the
+per-haystack Dirichlet prior cannot be realised. Every other set stays at or
+below 0.60 at every tier. Treat `vitamins_tr` 750K as prior-exposed on `count`
+and `proportion`.
+
+**Where resistance comes from: answer magnitude, not margin width.**
+`entity_count`, whose answers are small, is the most resistant shipped family
+(0.24–0.35 at 5%). Unshipped `count` questions about intent labels holding 5–30
+records score 0.29 at 5% and 0.64 at 25%, against 0.55 and 0.80 for the counts
+that ship; the `min_answer_count` floor currently rejects them. On the
+label-ranking families the mechanism is margin width: a median rank-1/rank-2
+gap of 38–48% on the 3-class sets against a 10% floor, and 14% on the 48-class
+axis, which is why the intent axis resists better. `label_vs_label` resists
+only where its 2% "equal" dead band fires, i.e. on the intent axis (D18).
 
 **Three qualifications, all of which matter:**
 
-1. **This is an upper bound, not a model result.** The solver is handed the true
-   label of every record it samples. A real model must still classify what it
-   reads. It measures what a *perfect classifier reading a fraction* achieves.
-2. **It is specific to the `relative` metric.** Under `exact`, a sampled count
-   of 1,712 against a gold of 1,600 scores zero, so exact match is immune. The
-   families where `relative` and `exact` coincide — all the ranking families —
-   are genuinely exposed.
-3. **It is a consequence of scale.** A benchmark whose gold answers are single
-   digits cannot be sampled; one whose answers run to thousands can be. The
-   large answer magnitudes that make this benchmark distinctive are the same
-   property that admits this shortcut.
+1. **Upper bounds, not model results.** The solvers are handed the true label
+   of every record they read. A real model must still classify what it reads.
+2. **Specific to the `relative` metric.** Under `exact`, a sampled count of
+   1,712 against a gold of 1,600 scores zero. The families where `relative` and
+   `exact` coincide, all the ranking families, are genuinely exposed.
+3. **A consequence of scale.** A benchmark whose gold answers are single digits
+   cannot be sampled; one whose answers run to thousands can be.
 
-**What this does and does not mean.** Ground truth is unaffected — every answer
-is still exactly correct with respect to its haystack. What is bounded is the
+**What this does and does not mean.** Ground truth is unaffected: every answer
+is exactly correct with respect to its haystack. What is bounded is the
 *claim*: this benchmark demonstrably requires classifying Turkish records and
-aggregating them, but it does **not** demonstrably require reading all of them.
-Statements that a model "must process every record" should be withdrawn.
+aggregating them, but it does **not** demonstrably require reading all of them,
+and under `relative` it does not demonstrate that longer documents are harder.
+Statements that a model "must process every record" should be withdrawn. Any
+reported score must name its reading protocol (single prompt or agentic; tools
+or none; sampling permitted or not) and be given as lift over `blind`.
 
-**The fix, for a future version, is a margin band rather than a margin floor.**
-The builder currently rejects questions whose decision margin is too *narrow*
-(knife-edge). It should also reject those whose margin is too *wide*, since a
-38% gap is resolvable from a small sample. Not applied in this release.
+**The fix, for a future version, is staged as v0.7 in `ROADMAP.md`:** a
+rare-label `count` family whose answers are small enough to resist sampling,
+and a cap on the pool fraction one haystack may consume so the top tier stays
+prior-neutral. A margin band (reject too-wide gaps as well as too-narrow) is
+kept as a weaker third option: it helps the ranking families only and cannot
+touch `count`/`proportion`. Not applied in this release.
 
 ## Label noise is a per-family ceiling, not a global one
 
@@ -423,6 +458,24 @@ written Turkish/English with no translation step at all:
 | `marc_en` | `apache-2.0` | `author_stars` | `human_written` |
 | `amazon_hpc_en` | `unknown` | `author_stars` | `human_written` |
 
+### Source revisions are pinned (2026-09-16)
+
+Every fetch script under `scripts/` loads its source at a fixed Hub commit
+(`REVISION` at the top of each file). The pinned commit is the one that was
+HEAD when the source was fetched in August 2026, verified against the Hub's
+commit history, so the pin reproduces exactly the bytes that were built. This
+matters most for `amazon_hpc_en`, which ships without text: an upstream change
+would otherwise have made its haystacks unrebuildable, and the manifest's source
+hash could detect that but not recover from it.
+
+| source | pinned commit |
+|---|---|
+| `McAuley-Lab/Amazon-Reviews-2023` | `2b6d039e` (2024-12-08) |
+| `AmazonScience/massive` | `ff6bd8e4` (2022-11-16) |
+| `turkish-nlp-suite/vitamins-supplements-reviews` | `c4c0928e` (2024-07-15) |
+| `turkish-nlp-suite/MusteriYorumlari` | `7579c679` (2024-11-01) |
+| `SetFit/amazon_reviews_multi_en` | `ec73b665` (2022-04-13) |
+
 ### Before release
 
 1. `LICENSE` (MIT) covers **code only** — add a line saying so, since each data
@@ -461,6 +514,19 @@ ships text-free, and the per-source config split handles share-alike.
    limitation before a reviewer finds it.
 5. Haystacks within a tier share 20–38% of records at the longest tiers, so
    tier-level confidence intervals need clustered errors.
+6. **The questions on the 3-class sets are not independent** (added
+   2026-09-16). Every `musteri_tr` haystack asks `count` for all three labels
+   and `proportion` for the same labels (44 of 45 `count` questions have a
+   `proportion` twin on the same haystack and label), and the three
+   label-ranking questions plus `label_vs_label` are determined by the same two
+   numbers. Twelve questions per haystack carry about two continuous degrees of
+   freedom and one bit (`shift`). The unit of evidence on the review sets is the
+   haystack, 15–20 per set, not the question. The intent sets are unaffected
+   (one duplicate in 69).
+7. **Under `relative`, a read-nothing reader scores 0.43–0.63 on the numeric
+   families and the length axis is flat** (see the sampling section above).
+   Both are properties of the metric on this task family, not defects in the
+   data; they must be stated wherever a score is reported.
 
 **Recommended sequence:** release the dataset now with the datacard as it stands,
 run the baselines, then submit the paper. The release timestamp establishes

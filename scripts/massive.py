@@ -18,12 +18,18 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from build_tr_oolong import Config, clean, label_leak_mask  # canonical definitions
 
+# Pinned Hub revision: the commit that was HEAD when this source was fetched
+# (August 2026). The build is byte-identical only against these bytes, and the
+# manifest records their hash; an upstream change would otherwise make a
+# text-withheld set unrebuildable with no way back.
+REVISION = "ff6bd8e4b27c3543e4f8fe2108f32bb95a6f8740"
+
 LOCALES = {"tr-TR": ("tr", "massive_tr.parquet"), "en-US": ("en", "massive_en.parquet")}
 CONFIG_FOR = {"tr-TR": "tr_intent.json", "en-US": "en_intent.json"}
 
 frames = {}
 for locale, (lang, out) in LOCALES.items():
-    ds = load_dataset("AmazonScience/massive", locale)
+    ds = load_dataset("AmazonScience/massive", locale, revision=REVISION)
     intent_names = ds["train"].features["intent"].names
     scenario_names = ds["train"].features["scenario"].names
     df = pl.concat([pl.from_arrow(ds[s].data.table) for s in ds])

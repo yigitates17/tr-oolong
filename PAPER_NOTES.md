@@ -837,7 +837,9 @@ would become coin flips).
 `scripts/sampling_solver.py` is now the fifth gate. Full numbers in
 `manifests/sampling_audit.json` and DATACARD. Headline: a **5% sample** scores
 **0.95** on `count` (`vitamins_tr`) and **0.99** on `most_common`
-(`musteri_tr`), against majority baselines of 0.05 and 0.545.
+(`musteri_tr`), against majority baselines of 0.05 and 0.545. ⚠️ **The 0.05 is
+the wrong reference** for a numeric family under `relative`; the fair one is
+the read-nothing N/K guess, which scores 0.63 on that set. See §13c.
 
 **The mechanism is margin width, and this is the useful part.** On
 `most_common` the relative gap between the top two classes has a **median of
@@ -927,3 +929,62 @@ what makes "exactly one" rare and noisy.** Withdrawn.
 **What survives:** the diagnosis in §13, not this fix. The sampling exposure
 should be *measured* (solver five) and reported, which is how every other
 shortcut in this project has been handled.
+
+### 13c. ⚠️ Extended 2026-09-16 — the sampling finding is a symptom; the metric is the cause. Four things to write, one not to
+
+`scripts/sampling_solver.py` was extended with a prefix (truncation) reader,
+fixed record budgets per tier, a read-nothing reference, and a noisy full-read
+reference. `quality_audit.py` now scores the numeric families under `relative`
+as well as `exact`. All numbers are in `manifests/sampling_audit.json` and
+`manifests/quality_audit.json`; the README §4e tables are the citable form.
+
+**1. WRITE: the correct baseline for the numeric families is `blind`, not the
+majority baseline.** A reader that opens nothing, counts the separators and
+answers N/K scores **0.43–0.63** on `count`/`proportion` under `relative`. The
+"5% sample scores 0.95 against a majority of 0.05" contrast in §13 compared a
+`relative` solver to an exact-match reference; the honest contrast is 0.92
+against 0.63 on `vitamins_tr`. Every score in the thesis must be reported as
+lift over `blind`. The earlier gate (c) scored numeric families under `exact`
+and therefore passed them by construction; that is now fixed and stated.
+
+**2. WRITE: under `relative`, the length axis is flat.** A fixed budget of 1,000
+randomly read records scores 0.94–0.97 on `count` at *every* tier from 100K to
+1M, on all four review sets. Standard error depends on records read, not
+records present. A 1,000-record prefix reader degrades only mildly, and what
+degradation exists is the injected drift, not length. So the length gradient,
+under the informative metric, tests whether a model survives ingestion, not
+whether it aggregates over more. **This is the finding that bears on RQ
+design:** an RLM's advantage over a truncating baseline will not show on
+`count`/`proportion` under `relative` unless the baseline fails to ingest.
+Either score under a tolerance tighter than sampling error, or use families
+whose answers are small (see 4), or measure ingestion failure as its own
+outcome.
+
+**3. WRITE: a single `relative` score cannot attribute credit between coverage
+and classification.** A perfect classifier reading 5% (0.89–0.92 on `count`)
+beats a 90%-accurate classifier reading everything (0.74–0.90). Ranking
+families are immune to classifier noise (1.00 at 70%) and sampling-solvable.
+The harness must therefore log a per-record classification probe (§8b-bis
+already asks for this) so coverage can be inferred from the aggregate score
+given classification accuracy; without it the two are confounded.
+
+**4. WRITE: resistance comes from answer magnitude, not margin width.**
+`entity_count` (small answers) is the most resistant family that ships. Rare
+intent labels (5–30 records) score 0.29 at 5% against 0.55 for shipped counts.
+This is the constructive result: the `min_answer_count` floor, written to stop
+ranking questions from resting on a handful of records, also removes the only
+sampling-resistant counts. For `count` every record must be judged (each is
+either X or not), so a small answer is still full aggregation. Staged for v0.7.
+
+**Also state:** the corpus prior scored under `relative` reaches **0.75** on
+`vitamins_tr` `count` at 750K, because that haystack consumes 54% of the pool
+and the Dirichlet prior cannot be realised. Report the 750K tier of that set as
+prior-exposed. And: on the 3-class sets, twelve questions per haystack carry
+about two degrees of freedom plus one bit (count for all three labels, the same
+labels again as proportions, rankings determined by both), so the unit of
+evidence is the haystack, not the question.
+
+**DO NOT WRITE** "the benchmark tests long-context aggregation up to 1M tokens"
+without the qualifier "under `exact`, or under `relative` as lift over `blind`
+with the reading protocol stated". The unqualified sentence is false on 64% of
+the questions.

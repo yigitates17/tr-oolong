@@ -16,10 +16,16 @@ it; the cap below only matches the per-class size to the Turkish half.
 import polars as pl
 from datasets import load_dataset
 
+# Pinned Hub revision: the commit that was HEAD when this source was fetched
+# (August 2026). The build is byte-identical only against these bytes, and the
+# manifest records their hash; an upstream change would otherwise make a
+# text-withheld set unrebuildable with no way back.
+REVISION = "ec73b665e4be0f567b69d39425355401cfe0d29b"
+
 STAR_TO_LABEL = {0: "negative", 1: "negative", 2: "neutral", 3: "positive", 4: "positive"}
 
 df = (
-    pl.from_arrow(load_dataset("SetFit/amazon_reviews_multi_en", split="train").data.table)
+    pl.from_arrow(load_dataset("SetFit/amazon_reviews_multi_en", split="train", revision=REVISION).data.table)
     .select(
         pl.col("text").cast(pl.Utf8).alias("text"),
         pl.col("label").cast(pl.Int64).replace_strict(STAR_TO_LABEL, default=None).alias("label"),

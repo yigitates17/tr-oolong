@@ -138,6 +138,21 @@ def prior_prediction(q: dict, st: dict) -> str:
     return ""
 
 
+NUMERIC_KINDS = ("count", "proportion", "entity_count")
+REL_WATCH = 0.70     # corpus prior under `relative` above this at any tier is reported
+
+
+def blind_prediction(q: dict, n_records: int, K: int, scale: int) -> str | None:
+    """A reader that opens nothing but knows the record count (one separator
+    count away) and the size of the label space. Under `relative` this is the
+    floor a numeric family must be read against; `exact` hides it."""
+    if q["kind"] == "count":
+        return str(round(n_records / K))
+    if q["kind"] == "proportion":
+        return str(round(scale / K))
+    return None
+
+
 def chance_rate(kind: str, K: int, q: dict) -> float:
     """P(correct) for a uniform guess over the answer space the question NAMES.
 
@@ -189,6 +204,17 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
     defects = collections.defaultdict(collections.Counter)
     prior_hits = collections.defaultdict(list)
     chances = collections.defaultdict(list)
+    # Numeric families under `relative`. `exact` is the wrong lens for them:
+    # a context-free guess never hits the exact integer, so gate (c) passed the
+    # numeric families by construction while the informative metric was giving
+    # the same guess 0.4-0.7 of the credit. Both the corpus-prior guess and a
+    # "blind" guess (N/K, knowing only the record count and the label space)
+    # are scored here under `relative`, per family and per length tier -- the
+    # tier split matters because a haystack that consumes half the pool cannot
+    # realise its Dirichlet prior, so the corpus prior gets BETTER with length.
+    prior_rel = collections.defaultdict(list)
+    prior_rel_tier = collections.defaultdict(list)
+    blind_rel = collections.defaultdict(list)
     for line in Path(name, "questions.jsonl").read_text(encoding="utf-8").splitlines():
         q = json.loads(line)
         sup, rm = question_support(q, metas[q["haystack_id"]], k_top)
@@ -199,8 +225,16 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
         else:
             v = "OK"
         defects[q["kind"]][v] += 1
-        prior_hits[q["kind"]].append(score(q, prior_prediction(q, st))["exact"])
+        sc = score(q, prior_prediction(q, st))
+        prior_hits[q["kind"]].append(sc["exact"])
         chances[q["kind"]].append(chance_rate(q["kind"], K, q))
+        if q["kind"] in NUMERIC_KINDS:
+            tier = q.get("target_tokens") or q.get("target_records")
+            prior_rel[q["kind"]].append(sc["relative"])
+            prior_rel_tier[(q["kind"], tier)].append(sc["relative"])
+            b = blind_prediction(q, st["nrec"][q["haystack_id"]], K, st["scale"])
+            if b is not None:
+                blind_rel[q["kind"]].append(score(q, b)["relative"])
 
     # majority baseline per family: the score of always emitting the most common
     # gold answer. For free-form numeric families this, not 0, is the reference a
@@ -222,6 +256,17 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
                       "prior_acc": round(sum(hits) / len(hits), 3),
                       "chance": round(ch, 3), "p_value": round(p, 5),
                       "prior_shortcut": bool(p < 0.05 and sum(hits) / len(hits) > ch)}
+        if kind in NUMERIC_KINDS and prior_rel[kind]:
+            by_tier = {str(t): round(sum(v) / len(v), 3)
+                       for (k2, t), v in sorted(prior_rel_tier.items(), key=lambda kv: kv[0][1])
+                       if k2 == kind}
+            fams[kind].update({
+                "prior_rel": round(sum(prior_rel[kind]) / len(prior_rel[kind]), 3),
+                "blind_rel": (round(sum(blind_rel[kind]) / len(blind_rel[kind]), 3)
+                              if blind_rel[kind] else None),
+                "prior_rel_by_tier": by_tier,
+                "prior_rel_watch": bool(by_tier and max(by_tier.values()) > REL_WATCH),
+            })
     tot = sum(f["n"] for f in fams.values())
     return {"set": name, "n_questions": tot,
             "pct_ok": round(100 * sum(f["ok"] for f in fams.values()) / max(1, tot)),
@@ -410,20 +455,36 @@ def main() -> None:
         report.append(audit_set(s, cfgs[s], args.depth, args.margin))
 
     print(f"{'set':19s} {'family':15s} {'n':>4s} {'%OK':>5s} {'thin':>5s} {'knife':>6s} "
-          f"{'prior':>6s} {'chance':>7s} {'p':>8s}  flag")
-    print("-" * 96)
+          f"{'prior':>6s} {'chance':>7s} {'p':>8s} {'p.rel':>6s} {'blind':>6s}  flag")
+    print("-" * 110)
     broken = 0
+    rel_watch = []
     for r in report:
         for kind, f in r["families"].items():
             underpowered = f["n"] < 30
             flag = ("SHORTCUT" if f["prior_shortcut"] and not underpowered
                     else ("watch (n<30, rerun with --certify)" if f["prior_shortcut"] else ""))
             broken += f["prior_shortcut"] and not underpowered
+            prel = f"{f['prior_rel']:6.2f}" if "prior_rel" in f else "     -"
+            brel = (f"{f['blind_rel']:6.2f}" if f.get("blind_rel") is not None else "     -")
+            if f.get("prior_rel_watch"):
+                worst_t = max(f["prior_rel_by_tier"].items(), key=lambda kv: kv[1])
+                flag = (flag + " " if flag else "") + f"PRIOR-REL {worst_t[1]:.2f} @ {worst_t[0]}"
+                rel_watch.append((r["set"], kind, worst_t))
             print(f"{r['set']:19s} {kind:15s} {f['n']:4d} {100*f['ok']//max(1,f['n']):4d}% "
                   f"{f['thin']:5d} {f['knife']:6d} {f['prior_acc']:6.2f} {f['chance']:7.2f} "
-                  f"{f['p_value']:8.4f}  {flag}")
+                  f"{f['p_value']:8.4f} {prel} {brel}  {flag}")
         print(f"{r['set']:19s} {'== ALL':15s} {r['n_questions']:4d} {r['pct_ok']:4d}%")
         print()
+    print("p.rel / blind: the corpus-prior guess and the read-nothing N/K guess scored under\n"
+          "`relative` (numeric families only). `prior` and `chance` are exact-match, which is\n"
+          "the wrong lens for these families: a numeric score must be read as LIFT OVER `blind`.")
+    if rel_watch:
+        print(f"\n[watch] corpus prior exceeds {REL_WATCH:.2f} under `relative` at a tier -- the\n"
+              "        haystack consumes enough of the pool that the Dirichlet prior cannot be\n"
+              "        realised there. Reported, not failed: report that tier as prior-exposed.")
+        for s, k, (t, v) in rel_watch:
+            print(f"        {s} / {k}: {v:.2f} at tier {t}")
     Path(args.json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     pair_problems = verify_pairs(sets, cfgs)
     if args.certify:

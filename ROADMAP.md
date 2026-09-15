@@ -91,7 +91,7 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [x] `families_disabled` — a set drops a family that fails its gate
       (`vitamins_tr` loses `top_k`; `en_twin` cannot form a prior-neutral 5-set)
 - [x] **Record-matched twin** (`pair_seed` + `haystack_target_records`):
-      `tr_intent_paired` / `en_intent_paired` are record-identical, 110/120
+      `tr_intent_paired` / `en_intent_paired` are record-identical, 100/120 gold strings identical (120/120 facts)
       questions share a gold answer → paired tests (McNemar)
 - [x] Morphology tax measured directly: Turkish costs **1.30–1.34×** the tokens
       of English at identical record counts
@@ -268,8 +268,50 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       Correctness unaffected — grouping uses the rendered marker, not free text.
 - [x] Entity families recorded as LENGTH-GATED in `DATACARD.md`; `entity_argmax`
       is a 500K+ family, and the twin is incomparable on `pairwise` at 100K.
-- [ ] **Margin BAND rather than a margin floor** — reject questions whose
-      decision margin is too WIDE as well as too narrow. Would make the ranking
-      families sampling-resistant by construction. Changes shipped questions, so
-      it needs a rebuild and a version bump.
 - [ ] Two-column re-pass on the same 150 rows (native speaker; unchanged).
+
+## v0.6.3 addendum (2026-09-16) — measure the right thing before claiming it
+
+- [x] **`sampling_solver.py` extended:** prefix (truncation) reader, fixed
+      record budgets reported per tier, a read-nothing `blind` reference (N/K
+      under `relative`), and a noisy full-read reference. `--fail-over` is now
+      off by default: the report is disclosed, not passed.
+- [x] **`quality_audit.py` scores numeric families under `relative` too**
+      (`p.rel`, `blind`, per-tier). Gate (c) had passed them under `exact` by
+      construction. New watch flag: `vitamins_tr` `count` corpus prior 0.75 at
+      750K (haystack consumes 54% of the pool). Reported, not failed.
+- [x] **Findings written into README §4e / §13, DATACARD, PAPER_NOTES §13c,
+      HF card:** blind floor 0.43–0.63; length axis flat under `relative`
+      (1,000 random records score 0.94–0.97 at every tier); a 5% perfect
+      sample beats a 90% full read; 3-class question sets carry ~2 degrees of
+      freedom per haystack; the twin shares 100/120 gold strings and 120/120
+      facts.
+- [x] **Source Hub revisions pinned** in all five fetch scripts (the commit that
+      was HEAD at fetch time; verified against commit history). Recorded in
+      DATACARD.
+- [x] Twin count stated consistently everywhere (was 100, 110 and "20 shift"
+      in three places).
+
+## v0.7 (planned) — changes that need a rebuild
+
+- [ ] **Rare-label `count` family** (intent axis): labels holding 5–30 records
+      in the haystack. Measured sampling resistance 0.29 at a 5% sample vs 0.55
+      for shipped counts. Needs a `count`-specific depth rule: every record is
+      judged for a count, so answer magnitude is not depth. On the 3-class sets
+      the equivalent is `entity_count`, which already ships.
+- [ ] **Cap the pool fraction one haystack may consume** (~0.35) so the top
+      tier stays prior-neutral; costs `vitamins_tr` its 750K tier unless the
+      pool grows. Alternative: keep the tier and report it as prior-exposed
+      (current state).
+- [ ] **Canonical `answer_key` field** (`more`/`less`/`same`, `rose`/`fell`)
+      beside the language-specific `answer`, so the twin is 120/120 identical
+      at the byte level. Non-breaking addition; needs a golden regeneration.
+- [ ] **De-duplicate `count`/`proportion` on the 3-class sets**: ask each
+      label as one or the other per haystack, and spend the freed quota on
+      `entity_count`. Raises the evidence per question without adding questions.
+- [ ] **Tolerance-band scoring for numeric families** as a fourth metric,
+      calibrated so full-read classifier error passes and 5–10% sampling error
+      does not. Must be frozen before the first model run, so decide first.
+- [ ] Margin band for the ranking families (reject too-wide as well as
+      too-narrow). Helps ranking only; measured cost 384 of 452 questions at a
+      0.15 cap. Lowest priority of the five.

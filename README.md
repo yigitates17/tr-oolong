@@ -25,8 +25,15 @@
 >
 > **The matched twin.** Every Turkish set has an English partner built by the
 > identical pipeline, and on one pair the *same question has the same correct
-> answer in both languages*. So any score difference is caused by the language and
-> nothing else.
+> answer in both languages*. So a score gap between the two cannot come from the
+> questions. It can still come from the language, from the translation, or from
+> the Turkish text costing more tokens, and §1 says how to separate those.
+>
+> **A second measured caveat.** The informative metric gives partial credit, so
+> a model that reads nothing but counts the records already scores about 0.5 on
+> the counting questions, and reading a fixed 1,000 records scores the same at
+> 100K tokens as at 1M. Report scores as lift over that floor, and do not read
+> the length axis as a difficulty axis under this metric. See §4e.
 >
 > **Numbers:** 110 documents · 1,254 questions · 28.3M tokens · 10 question types
 > · 2 languages.
@@ -126,8 +133,9 @@ different questions:
   degrades faster?"*
 - **record-matched** (`tr_intent_paired` / `en_intent_paired`) — equal *record*
   count, same records, same order, same drift target. **100 of 120 questions have
-  a byte-identical gold answer in both languages** (the other 10 are `shift`,
-  where the same fact is written `arttı` / `rose`). Asks *"at equal content,
+  a byte-identical gold answer in both languages**; the other 20 (10 `shift`,
+  10 `label_vs_label`) state the same fact in language-specific strings
+  (`arttı` / `rose`, `eşit` / `the same`), so all 120 are paired. Asks *"at equal content,
   which language degrades faster?"* — and admits **paired** tests (McNemar)
   rather than comparing two independent samples.
 
@@ -693,38 +701,102 @@ positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
 highest in the suite (mean 0.61). A binary rose/fell over
 positional halves is simply too coarse. See §10.
 
-**(e) Reading only part of it — the sampling solver** (`scripts/sampling_solver.py`,
-added 2026-09-15). Solvers (a)–(d) all ask whether a question can be answered
-*without* reading the haystack. This one asks whether it can be answered by
-reading a **fraction** of it: sample records at random, answer from the sample,
-scale back up.
+**(e) Reading only part of it — the partial-coverage solvers**
+(`scripts/sampling_solver.py`, added 2026-09-15, extended 2026-09-16). Solvers
+(a)–(d) all ask whether a question can be answered *without* reading the
+haystack. This one asks whether it can be answered by reading **part** of it,
+and models the two ways a real system does that: a **random** reader (classify
+a uniformly random fraction and scale up: what an agent with code execution can
+do deliberately) and a **prefix** reader (classify the first k records and scale
+up: what every context-limited model does by default once the document exceeds
+its window).
 
 **It works, and unlike the other four this one is reported as a limitation
-rather than as a gate that passes.**
+rather than as a gate that passes.** Scores are `relative`; every partial reader
+is handed the true label of each record it reads, so these are upper bounds.
 
-| set | family | majority | 5% sample | 25% |
+| set | family | blind | 5% random | 25% random | 5% prefix | 25% prefix |
+|---|---|---|---|---|---|---|
+| `vitamins_tr` | `count` | 0.63 | **0.92** | 0.97 | 0.65 | 0.69 |
+| `musteri_tr` | `count` | 0.55 | **0.90** | 0.96 | 0.66 | 0.70 |
+| `amazon_hpc_en` | `count` | 0.43 | **0.89** | 0.96 | 0.70 | 0.71 |
+| `musteri_tr` | `most_common` | 0.545 | **0.99** | 1.00 | 0.82 | 0.82 |
+| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.67 | 0.50 | 0.70 |
+| `tr_intent_paired` | `count` | 0.47 | 0.55 | 0.80 | 0.55 | 0.81 |
+| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.54 | 0.60 | 0.50 |
+
+**The reference column is `blind`, not the majority baseline, and this corrects
+an earlier revision of this section.** The majority baseline is the exact-match
+frequency of the most common gold answer (0.02–0.05 on `count`). Under
+`relative`, the metric that actually carries the signal, a reader that opens
+nothing but counts the separators and answers N/3 (or 33%) already scores
+0.43–0.63 on `count` and `proportion`. That is the floor a numeric score must be
+read against, and `quality_audit.py` now reports it as `blind` for every numeric
+family, next to the corpus-prior guess scored the same way (`p.rel`). Gate (c)
+had scored the numeric families under `exact`, where a context-free guess can
+never hit the integer, and so passed them by construction.
+
+**Under `relative`, the length axis does not bite.** A fixed budget of 1,000
+randomly read records scores the same on `count` at every tier:
+
+| set | 100K | 250K | 500K | 750K / 1M |
 |---|---|---|---|---|
-| `vitamins_tr` | `count` | 0.05 | **0.95** | 0.98 |
-| `musteri_tr` | `most_common` | 0.545 | **0.99** | 1.00 |
-| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.67 |
-| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.54 |
+| `vitamins_tr` | 0.96 | 0.97 | 0.96 | 0.97 |
+| `amazon_hpc_en` | 0.97 | 0.96 | 0.95 | 0.95 |
+| `musteri_tr` | 0.96 | 0.94 | 0.96 | |
+| `marc_en` | 0.96 | 0.95 | 0.94 | |
 
-The mechanism is margin width. On `most_common` the relative gap between the top
-two classes is a **median of 38%** (`vitamins_tr`) and **48%** (`musteri_tr`),
-far above the 10% floor the builder enforces, and a small sample settles a 38%
-gap almost every time. The 48-class intent axis has a median gap of 14% and
-resists better. `label_vs_label` resists only where its 2% "equal" dead band
-fires — which is the intent axis, not the 3-class sets (D18).
+The standard error of a proportion depends on the number of records read, not
+on the number that exist, so a sampler's score is flat in length by arithmetic.
+A prefix reader of 1,000 records degrades only mildly (`amazon_hpc_en`: 0.88 at
+100K, 0.53 at 1M; `vitamins_tr`: 0.72 to 0.71), and what degradation there is
+comes from the injected drift, not from length. **Consequence: on the numeric
+families, 64% of the questions, a `relative` score cannot distinguish a model
+that reads 1,000 records from one that reads 16,000.** What the length axis
+still tests under this metric is whether a model survives ingestion at all
+(context overflow, format collapse, refusal), which is a real but different
+property. The ranking families are no better: 500 records settle their gaps.
 
-Three qualifications travel with the number: the solver is handed the true label
-of every record it samples, so it bounds a *perfect classifier reading a
-fraction* rather than any real model; it bites `relative`, while `exact` is
-immune; and it is a consequence of **scale**, since a benchmark with
-single-digit answers cannot be sampled at all.
+**A single score cannot attribute credit between reading and classifying.** On
+`count`, a perfect classifier reading a random 5% (0.89–0.92) outscores a
+classifier that reads every record and is right 90% of the time (0.74–0.90) and
+one that is right 70% of the time (0.57–0.79; symmetric confusion, the most
+benign noise model there is). The ranking families are immune to classifier
+noise (1.00 at 70% accuracy on every 3-class set) *and* sampling-solvable, so on
+their own they measure little beyond whether the task was attempted. The full
+grid is `fullread_by_accuracy` in `manifests/sampling_audit.json`.
+
+**Corpus priors leak back in at the longest Turkish tier.** Scored under
+`relative`, the corpus-share oracle on `vitamins_tr` `count` climbs from 0.54 at
+100K to **0.75 at 750K**, because a 750K haystack consumes 54% of a 43K-record
+pool and the per-haystack Dirichlet prior cannot be realised there (mean
+|realised share − pool share| falls from 0.17 to 0.085). `quality_audit.py`
+flags it as `PRIOR-REL 0.75 @ 750000`; every other set stays at or below 0.60 at
+every tier. Treat the 750K tier of `vitamins_tr` as prior-exposed on `count` and
+`proportion`.
+
+**Where resistance comes from, measured: answer magnitude, not margin width.**
+`entity_count` is the most sampling-resistant family that ships (0.35 at 5% on
+`vitamins_tr`, 0.24 on `amazon_hpc_en`) because its answers are small. On the
+intent sets, `count` questions about labels holding 5–30 records, which the
+`min_answer_count` floor currently rejects, score **0.29** at a 5% sample and
+0.64 at 25%, against 0.55 and 0.80 for the counts that ship. Every record still
+has to be judged to answer them (each one is either X or not), so they are
+aggregation, not retrieval; the depth rule that rejects them was written for the
+ranking families. See ROADMAP v0.7.
+
+Three qualifications travel with every number here: the solvers are handed the
+true label of every record they read, so they bound a *perfect classifier
+reading part of the document* rather than any real model; they bite `relative`,
+while `exact` is immune; and they are a consequence of **scale**, since a
+benchmark with single-digit answers cannot be sampled at all.
 
 **What this bounds.** Ground truth is unaffected. The supported claim is that
 this benchmark requires **classifying latent Turkish labels and aggregating
-them** — it does *not* establish that a model processed the whole document.
+them** — it does *not* establish that a model processed the whole document, and
+under `relative` it does not establish that a longer document was harder. Any
+reported score must state its reading protocol and be given as lift over
+`blind`; see §13.
 
 **This is a property of the task family, not of this benchmark.** Any
 label-derived aggregation benchmark whose gold answers are large inherits it,
@@ -735,13 +807,16 @@ narrower and checkable: **nobody in this family has tested for this, and we
 did.** If OOLONG's validated splits are released, running this solver on them is
 a direct follow-up.
 
-**The fix, for a future version: a margin band rather than a margin floor.** The
-builder rejects questions whose decision margin is too *narrow*; it should also
-reject those too *wide*. Measured trade-off: capping at 0.15 drops the 5%-sample
-score on ranking families from 0.755 to 0.393, at the cost of 384 of 452 ranking
-questions — and it cannot help `count`/`proportion` at all, which is 64% of the
-benchmark. Removal is therefore not a viable fix; disclosure is.
-`manifests/sampling_audit.json` is the committed record.
+**The fix, for a future version, is staged in ROADMAP v0.7.** Two changes
+follow from the measurements above: a rare-label `count` family whose answers
+are small enough to resist sampling, and a cap on the fraction of the pool one
+haystack may consume so the top tier stays prior-neutral. The margin band
+recorded in earlier revisions is kept as a third, weaker option: it helps the
+ranking families only (capping at 0.15 drops their 5%-sample score from 0.755
+to 0.393 at the cost of 384 of 452 ranking questions) and cannot help
+`count`/`proportion` at all. None of this changes the shipped questions until a
+rebuild; until then disclosure is the fix. `manifests/sampling_audit.json` is
+the committed record.
 
 **Questions must be answerable only by aggregating.** The same audit measures how
 much of the haystack determines each answer. The median `tr_oolong` `pairwise`
@@ -867,13 +942,16 @@ counts therefore differ by language, and that difference is the measurement.
       --index manifests/benchmark_index.json
   ```
 
-- **Acceptance gates** — a rebuild is not accepted until all four pass:
+- **Acceptance gates** — a rebuild is not accepted until the four gates pass and
+  the fifth report is regenerated:
 
   ```bash
   python tests/test_golden.py                        # build is deterministic
   python scripts/trivial_baseline.py --sets *_out    # leakage + majority baselines
-  python scripts/quality_audit.py                    # prior oracle, depth/margin, pair check
+  python scripts/quality_audit.py                    # prior oracle (exact AND relative), depth/margin, pair check
+  python scripts/style_solver.py --config configs/*.json --json manifests/style_audit.json
   python scripts/verify_release.py                   # the written files are what they claim
+  python scripts/sampling_solver.py                  # partial-coverage report: REPORTED, not passed (§4e)
   ```
 
   `verify_release.py` is deliberately independent of the builder: it re-reads the
@@ -1073,7 +1151,7 @@ corpus. This decided the pair that ships — see the `app_reviews` row below.
 
 | pairing | provenance | length | style gap | verdict |
 |---|---|---|---|---|
-| **MASSIVE tr-TR ↔ en-US** | identical, same utterances | identical by construction | **0.017** | **best available.** The only true record-matched twin; 110/120 questions share a gold answer |
+| **MASSIVE tr-TR ↔ en-US** | identical, same utterances | identical by construction | **0.017** | **best available.** The only true record-matched twin; 100/120 questions share a byte-identical gold answer and the other 20 the same fact in language-specific strings |
 | **`musteri_tr` ↔ `marc_en`** | author's stars, both | 13.8 vs 34.1 w (2.5x) | **0.010** | **ships. Lowest asymmetry measured**; both halves redistributable; no entity column, so 6 families |
 | **`vitamins_tr` ↔ `amazon_hpc_en`** | author's stars, both | 12.1 vs 44.8 w (3.7x) | **0.015** | **ships as the primary review pair** — the only one with an orthogonal entity axis (MI 0.022) |
 | Turkish brand reviews ↔ airline tweets | undocumented vs CrowdFlower humans | 24.2 vs 15.7 w | **0.108** | **withdrawn in v0.5.0.** Mismatched provenance, 7x surface-shape asymmetry |
@@ -1164,6 +1242,8 @@ tr-oolong/
 ├── src/build_tr_oolong.py
 ├── src/scoring.py      # FROZEN metric
 ├── scripts/quality_audit.py   # prior-oracle + depth/margin acceptance gate
+├── scripts/sampling_solver.py # partial-coverage solvers: random, prefix, fixed budget by tier
+├── scripts/style_solver.py    # surface-format solver
 ├── scripts/trivial_baseline.py
 ├── scripts/check_pair.py      # is this TR/EN pair a usable matched twin?
 ├── scripts/check_solo.py      # is this ONE dataset usable, no partner needed?
@@ -1261,6 +1341,27 @@ over more questions per haystack when adding statistical power.
 questions), but the shipped sample cannot support a strong per-family
 cross-lingual claim on its own. The record-matched twin partly compensates by
 making the comparison paired rather than between two independent samples.
+
+**The questions on the 3-class sets are not independent of one another.** Every
+`musteri_tr` haystack is asked `count` for all three labels and `proportion`
+for the same labels (44 of 45 `count` questions have a `proportion` twin on the
+same haystack and label); `most_common`, `second_most`, `least_common` and
+`label_vs_label` are then determined by those same two numbers, and `shift`
+adds one bit. Twelve questions per haystack therefore carry about two
+continuous degrees of freedom and one bit. The headline 1,254 is a question
+count, not an evidence count: for any statistical claim on the review sets the
+unit is the haystack (15–20 per set), further reduced by the tier overlap
+above. The intent sets are not affected (one duplicate in 69), because 48
+labels give the sampler room.
+
+**A score is only interpretable with its reading protocol.** Under `relative`,
+a perfect classifier reading 5% of a document outscores an honest 90%
+classifier reading all of it (§4e), and a reader that opens nothing scores
+0.43–0.63 on the numeric families. Report every result as lift over the `blind`
+reference in `manifests/sampling_audit.json`; state whether the model had tools
+or code execution over the haystack, and whether it was permitted to sample.
+`scripts/run_eval.py` is the single-prompt, no-tools protocol. An agentic
+harness is a different benchmark condition and must be labelled as one.
 
 **Lengths are measured with one tokenizer.** All tiers are sized under
 Qwen3-8B. A "500K-token" haystack is not 500K tokens for a model with a
