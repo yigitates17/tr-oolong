@@ -92,6 +92,9 @@ common?"); every gold answer is computed exactly from the source labels by two
 independent code paths, so there is no manual annotation and nothing is
 grep-solvable.
 
+Developed at the **Institute for Data Science & Artificial Intelligence (DSAI),
+Boğaziçi University**, as MSc thesis work.
+
 Built with [`tr-oolong`]({repo_url}) v{version}. See that repository for the
 builder, the configs that reproduce every set byte-for-byte, and
 `DESIGN_DECISIONS.md` for why each construction choice was made.
@@ -301,8 +304,9 @@ measured under a single tokenizer.
 ```bibtex
 @misc{{troolong,
   title  = {{TR-OOLONG: A Turkish Long-Context Aggregation Benchmark}},
-  author = {{Ates, Yigit}},
+  author = {{Ate{{\\c{{s}}}}, Yi{{\\u{{g}}}}it}},
   year   = {{2026}},
+  note   = {{Bo{{\\u{{g}}}}azi{{\\c{{c}}}}i University, Institute for Data Science \\& Artificial Intelligence}},
   url    = {{{repo_url}}}
 }}
 ```

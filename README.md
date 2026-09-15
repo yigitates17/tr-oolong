@@ -43,7 +43,9 @@
 ---
 
 The first Turkish long-context **aggregation** benchmark, with a matched English
-twin built by the identical pipeline. The nearest multilingual long-context
+twin built by the identical pipeline. Developed at the **Institute for Data
+Science & Artificial Intelligence (DSAI), Boğaziçi University**, as MSc thesis
+work. The nearest multilingual long-context
 benchmark, ONERULER (arXiv:2503.01996), covers 26 languages and **Turkish is not
 one of them**; its two aggregation tasks are also lexical (most-frequent-word
 extraction), answerable by counting strings rather than by classifying each
