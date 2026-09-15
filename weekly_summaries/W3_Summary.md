@@ -42,6 +42,10 @@ What makes the name defensible is the interface. A sub-call takes a prompt and r
 
 **How to state it:** recursive in design, depth 1 in practice. The setup evaluated here is one level of divide-and-conquer, and the recursion should not be oversold beyond that.
 
+**The plainest description of what the paper actually runs is an agent with sub-agents.** A root model receives the question and orchestrates; a set of worker models each handle one piece and report back; the root combines what they return. That is the sub-agent pattern, and describing it that way is both accurate and immediately recognisable. It also makes the naming question answer itself, since sub-agents are not recursion.
+
+Two refinements keep that description precise. First, **the workers are not merely restricted — they were never given the option.** At depth 1 the environment exposes no facility for a worker to spawn its own workers, so the model could not have recursed had it been useful. The judgement that one level suffices was the authors', made in advance, and they scope it explicitly to "most modern long context benchmarks." Second, **the root is not blind.** It cannot see the whole document, but it can print slices of it and read short excerpts back, so it works from samples and summaries rather than from nothing.
+
 ### How does this compare to divide-and-conquer?
 
 Divide-and-conquer breaks a problem into smaller problems of the same kind, solves each, and combines the results. Merge sort is the textbook case: to sort a list, sort each half, then merge. The defining feature is that "solve each" means *applying the same procedure again*, repeatedly, until the pieces are trivial.
@@ -53,13 +57,25 @@ Two differences are worth claiming as genuinely novel:
 - **The split is decided at runtime.** In classic divide-and-conquer the programmer fixes the splitting strategy when the algorithm is written. Here the model writes the chunking code itself and can vary it per question.
 - **The sub-problems are independent**, which is what permits the concurrency described above.
 
+### Is there an established way to categorise long-context tasks, or is ours invented?
+
+There is an established one, and it is close enough to use directly rather than proposing our own. **RULER** (NVIDIA, arXiv:2404.06654) defines **four task categories across thirteen tasks**: retrieval (needle-in-a-haystack), multi-hop tracing (variable tracking), **aggregation**, and question answering. So "aggregation" is not a category invented here — it is a recognised class of long-context task with a published definition behind it.
+
+**The useful part is what fills that category.** RULER's two aggregation tasks are *common words extraction* and *frequent words extraction*: the model finds the most frequently occurring words in synthetic text. That is string-level counting. Nothing has to be understood, only matched and tallied. ONERULER, the nearest multilingual benchmark, has the same shape — its aggregation tasks are most-frequent-word extraction.
+
+**So the category exists and is respectable, and every published instance of it is lexical.** This benchmark's questions require deciding what each record *means* before it can be counted — a sentiment or an intent that is nowhere written in the text. Same category name, different task underneath.
+
+That is a cleaner way to state the contribution than claiming a new taxonomy: *we adopt RULER's category and fill it with latent-label aggregation rather than word counting.*
+
+**One caution on how to phrase it.** Avoid "there are exactly four kinds of long-context task" — a closed list invites counterexamples, and RULER's four are not strictly parallel. The claim that actually carries the argument is a single axis: **how much of the document must be read before the question can be answered?** Needle retrieval needs one passage, multi-hop needs a few linked ones, aggregation needs all of them. That axis is hard to argue with and is the only part the design depends on.
+
 ### Could these tasks be solved by multi-hop reasoning instead?
 
 Multi-hop reasoning chains a few facts together — "who directed the film she starred in?" requires finding the film, then the director. It works by *narrowing*: score the pieces of a document, keep the best few, reason over those.
 
 **Narrowing is precisely the wrong operation for an aggregation question.** A counting question has no small subset that determines the answer; every record contributes. A retrieval system that keeps the best 10 chunks out of 400 and counts within them returns a figure roughly 40 times too small. It does not fail by being imprecise — it fails by answering a different question.
 
-So the two are not competitors; they suit different task shapes. Multi-hop and retrieval methods address questions answerable from a small subset, and this benchmark is built specifically around questions that are not.
+So the two are not competitors; they suit different task shapes. Multi-hop and retrieval methods address questions answerable from a small subset, and this benchmark is built specifically around questions that are not. Put at its shortest: **multi-hop succeeds by narrowing, and these questions cannot be narrowed — no subset of the document determines the answer, so discarding any part of it discards part of the answer.**
 
 **A retrieval baseline is nonetheless worth running, precisely because it should fail predictably.** A result of the form "retrieval-based methods undercount by roughly 30x, and the gap widens as the document grows" is a genuine finding, and the clearest available evidence that this benchmark measures something existing tools do not handle. It costs little — same questions, same scorer, no new data — and it addresses the objection before a reviewer raises it. Added to the experiment plan.
 
@@ -123,6 +139,24 @@ No. It follows from Turkish sentence structure specifically, where the verb fall
 Measured directly. Translating the category codes into natural Turkish commands ("play music" → *müzik çal*) causes the category name to appear verbatim inside the text it is meant to be hidden from, in **3.1%** of records. Using the dictionary form of the same words (*müzik çalmak*) reduces this to **0.14%** — twenty times cheaper, with identical meaning.
 
 This is retained as an experiment and not added to the official datasets. Whether to adopt it remains open (§4).
+
+### Why this benchmark is built with the Qwen tokenizer, and whether to rebuild with a newer one
+
+Worth having a settled answer, because it is an easy question to ask and an easy one to answer badly.
+
+**Two defensible reasons, and one that must not be given.**
+
+The defensible ones: the tokenizer should match the model family the benchmark is actually evaluated on, and the reproducible core here is open-weight models rather than hosted ones. And it must be open and work offline — Anthropic publishes no tokenizer at all, only a counting service over the network, so building with it would make the build depend on a company's server and stop being reproducible offline.
+
+**The reason not to give is that it makes the token counts larger.** Choosing a measuring instrument because it produces a bigger headline number is indefensible, and a reviewer would rightly attack it. The larger counts are a *consequence* of the choice, never a reason for it. The better move is to state the opposite proactively: under OpenAI's current tokenizer the same Turkish documents measure about 10% shorter, and the paper should say so rather than wait to be asked.
+
+**Should the dataset be rebuilt with a newer tokenizer?** There is no strong case for it.
+
+- Rebuilding to the same targets would fit roughly 10% more Turkish reviews per document, which is genuinely harder — but it invalidates every figure already recorded, forces a full rebuild, and requires re-running every quality check.
+- Simply relabelling the existing documents makes them *look* smaller for no gain at all.
+- Most importantly, **the problem is already solved without rebuilding.** Every document records its character count alongside its token count, so any reader can re-derive lengths under whichever tokenizer they care about. That is the real answer to "why this one?" — the choice does not need to be universally correct, it needs to be named and reversible.
+
+The position: *the tokenizer defines only how long a document is. One is chosen, named, and reported; character counts are recorded so anyone can convert.*
 
 ### Does Mistral publish a tokenizer?
 

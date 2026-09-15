@@ -565,6 +565,46 @@ the concrete argument for running a baseline before release rather than after.
 
 ---
 
+## 10b. RULER gives us the task taxonomy — cite it instead of inventing one
+
+**Verified 2026-09-15.** RULER (Hsieh et al., NVIDIA, **arXiv:2404.06654**) defines
+**four task categories over thirteen tasks**: retrieval (NIAH), **multi-hop
+tracing** (variable tracking), **aggregation**, and question answering. Its
+abstract states it "introduces new task categories multi-hop tracing and
+aggregation to test behaviors beyond searching from context."
+
+**So `aggregation` is an established category with a published definition.** Do
+not present the needle / multi-hop / aggregate / summarise split as our own
+taxonomy — adopt RULER's and cite it.
+
+**And the category is filled only with lexical tasks, which is the opening.**
+RULER's two aggregation tasks are **common words extraction (CWE)** and
+**frequent words extraction (FWE)** — extract the most frequently occurring
+*words*. String-level matching and tallying; nothing is classified. ONERULER
+(arXiv:2503.01996) is the same shape, its aggregation being most-frequent-word
+extraction.
+
+| | RULER / ONERULER aggregation | this benchmark |
+|---|---|---|
+| what is counted | **word occurrences** | **latent labels** (sentiment, intent) |
+| written in the text? | yes — match the string | **no** — must be inferred per record |
+| solvable by `Counter()` over tokens? | **yes** | no |
+
+**The claim to write:** *aggregation is a recognised long-context category
+(RULER), but every published instance of it is lexical word-frequency counting.
+We fill it with latent-label aggregation, where the quantity being counted
+appears nowhere in the text.* That is stronger and more defensible than claiming
+a new category, and it is the same criticism already levelled at ONERULER (§9b,
+D17) — now with a second, more prominent benchmark behind it.
+
+**Phrasing caution.** Avoid "there are exactly four kinds of long-context task":
+a closed list invites counterexamples and RULER's four are not strictly
+parallel. The load-bearing claim is a single axis — **how much of the document
+must be read to answer** — on which needle needs one passage, multi-hop needs a
+few linked ones, and aggregation needs all of them.
+
+---
+
 ## 11. Experiment queue, consolidated (from the week-3 discussion, 2026-09-13)
 
 Each of these came out of a question that had no answer in the repo. All are

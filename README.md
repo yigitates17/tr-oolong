@@ -1232,4 +1232,8 @@ but no claim should describe this pool as representative of Turkish review text.
 ## References
 
 - Bertsch et al. (2025), *OOLONG*, arXiv:2511.02817 — construction principle.
+- Hsieh et al. (2024), *RULER*, arXiv:2404.06654 — the four-category long-context
+  taxonomy (retrieval / multi-hop tracing / aggregation / QA) this benchmark
+  adopts. Its own aggregation tasks are lexical word-frequency extraction (CWE,
+  FWE); ours require latent-label classification, which is the distinction.
 - Zhang, Kraska & Khattab (2026), *Recursive Language Models*, arXiv:2512.24601 — the thesis method under evaluation.
