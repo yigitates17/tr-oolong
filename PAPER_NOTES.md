@@ -268,15 +268,21 @@ paired test across the record-matched pair.
 
 ---
 
-## 6. `shift` is style-solvable and should not carry a headline
+## 6. `shift` is style-solvable and should not carry a headline — SUPERSEDED, the family is withdrawn (see 13d)
 
 The only family the format solver beats: **+0.400** (`amazon_hpc_en`), **+0.300**
 (`vitamins_tr`), **+0.267** (`musteri_tr`, `marc_en`), +0.100 (`en_intent`). Highest majority baseline in the
 suite (mean 0.61, up to 0.73).
 
-**Use it as:** an honest limitation, paired with the explanation (length
+~~**Use it as:** an honest limitation, paired with the explanation (length
 correlates with label, and with position once drift is injected) and the fix
-(a real dated timeline axis, blocked on finding a dated Turkish corpus).
+(a real dated timeline axis, blocked on finding a dated Turkish corpus).~~
+
+**Superseded 2026-09-16.** Style-solvability was the smaller problem. A
+`headtail` reader scores 1.000 on every set at a 25% budget. `shift` is withdrawn
+in v0.7.0 rather than disclosed. **Use it as:** a worked example of a shortcut
+that four gates missed because all four constrained answer *values* and this
+family's answer is one bit. See 13d.
 
 ---
 
@@ -884,11 +890,18 @@ the audit alongside the other four — a self-found limitation reported at relea
 is a strength, and it is the fifth instance of this project's recurring lesson
 that a shortcut nobody tested for is a shortcut that works.
 
-**One partial defence already exists by accident, and should be measured rather
+~~**One partial defence already exists by accident, and should be measured rather
 than assumed:** every haystack carries deliberately injected drift (one label
 over-represented in the second half, for `shift`). A model that samples a
 *contiguous* region therefore gets a biased estimate. Uniform random sampling
-across the whole document is unaffected. Worth measuring both in solver five.
+across the whole document is unaffected. Worth measuring both in solver five.~~
+
+**Measured 2026-09-16, and the defence is not real.** A contiguous *prefix* does
+get a biased estimate, which is why it scores 0.53 where a random sample scores
+0.95. But two contiguous regions, one at each end, cost the same and are
+unbiased: `headtail` scores 0.92 on the same budget. The drift buys nothing
+against any reader that touches both halves, and it never bought anything
+against a uniform sample. Do not write the drift up as a partial defence.
 
 ### 13b. A sampling-resistant family was proposed and tested for feasibility — it does not work on this data
 
@@ -934,7 +947,9 @@ shortcut in this project has been handled.
 
 `scripts/sampling_solver.py` was extended with a prefix (truncation) reader,
 fixed record budgets per tier, a read-nothing reference, and a noisy full-read
-reference. `quality_audit.py` now scores the numeric families under `relative`
+reference. **Extended again later the same day with `headtail` (k/2 at each end)
+and `stride` (k evenly spaced) readers, which changed item 2 below and killed
+the `shift` family outright; see 13d.** `quality_audit.py` now scores the numeric families under `relative`
 as well as `exact`. All numbers are in `manifests/sampling_audit.json` and
 `manifests/quality_audit.json`; the README §4e tables are the citable form.
 
@@ -950,8 +965,13 @@ and therefore passed them by construction; that is now fixed and stated.
 **2. WRITE: under `relative`, the length axis is flat.** A fixed budget of 1,000
 randomly read records scores 0.94–0.97 on `count` at *every* tier from 100K to
 1M, on all four review sets. Standard error depends on records read, not
-records present. A 1,000-record prefix reader degrades only mildly, and what
-degradation exists is the injected drift, not length. So the length gradient,
+records present. ~~A 1,000-record prefix reader degrades only mildly, and what
+degradation exists is the injected drift, not length.~~ **Struck 2026-09-16:
+the prefix decay (0.88 to 0.53 on `amazon_hpc_en`) is not drift resistance and
+not a length effect. A `headtail` reader on the identical 1,000-record budget is
+flat (0.97 to 0.92). Prefix is the only reader whose window sits inside one
+block. Do not write the prefix number without the headtail number.** So the
+length gradient,
 under the informative metric, tests whether a model survives ingestion, not
 whether it aggregates over more. **This is the finding that bears on RQ
 design:** an RLM's advantage over a truncating baseline will not show on
@@ -988,3 +1008,41 @@ evidence is the haystack, not the question.
 without the qualifier "under `exact`, or under `relative` as lift over `blind`
 with the reading protocol stated". The unqualified sentence is false on 64% of
 the questions.
+
+### 13d. ⚠️ 2026-09-16 — `shift` is withdrawn, and the reason generalises
+
+**WRITE this as a methods finding, not as an apology.** The partial-coverage
+gate modelled only two readers: a uniform random sample and a contiguous head
+prefix. Adding two readers that cost exactly the same as the prefix, `headtail`
+(k/2 records at each end) and `stride` (k records evenly spaced), changed two
+conclusions.
+
+**First, `shift` does not survive.** It scores **1.000 on all eight sets** for a
+`headtail` reader at a 25% budget, and 0.90 to 1.00 at 5%, against a majority
+baseline of 0.50 to 0.70. Fifty records at each end of a 16,000-record document
+answer it perfectly. The haystack is two internally-shuffled blocks split at the
+midpoint, so the answer is a step function at a known position and its direction
+is a single bit. The family is disabled in every config as of v0.7.0.
+
+**Second, the generalisable point, which is the one worth a paragraph in the
+paper.** Every difficulty floor in this project constrains either the magnitude
+of an answer or the margin at a boundary. Both are *value* constraints. `shift`
+has neither, because its answer space is `{rose, fell}`, and it passed four
+gates for that reason. The gate that should have caught it could not, because
+the only positional reader it modelled returns *no answer* for `shift`, leaving
+an empty cell that read as absence rather than as an untested case. **A
+shortcut audit must report coverage, not just score: a reader that cannot
+attempt a family looks identical to a family that resists it.** The solver now
+reports coverage per reader per family.
+
+**The honest framing for the write-up:** this benchmark's own gate suite was
+incomplete, we found the gap ourselves before any model ran, and the family it
+condemned was removed rather than disclosed. That is a stronger methods story
+than a clean table would have been, and it is the reason the partial-coverage
+solver is reported rather than passed.
+
+**What must NOT be claimed:** that document order protects anything. It does
+not. Every label except the drift target is exchangeable across the whole
+document, and the drift target is exchangeable within each half. The only
+protection measured so far is a **small answer** (`entity_count`, rare-label
+counts), and that is what v0.7 Task A builds on.

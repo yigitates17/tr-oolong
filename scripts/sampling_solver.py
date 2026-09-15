@@ -444,6 +444,26 @@ def main() -> int:
             print(f"{r['set'][:21]:22}{t:>9}{row}")
         print()
 
+    # --- the guard that would have caught `shift` -----------------------------
+    # A reader that cannot ATTEMPT a family prints an empty cell, and an empty
+    # cell looks exactly like a family no reader could crack. That is how
+    # `shift` passed this gate until 2026-09-16: `prefix` returns no answer for
+    # it, so its only positional cell was blank. Untested is not the same as
+    # resistant, and the difference must be loud.
+    blind_spots = []
+    for r in reports:
+        for kind, v in sorted(r["families"].items()):
+            for name in args.readers:
+                cov = v["readers"].get(name, {}).get("coverage", {})
+                if cov and max(cov.values()) == 0.0:
+                    blind_spots.append((r["set"], kind, name))
+    if blind_spots:
+        print("\n[blind spot] a reader could not ATTEMPT these at any fraction. An empty\n"
+              "             cell here means UNTESTED, not resistant. Before shipping such a\n"
+              "             family, check it against a reader that CAN attempt it:")
+        for st, kind, name in blind_spots:
+            print(f"   {st} / {kind}: `{name}` has zero coverage")
+
     Path(args.json).write_text(json.dumps(reports, indent=2, ensure_ascii=False),
                                encoding="utf-8")
     print(f"report -> {args.json}")

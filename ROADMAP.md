@@ -275,7 +275,9 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [x] **`sampling_solver.py` extended:** prefix (truncation) reader, fixed
       record budgets reported per tier, a read-nothing `blind` reference (N/K
       under `relative`), and a noisy full-read reference. `--fail-over` is now
-      off by default: the report is disclosed, not passed.
+      off by default: the report is disclosed, not passed. **Superseded the same
+      day: modelling only `random` and `prefix` was not enough. See the addendum
+      part 2 below.**
 - [x] **`quality_audit.py` scores numeric families under `relative` too**
       (`p.rel`, `blind`, per-tier). Gate (c) had passed them under `exact` by
       construction. New watch flag: `vitamins_tr` `count` corpus prior 0.75 at
@@ -291,6 +293,28 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       DATACARD.
 - [x] Twin count stated consistently everywhere (was 100, 110 and "20 shift"
       in three places).
+
+## v0.6.3 addendum, part 2 (2026-09-16) — the readers the gate was missing
+
+- [x] **`headtail` and `stride` readers added to `sampling_solver.py`.** Both
+      cost exactly what the `prefix` reader costs. The haystack is two
+      internally-shuffled blocks split at `n//2`, so `prefix` is the only cheap
+      reader that document order biases. `headtail` at a 1,000-record budget is
+      flat across tiers (0.97 to 0.92 on `amazon_hpc_en`) where `prefix` falls
+      0.88 to 0.53.
+- [x] **Coverage reported per reader per family.** `prefix` returns no answer
+      for `shift`, so `shift` had an empty prefix cell in every shipped manifest
+      rather than an honest zero-coverage one, and the family was never tested
+      against a partial reader at all.
+- [x] **The "truncation degrades with length" reading of §4e is withdrawn.**
+      Corrected in README §4e, DATACARD, PAPER_NOTES §13c and the HF card. The
+      prefix decay is neither a length effect nor drift resistance.
+- [x] **`shift` withdrawn** (`families_disabled` in all eight configs and the
+      fixture; `DESIGN_DECISIONS.md` D20, README §4e-i, PAPER_NOTES §13d).
+      `headtail` scores 1.000 on all eight sets at 25% and 0.90–1.00 at 5%
+      against a majority baseline of 0.50–0.70. Takes effect at the v0.7
+      rebuild; shipped v0.6.3 data unchanged.
+- [x] **VERSION 0.6.2 → 0.7.0** and `tests/golden/` regenerated together.
 
 ## v0.7 (planned) — changes that need a rebuild
 

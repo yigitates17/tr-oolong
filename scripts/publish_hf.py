@@ -300,10 +300,14 @@ gold answers are large (median `count` near 1,000), most question families can
 be answered by classifying a *part* of the records and scaling up rather than
 by reading all of them. Measured with solvers given the true label of every
 record they read -- upper bounds, not model results -- a 5% random sample scores
-0.89-0.92 on `count` and 0.99 on `most_common` on the review sets, against a
-read-nothing reference of 0.43-0.63 and 0.55. Reading only the first 5% of the
-document (truncation) scores 0.65-0.70. The 48-class intent axis resists better
-(0.39 on `most_common`) because its decision margins are narrower.
+0.89-0.92 on `count` and 0.98 on `most_common` on the review sets, against a
+read-nothing reference of 0.43-0.63 and 0.55. **A reader that classifies only
+5% of the records, half at the start of the document and half at the end, scores
+0.90-0.91 on `count` and 1.00 on `most_common`: the same as random sampling, for
+a budget a truncating model already has.** Reading the first 5% contiguously
+scores 0.65-0.70, but that is the one reading pattern the document layout
+penalises and it is not a defence. The 48-class intent axis resists better
+(0.45 on `most_common`) because its decision margins are narrower.
 
 **Under `relative`, the length axis is flat.** A fixed budget of 1,000 randomly
 read records scores 0.94-0.97 on `count` at every tier from 100K to 1M tokens,
@@ -314,6 +318,15 @@ therefore cannot tell a model that read 1,000 records from one that read
 at all. A single `relative` score also cannot say whether a model read more or
 classified better: a perfect classifier reading 5% outscores a 90%-accurate
 classifier reading everything.
+
+**The `shift` family is withdrawn as of builder v0.7.0 and should not be
+scored.** It asked whether a label's share rose or fell between the two halves
+of the document. A reader classifying fifty records at each end answers it
+perfectly: 1.000 on all eight subsets at a 25% budget, 0.90-1.00 at 5%, against
+a majority baseline of 0.50-0.70. The answer is a step function at a known
+position and its direction is one bit. **`shift` questions are present in this
+published data. Discard them rather than caveating them**; they will not be
+rebuilt.
 
 **So the supported claim is that this benchmark requires classifying latent
 Turkish labels and aggregating them. It does not establish that a model has
@@ -327,8 +340,7 @@ is the document, not the question), the 750K tier of `vitamins_tr` is
 prior-exposed on the numeric families (the corpus-share guess scores 0.75 there),
 label noise as a per-family ceiling (measured 2.7-9.3% on the intent axis, part
 of it mistranslation and asymmetric across the twin), documents within a length
-tier sharing 21-39% of their records, no timeline axis, `shift` being the
-weakest family and the only one the format solver beats, entity families being
+tier sharing 21-39% of their records, no timeline axis, entity families being
 available only at 500K tokens and above, small per-family sample sizes, and all
 lengths measured under a single tokenizer.
 

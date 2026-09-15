@@ -172,7 +172,7 @@ families are meaningful:
 |---|---|:---:|:---:|
 | `count` | how many records have label X | ✓ | ✓ |
 | `proportion` | what share have label X (percent, or per-mille if >10 classes) | ✓ | ✓ (per-mille) |
-| `shift` | did label X's share rise or fall in the second half | ✓ | ✓ |
+| ~~`shift`~~ | *(withdrawn in v0.7.0, see §4e-i)* | — | — |
 | `most_common` | which label is most frequent | ✓ | ✓ |
 | `least_common` | which label is least frequent | ✓ | ✓ |
 | `second_most` | which label is second most frequent | ✓ | ✓ |
@@ -701,29 +701,60 @@ positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
 highest in the suite (mean 0.61). A binary rose/fell over
 positional halves is simply too coarse. See §10.
 
+**`shift` is withdrawn as of v0.7.0** for a second and stronger reason, measured
+after this paragraph was written: a reader that classifies fifty records at each
+end of the document answers it perfectly. See §4e-i.
+
 **(e) Reading only part of it — the partial-coverage solvers**
 (`scripts/sampling_solver.py`, added 2026-09-15, extended 2026-09-16). Solvers
 (a)–(d) all ask whether a question can be answered *without* reading the
 haystack. This one asks whether it can be answered by reading **part** of it,
-and models the two ways a real system does that: a **random** reader (classify
-a uniformly random fraction and scale up: what an agent with code execution can
-do deliberately) and a **prefix** reader (classify the first k records and scale
-up: what every context-limited model does by default once the document exceeds
-its window).
+and models the four ways a real system does that, all spending the **same**
+budget of k records and differing only in where those records come from: a
+**random** reader (a uniformly random fraction, scaled up: what an agent with
+code execution can do deliberately), a **prefix** reader (the first k records:
+what a context-limited model does by default once the document exceeds its
+window), a **headtail** reader (k/2 at the start and k/2 at the end), and a
+**stride** reader (k records evenly spaced end to end: what a chunking harness
+produces without intending to sample).
+
+**`headtail` and `stride` were added on 2026-09-16 and they changed the
+conclusion of this section.** Until then only `random` and `prefix` were
+modelled, and `prefix` is the single dumbest way to spend a reading budget. The
+haystack is assembled as two internally-shuffled blocks split at `n//2`, so
+every label except the drift target is exchangeable across the whole document
+and the drift target is exchangeable within each half. `prefix` is therefore the
+*only* cheap reader that document order biases, and it is biased for a reason
+that has nothing to do with length. Any reader that touches both halves recovers
+the document.
 
 **It works, and unlike the other four this one is reported as a limitation
 rather than as a gate that passes.** Scores are `relative`; every partial reader
 is handed the true label of each record it reads, so these are upper bounds.
 
-| set | family | blind | 5% random | 25% random | 5% prefix | 25% prefix |
-|---|---|---|---|---|---|---|
-| `vitamins_tr` | `count` | 0.63 | **0.92** | 0.97 | 0.65 | 0.69 |
-| `musteri_tr` | `count` | 0.55 | **0.90** | 0.96 | 0.66 | 0.70 |
-| `amazon_hpc_en` | `count` | 0.43 | **0.89** | 0.96 | 0.70 | 0.71 |
-| `musteri_tr` | `most_common` | 0.545 | **0.99** | 1.00 | 0.82 | 0.82 |
-| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.67 | 0.50 | 0.70 |
-| `tr_intent_paired` | `count` | 0.47 | 0.55 | 0.80 | 0.55 | 0.81 |
-| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.54 | 0.60 | 0.50 |
+| set | family | ref | rnd 5% | rnd 25% | pfx 5% | pfx 25% | **ht 5%** | **ht 25%** | str 5% | str 25% |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `vitamins_tr` | `count` | 0.62 | 0.92 | 0.97 | 0.65 | 0.69 | **0.91** | **0.98** | 0.91 | 0.97 |
+| `musteri_tr` | `count` | 0.55 | 0.89 | 0.96 | 0.66 | 0.70 | **0.91** | **0.97** | 0.93 | 0.96 |
+| `amazon_hpc_en` | `count` | 0.43 | 0.89 | 0.96 | 0.70 | 0.71 | **0.90** | **0.95** | 0.90 | 0.96 |
+| `musteri_tr` | `most_common` | 0.55 | 0.98 | 0.99 | 0.82 | 0.82 | **1.00** | **1.00** | 1.00 | 1.00 |
+| `tr_intent` | `most_common` | 0.10 | 0.45 | 0.80 | 0.50 | 0.70 | 0.30 | **0.90** | 0.40 | 0.80 |
+| `tr_intent_paired` | `count` | 0.47 | 0.54 | 0.81 | 0.55 | 0.81 | 0.56 | 0.79 | 0.60 | 0.80 |
+| `tr_intent_paired` | `label_vs_label` | 0.50 | 0.49 | 0.55 | 0.60 | 0.50 | 0.60 | 0.50 | 0.50 | 0.60 |
+| `vitamins_tr` | `entity_count` | 0.20 | 0.38 | 0.74 | 0.42 | 0.51 | 0.48 | 0.74 | 0.41 | 0.76 |
+| `amazon_hpc_en` | `entity_count` | 0.16 | 0.28 | 0.66 | 0.17 | 0.69 | 0.17 | 0.69 | 0.31 | 0.56 |
+
+`ref` is `blind` where a blind estimate exists and the majority baseline
+otherwise. **Read the `ht` columns, not the `pfx` ones**, whenever the question
+is how much a cheap reader can get: `headtail` costs exactly what `prefix` costs
+and beats it on every numeric row.
+
+**Coverage is now reported next to every score**, because a reader that *cannot*
+answer a family is not the same as one that answers it badly, and the difference
+was invisible. `prefix` produces no answer for `shift` (every record it reads is
+in the first half), so `shift` carried an *empty* prefix cell in every manifest
+shipped before v0.7.0 rather than an honest zero-coverage one, and the family
+was never tested against a partial reader at all. See §4e-i.
 
 **The reference column is `blind`, not the majority baseline, and this corrects
 an earlier revision of this section.** The majority baseline is the exact-match
@@ -737,25 +768,38 @@ had scored the numeric families under `exact`, where a context-free guess can
 never hit the integer, and so passed them by construction.
 
 **Under `relative`, the length axis does not bite.** A fixed budget of 1,000
-randomly read records scores the same on `count` at every tier:
+records scores the same on `count` at every tier, for every reader except the
+contiguous prefix. Each cell is `random` / `prefix` / **`headtail`**:
 
 | set | 100K | 250K | 500K | 750K / 1M |
 |---|---|---|---|---|
-| `vitamins_tr` | 0.96 | 0.97 | 0.96 | 0.97 |
-| `amazon_hpc_en` | 0.97 | 0.96 | 0.95 | 0.95 |
-| `musteri_tr` | 0.96 | 0.94 | 0.96 | |
-| `marc_en` | 0.96 | 0.95 | 0.94 | |
+| `vitamins_tr` | 0.96 / 0.72 / **0.98** | 0.97 / 0.67 / **0.97** | 0.97 / 0.66 / **0.95** | 0.96 / 0.71 / **0.97** |
+| `amazon_hpc_en` | 0.97 / 0.88 / **0.97** | 0.96 / 0.72 / **0.95** | 0.95 / 0.74 / **0.95** | 0.95 / 0.53 / **0.92** |
+| `musteri_tr` | 0.96 / 0.77 / **0.96** | 0.94 / 0.71 / **0.96** | 0.96 / 0.60 / **0.96** | |
+| `marc_en` | 0.96 / 0.80 / **0.98** | 0.95 / 0.63 / **0.93** | 0.94 / 0.73 / **0.93** | |
 
 The standard error of a proportion depends on the number of records read, not
 on the number that exist, so a sampler's score is flat in length by arithmetic.
-A prefix reader of 1,000 records degrades only mildly (`amazon_hpc_en`: 0.88 at
-100K, 0.53 at 1M; `vitamins_tr`: 0.72 to 0.71), and what degradation there is
-comes from the injected drift, not from length. **Consequence: on the numeric
-families, 64% of the questions, a `relative` score cannot distinguish a model
-that reads 1,000 records from one that reads 16,000.** What the length axis
-still tests under this metric is whether a model survives ingestion at all
-(context overflow, format collapse, refusal), which is a real but different
-property. The ranking families are no better: 500 records settle their gaps.
+
+**An earlier revision of this section read the prefix column as a length effect,
+and that was wrong.** It said a 1,000-record prefix reader "degrades only mildly"
+and that the degradation came from the injected drift rather than from length.
+The first half is right and the second half was untested: a `headtail` reader on
+the same 1,000-record budget is flat across tiers (`amazon_hpc_en`: 0.97 at 100K,
+0.92 at 1M) while the prefix reader falls from 0.88 to 0.53 over the same range.
+The prefix decay is not length and it is not drift resistance. It is the single
+reader whose window sits entirely inside one of the two blocks, and splitting the
+identical budget between the two ends removes it. **No claim that truncation is
+costly should be made from the prefix column without the headtail column beside
+it.**
+
+**Consequence, unchanged and now better supported: on the numeric families, 64%
+of the questions, a `relative` score cannot distinguish a model that reads 1,000
+records from one that reads 16,000.** What the length axis still tests under this
+metric is whether a model survives ingestion at all (context overflow, format
+collapse, refusal), which is a real but different property. The ranking families
+are no better: 500 records settle their gaps, and `headtail` settles most of them
+at 100.
 
 **A single score cannot attribute credit between reading and classifying.** On
 `count`, a perfect classifier reading a random 5% (0.89–0.92) outscores a
@@ -807,16 +851,61 @@ narrower and checkable: **nobody in this family has tested for this, and we
 did.** If OOLONG's validated splits are released, running this solver on them is
 a direct follow-up.
 
-**The fix, for a future version, is staged in ROADMAP v0.7.** Two changes
-follow from the measurements above: a rare-label `count` family whose answers
-are small enough to resist sampling, and a cap on the fraction of the pool one
-haystack may consume so the top tier stays prior-neutral. The margin band
+**The fix, for a future version, is staged in ROADMAP v0.7.** Three changes
+follow from the measurements above: the withdrawal of `shift` (§4e-i, done), a
+rare-label `count` family whose answers are small enough to resist sampling, and
+a cap on the fraction of the pool one haystack may consume so the top tier stays
+prior-neutral. The margin band
 recorded in earlier revisions is kept as a third, weaker option: it helps the
 ranking families only (capping at 0.15 drops their 5%-sample score from 0.755
 to 0.393 at the cost of 384 of 452 ranking questions) and cannot help
 `count`/`proportion` at all. None of this changes the shipped questions until a
 rebuild; until then disclosure is the fix. `manifests/sampling_audit.json` is
 the committed record.
+
+**(e-i) `shift` is withdrawn, and how it survived four gates.** `shift` asked
+whether a label's share **rose or fell** between the first and second half of the
+haystack. Against the `headtail` reader it is not a hard question:
+
+| set | majority baseline | headtail @5% | headtail @25% | stride @5% |
+|---|---|---|---|---|
+| `vitamins_tr` | 0.55 | **1.000** | **1.000** | 1.000 |
+| `musteri_tr` | 0.60 | **1.000** | **1.000** | 1.000 |
+| `marc_en` | 0.67 | **1.000** | **1.000** | 1.000 |
+| `amazon_hpc_en` | 0.55 | 0.950 | **1.000** | 0.900 |
+| `tr_intent` | 0.60 | **1.000** | **1.000** | 0.800 |
+| `en_intent` | 0.50 | **1.000** | **1.000** | 0.900 |
+| `tr_intent_paired` | 0.70 | 0.900 | **1.000** | 1.000 |
+| `en_intent_paired` | 0.70 | 0.900 | **1.000** | 1.000 |
+
+Fifty records at each end of a 16,000-record document answer it perfectly on
+every set at 25%, and on six of eight at 5%. That is a lift of +0.30 to +0.45
+over the family's own reference for a budget of 100 records.
+
+It is structural. The haystack is two internally-shuffled blocks split at
+`n//2`, with the drift target taking a 30/70 share across them, so the answer is
+a step function at a known position and its direction is **one bit**. Widening
+the drift, moving the boundary, or replacing the step with a smooth gradient all
+leave that bit recoverable from the two endpoints, because direction is the whole
+question.
+
+**Why four gates passed it.** Every difficulty floor in `DESIGN_DECISIONS.md`
+constrains either the *magnitude* of an answer (`min_answer_count` D3,
+`min_entity_answer`) or the *margin* at a boundary (`min_rank_margin` D10,
+`lvl_min_margin` D18). A two-way categorical has neither, so `shift` fell between
+them. And the partial-coverage gate could not see it, because the only positional
+reader it modelled was `prefix`, which returns *no answer* for `shift` and so
+left an empty cell that read as absence rather than as a gap in the test.
+
+The family is disabled in all eight configs and in the fixture as of v0.7.0
+(`"families_disabled": ["shift"]`), so the shipped v0.6.3 data is unchanged and
+`shift` disappears at the next rebuild. **The published v0.6.3 tables in this
+README still include it and are still accurate for what was published.**
+`drift_mode`, the `drift_target` and the `half` column are all kept: the drift is
+what makes the document non-exchangeable, and `half` is what lets the solvers
+measure positional readers at all. A positional family may return if it asks for
+a **magnitude** rather than a direction, and it must clear the `headtail` reader
+before it ships. Full rationale: `DESIGN_DECISIONS.md` D20.
 
 **Questions must be answerable only by aggregating.** The same audit measures how
 much of the haystack determines each answer. The median `tr_oolong` `pairwise`
@@ -1306,16 +1395,27 @@ item is narrower than before: measure ε per corpus (n = 400 gives ±3 pts at
 ε ≈ 0.10) and record it in `DATACARD.md`. Headline results are reported on
 ranking and `proportion`.
 
-**`shift` is the weakest family and should be read with that in mind.** It is a
-binary rose/fell over positional halves, so its floor is the highest in the suite
-(mean majority baseline 0.61), and it is the only family the surface-format
-solver beats: +0.400 on `amazon_hpc_en`, +0.300 on `vitamins_tr`, +0.267 on
-`musteri_tr` and `marc_en`, +0.100 on `en_intent` (§4d). Length correlates with label, and
-length also correlates with position once drift is injected, so format alone
-partly recovers the direction. The fix is a real dated timeline axis of the kind
-OOLONG has, which is blocked on data rather than code: no Turkish source examined
-carries dates (see §9 and `DATASET_REVIEW.md`). **Until then, do not report
-`shift` as a headline result.**
+**`shift` was the weakest family and is withdrawn in v0.7.0.** It is a binary
+rose/fell over positional halves, so its floor is the highest in the suite (mean
+majority baseline 0.61), and it is the only family the surface-format solver
+beats: +0.400 on `amazon_hpc_en`, +0.300 on `vitamins_tr`, +0.267 on
+`musteri_tr` and `marc_en`, +0.100 on `en_intent` (§4d). Length correlates with
+label, and length also correlates with position once drift is injected, so format
+alone partly recovers the direction.
+
+That was already enough to say "do not report `shift` as a headline result",
+which is what earlier revisions of this section said. It was not enough. A
+`headtail` reader classifying fifty records at each end of the document scores
+**1.000 on every set at a 25% budget**, and 0.90 to 1.00 at 5% (§4e-i). The
+family is disabled in every config as of v0.7.0 and disappears at the next
+rebuild. **It is present in the published v0.6.3 data; any v0.6.3 result on
+`shift` should be discarded rather than caveated.**
+
+The replacement, if a positional family returns, is a real dated timeline axis of
+the kind OOLONG has, which is blocked on data rather than code: no Turkish source
+examined carries dates (see §9 and `DATASET_REVIEW.md`). A returning positional
+family must ask for a **magnitude** rather than a direction, and must clear the
+`headtail` reader before it ships.
 
 **Haystacks within a length tier are not independent.** They are drawn
 independently from the same pool, so at the longest tiers — where one haystack

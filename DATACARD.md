@@ -11,7 +11,7 @@ is no manual answer annotation.
 - Label: `intent` (**48** classes retained of 60). Entity: `scenario` (18) —
   nested in intent, so the four entity families are omitted; the six non-entity
   families apply (count, proportion, shift, most_common, least_common,
-  second_most).
+  second_most). `shift` is withdrawn in v0.7.0 and is present in v0.6.3 only.
 - **Class support floor.** 12 intents have fewer than 100 rows and were dropped.
   The motivating case: `cooking_query` has 6 rows in 16.5K, so it was the rarest
   label in every haystack and `least_common` was answerable from corpus priors
@@ -154,8 +154,10 @@ marker and the metadata column, never free-text mentions.
 - Star-derived labels (supplement pair) use the fixed 3-class map above; other
   sources use native labels.
 - Length: measured with one reference tokenizer per axis (Qwen/Qwen3-8B).
-- Drift: one label is over-represented in the second half so `shift` questions
-  have detectable signal; the target and a detectability flag are recorded.
+- Drift: one label is over-represented in the second half; the target and a
+  detectability flag are recorded. This existed so `shift` questions had
+  detectable signal. `shift` is withdrawn in v0.7.0 but the drift is kept,
+  because it is what stops the document being fully exchangeable.
 - Reproducibility: single string seed; byte-identical rebuilds; full manifest.
 
 ## The measured intent-axis noise, and what it is actually made of
@@ -229,21 +231,31 @@ a question can be answered by reading only a *fraction* of the haystack:
 sample records at random, compute the answer on the sample, scale back up. The
 other four solvers are structurally blind to this, because none of them samples.
 
-**It works, and on most families it works very well.** Extended 2026-09-16
-with a *prefix* reader (the first k records: truncation, which is what a
-context-limited model does by default) and with fixed record budgets per length
-tier. Scores are `relative`; every partial reader is handed the true label of
-each record it reads, so these are upper bounds:
+**It works, and on most families it works very well.** Four readers are
+modelled, all spending the **same** budget of k records and differing only in
+where those records come from: `random` (uniformly at random), `prefix` (the
+first k), `headtail` (k/2 at the start and k/2 at the end) and `stride` (k
+evenly spaced end to end). Scores are `relative`; every partial reader is handed
+the true label of each record it reads, so these are upper bounds:
 
-| set | family | blind | 5% random | 25% random | 5% prefix | 25% prefix |
-|---|---|---|---|---|---|---|
-| `vitamins_tr` | `count` | 0.63 | **0.92** | 0.97 | 0.65 | 0.69 |
-| `musteri_tr` | `count` | 0.55 | **0.90** | 0.96 | 0.66 | 0.70 |
-| `amazon_hpc_en` | `count` | 0.43 | **0.89** | 0.96 | 0.70 | 0.71 |
-| `musteri_tr` | `most_common` | 0.545 | **0.99** | 1.00 | 0.82 | 0.82 |
-| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.67 | 0.50 | 0.70 |
-| `tr_intent_paired` | `count` | 0.47 | 0.55 | 0.80 | 0.55 | 0.81 |
-| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.54 | 0.60 | 0.50 |
+| set | family | ref | rnd 5% | rnd 25% | pfx 5% | pfx 25% | **ht 5%** | **ht 25%** |
+|---|---|---|---|---|---|---|---|---|
+| `vitamins_tr` | `count` | 0.62 | 0.92 | 0.97 | 0.65 | 0.69 | **0.91** | **0.98** |
+| `musteri_tr` | `count` | 0.55 | 0.89 | 0.96 | 0.66 | 0.70 | **0.91** | **0.97** |
+| `amazon_hpc_en` | `count` | 0.43 | 0.89 | 0.96 | 0.70 | 0.71 | **0.90** | **0.95** |
+| `musteri_tr` | `most_common` | 0.55 | 0.98 | 0.99 | 0.82 | 0.82 | **1.00** | **1.00** |
+| `tr_intent` | `most_common` | 0.10 | 0.45 | 0.80 | 0.50 | 0.70 | 0.30 | **0.90** |
+| `tr_intent_paired` | `count` | 0.47 | 0.54 | 0.81 | 0.55 | 0.81 | 0.56 | 0.79 |
+| `tr_intent_paired` | `label_vs_label` | 0.50 | 0.49 | 0.55 | 0.60 | 0.50 | 0.60 | 0.50 |
+| `vitamins_tr` | `entity_count` | 0.20 | 0.38 | 0.74 | 0.42 | 0.51 | 0.48 | 0.74 |
+
+**`headtail` and `stride` were added on 2026-09-16 and they are the honest
+readers.** Before that only `random` and `prefix` were modelled. The haystack is
+two internally-shuffled blocks split at the midpoint, so every label except the
+drift target is exchangeable across the whole document. `prefix` is the only
+cheap reader that document order biases; `headtail` costs exactly the same and
+beats it on every numeric row above. Read the `ht` columns when the question is
+how much a cheap reader can get.
 
 **`blind` is the reference, not the majority baseline, and this corrects the
 first version of this section.** The majority baseline (0.02–0.05 on `count`)
@@ -257,12 +269,34 @@ families by construction.
 **Under `relative`, the length axis is flat.** A fixed budget of 1,000 randomly
 read records scores 0.94–0.97 on `count` at every tier from 100K to 1M on all
 four review sets, because a proportion's standard error depends on how many
-records were read, not on how many exist. A 1,000-record prefix reader degrades
-only mildly (0.88 to 0.53 on `amazon_hpc_en`; 0.72 to 0.71 on `vitamins_tr`),
-and what degradation exists comes from the injected drift. On the numeric
-families (64% of the questions) a `relative` score therefore cannot distinguish
-a model that read 1,000 records from one that read 16,000. What the length axis
-still tests is whether a model survives ingestion at all.
+records were read, not on how many exist.
+
+An earlier version of this section added that a 1,000-record *prefix* reader
+"degrades only mildly (0.88 to 0.53 on `amazon_hpc_en`)" and attributed that
+decay to the injected drift. **That attribution was wrong.** On the same
+1,000-record budget the `headtail` reader is flat across tiers (0.97 at 100K to
+0.92 at 1M on `amazon_hpc_en`), so the prefix decay is neither a length effect
+nor evidence that the drift resists partial reading. It is the one reader whose
+window sits entirely inside a single block, and splitting the identical budget
+between the two ends removes it. Do not cite the prefix column as evidence that
+truncation is costly without the headtail column beside it.
+
+On the numeric families (64% of the questions) a `relative` score therefore
+cannot distinguish a model that read 1,000 records from one that read 16,000.
+What the length axis still tests is whether a model survives ingestion at all.
+
+**`shift` is withdrawn in v0.7.0 because a two-window reader solves it.**
+`shift` asked whether a label's share rose or fell between the first and second
+half. A `headtail` reader classifying fifty records at each end of a
+16,000-record document scores **1.000 on all eight sets at a 25% budget** and
+0.90 to 1.00 at 5%, against a majority baseline of 0.50 to 0.70. The haystack is
+two blocks split at the midpoint, so the answer is a step function at a known
+position and its direction is one bit; two windows at the extremes read it off
+directly. Widening the drift or smoothing it into a gradient does not help,
+because direction is the whole question. The family is disabled in every config
+as of v0.7.0 and disappears at the next rebuild. **It is present in the published
+v0.6.3 data; a v0.6.3 result on `shift` should be discarded rather than
+caveated.** Rationale: `DESIGN_DECISIONS.md` D20, README section 4e-i.
 
 **A single score cannot attribute credit between reading and classifying.** A
 perfect classifier reading a random 5% (0.89–0.92 on `count`) outscores a
@@ -520,7 +554,7 @@ ships text-free, and the per-source config split handles share-alike.
    `proportion` twin on the same haystack and label), and the three
    label-ranking questions plus `label_vs_label` are determined by the same two
    numbers. Twelve questions per haystack carry about two continuous degrees of
-   freedom and one bit (`shift`). The unit of evidence on the review sets is the
+   freedom and one bit (`shift`, withdrawn in v0.7.0). The unit of evidence on the review sets is the
    haystack, 15–20 per set, not the question. The intent sets are unaffected
    (one duplicate in 69).
 7. **Under `relative`, a read-nothing reader scores 0.43–0.63 on the numeric
