@@ -122,6 +122,7 @@ def stats(cfg: b.Config, df: pl.DataFrame) -> dict:
         "n_entities": len(set(ents)),
         "licence": (cfg.__dict__.get("licence") or "").strip().lower(),
         "provenance": (cfg.__dict__.get("label_provenance") or "").strip().lower(),
+        "text_provenance": (cfg.__dict__.get("text_provenance") or "").strip().lower(),
         "tiers": list(cfg.haystack_target_tokens or []),
         "records": list(cfg.haystack_target_records or []),
     }

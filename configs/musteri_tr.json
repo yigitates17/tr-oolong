@@ -28,5 +28,6 @@
   "families_disabled": [],
   "min_rank_margin": 0.2,
   "licence": "cc-by-sa-4.0",
-  "label_provenance": "author_stars"
+  "label_provenance": "author_stars",
+  "text_provenance": "human_written"
 }

@@ -230,3 +230,28 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 - [x] `quality_audit.py --certify 250` run at scale 2026-09-05 — every family on
       every set passes; the `en_intent` `most_common` flag resolved (z=+1.9, ok).
       ~2 min. **Re-run before the actual release.**
+
+## v0.6.1 / v0.6.2 (2026-09-09)
+
+- [x] **`label_translation`** config field + `configs/experimental/` variants —
+      measures the cost of Turkish-labeling the intent axis: 3.13% (natural
+      imperative) vs 0.14% (infinitive form). Kept out of `configs/*.json` on
+      purpose so no release script sweeps them in. D19/D19b.
+- [x] **`text_provenance`** declared per source (`human_written` /
+      `human_translated` / `machine_translated` / `synthetic_generated`),
+      backfilled on all 8 shipping configs. `check_pair.py`/`check_solo.py` now
+      read it.
+- [x] **`scripts/check_solo.py`** — single-dataset acceptance report for a
+      contributor with no partner language; bundles declared-metadata checks
+      with the three gates that were already twin-agnostic. Catches a missing
+      label column as a named error, not a stack trace.
+- [x] **`scripts/tokenizer_spread.py`** — the tokenizer-spread table (README §0,
+      PAPER_NOTES §1) as a saved, seeded script. Added Mistral: 2.07x
+      (SentencePiece, older) vs 1.47x (Tekken, current) — a second vendor
+      confirming the generational trend already claimed for OpenAI.
+- [ ] **Apply the tokenizer-is-not-morphology correction everywhere it's still
+      owed** (PAPER_NOTES §1 flags this "NOT YET APPLIED" to the README §4
+      paragraph and the thesis proposal — now also true of the new Mistral
+      finding).
+- [ ] Decide whether a `configs/experimental/` variant ever graduates to a
+      shipping config, or stays a measured-but-unshipped ablation permanently.

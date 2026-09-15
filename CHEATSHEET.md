@@ -462,3 +462,60 @@ config.
 
 **Headline after the rebuild:** 8 sets · 110 haystacks · **1,254 questions** ·
 **28.3M tokens** · 10 families · 630 tr / 624 en · 36,250–987,623 tokens.
+
+---
+
+## v0.6.1 / v0.6.2 — what changed, in one place (2026-09-09)
+
+**Headline is unchanged: still 8 sets, 110 haystacks, 1,254 questions, 28.3M
+tokens.** Everything below is either a new *declared metadata* field on the
+existing 8, a new *tool*, or a new *experimental* config that deliberately does
+not count toward the shipping numbers.
+
+**New config field `label_translation`** — translates label VALUES before the
+leakage filter runs, so a translated-label variant's cost is measured, not
+assumed. Two surface forms tested on the intent axis's 48 labels: the natural
+imperative (`play_music`→`müzik_çal`) leaks **3.13%** (472/15,075); the
+infinitive (`müzik_çalmak`) leaks **0.14%** (21/15,075) — 20x less, same
+semantic content. See D19/D19b.
+
+**New config field `text_provenance`** — `human_written` / `human_translated` /
+`machine_translated` / `synthetic_generated`, declared per source alongside the
+existing `label_provenance`. Backfilled on all 8 shipping configs (the review
+sets are `human_written`; the MASSIVE-derived intent sets are
+`human_translated`, per the localization note in DATACARD.md).
+
+**New tool `scripts/check_solo.py`** — the single-dataset counterpart to
+`check_pair.py`, for a contributor adding one dataset with no partner language.
+Bundles the three non-twin-specific gates (`trivial_baseline`, `quality_audit`,
+`style_solver`) plus declared-metadata checks into one COMPATIBLE-style report.
+Catches a missing label column as a clean, named failure (`MissingColumnError`)
+instead of a raw Polars stack trace, and flags machine/synthetic-flavored
+`label_provenance` or `text_provenance` as a WARN/FAIL — citing the exact
+precedent (winvoker, DATASET_REVIEW.md) that already burned this project once.
+
+**New tool `scripts/tokenizer_spread.py`** — the tokenizer-spread measurement
+(README §0 box, PAPER_NOTES §1) as a saved, seeded script rather than a lost
+one-off command. Added Mistral to the comparison: its older SentencePiece
+tokenizer scores **2.07x** TR/EN, its current Tekken tokenizer **1.47x** — a
+second vendor showing the same "training diet, not morphology" generational
+trend already claimed for OpenAI. See PAPER_NOTES §1.
+
+**Three new EXPERIMENTAL configs, deliberately kept out of `configs/*.json`.**
+`configs/experimental/tr_intent_trlabel.json`,
+`tr_intent_paired_trlabel.json`, and `tr_intent_trlabel_inf.json` ship the
+Turkish-labeled intent variants above. They live in a subdirectory, not
+`configs/`, **on purpose**: `publish_hf.py`, `quality_audit.py`'s default
+discovery, and `verify_release.py` all glob `configs/*.json`, and a config
+sitting next to the shipping 8 would get silently swept into "build/gate/
+publish everything" runs. Build or check one explicitly by path:
+
+```bash
+python src/build_tr_oolong.py --config configs/experimental/tr_intent_trlabel_inf.json --build
+python scripts/check_solo.py configs/experimental/tr_intent_trlabel_inf.json
+```
+
+`VERSION` bumped twice (0.6.1 for `label_translation`, 0.6.2 for
+`text_provenance`) because each is a config-schema change and the golden test
+correctly caught both — regenerate with `tests/test_golden.py --regen` after a
+schema change, never edit the golden files by hand.

@@ -693,3 +693,120 @@ cleanest pair its format-solver lift is +0.067 (`musteri_tr`) against −0.357
 (`marc_en`). After the outcome-balancing fix and rebuild that pair's twin
 asymmetry sits at **0.030** — the widest of the four, but comfortably inside the
 +0.15 gate.
+
+## D19 — `label_translation`: translating intent labels to Turkish measures 3.13%, not 0.91%
+
+**Question.** The intent axis ships English database codes as labels
+(`play_music`) in both `tr_intent` and `en_intent`, argued in D2/PAPER_NOTES §5
+as the reason leakage is 0% on that axis: an English code cannot appear inside
+Turkish prose. Should we translate the labels to Turkish (`play_music` →
+`müzik_çal`) so the Turkish half reads as Turkish end to end?
+
+**Change.** Added `label_translation: dict[str, str]` to `Config`, applied in
+`clean()` immediately after dedup and before `drop_label_leakage`, so the
+leakage filter measures and removes exactly the cost the translation
+introduces. Two new configs ship the full 48-label Turkish translation:
+`configs/experimental/tr_intent_trlabel.json` (token-matched) and
+`configs/experimental/tr_intent_paired_trlabel.json` (record-matched). Unmapped labels pass
+through unchanged, so a partial map is safe.
+
+**Measured, on the same 15,075-row pool as `tr_intent`.** The earlier estimate
+in PAPER_NOTES §5b (0.91%, 137 rows) checked one label pair
+(`alarm_set`/`alarm_kur`) by hand. Measuring the full 48-label map:
+
+| | rows | leaking | rate |
+|---|---|---|---|
+| English codes (`tr_intent`, ships) | 15,075 | 0 | 0.00% |
+| Turkish translation (`tr_intent_trlabel`) | 15,075 | **472** | **3.13%** |
+
+**Higher than the earlier estimate, and the reason is informative.** The
+translations most exploited are the ones that are the most natural,
+verb-final Turkish: `alarm_kur` (93 hits — "…alarm kur"), `müzik_çal` (68 —
+"…müzik çal"), `eposta_gönder` (62), `kahve_yap` (57), `liste_oluştur` (25),
+plus a long tail across 23 more labels. **The better the translation reads as
+real Turkish, the more it leaks** — this is not a bug in the translation, it
+is the same word-order effect named in D2, now measured across the whole label
+space instead of one pair.
+
+**Result after filtering (all three gates pass).** `trivial_baseline.py`: leak
+score at or below majority baseline on every family (highest residual 0.10,
+`shift`, itself already the noisiest family — §D15/D18). `quality_audit.py`:
+no family answerable above chance from corpus priors (`most_common` 0.50 vs
+0.30 chance, p=0.15; nothing else close). `style_solver.py`: mean lift −0.15
+to −0.30 (translation, if anything, makes the axis *less* format-solvable, not
+more). Golden test regenerated under `VERSION = 0.6.1`.
+
+**Cost, stated plainly.** 472 of 15,075 rows (3.13%), concentrated in a
+handful of labels rather than spread evenly — `alarm_kur` alone loses 93 of its
+own class's supply. This is a real, non-trivial cost, roughly 3.4x the earlier
+estimate, and should replace 0.91% everywhere the translation experiment is
+discussed.
+
+**What this variant is not.** `tr_intent_paired_trlabel` shares
+`tr_intent_paired`'s record-matching machinery (`pair_seed`,
+`haystack_target_records`) but its pool has 472 fewer rows than the pool
+`en_intent_paired` draws from — the rows the leakage filter removed exist only
+on the Turkish, translated side. It is **not** guaranteed record-identical
+with `en_intent_paired` the way `tr_intent_paired`/`en_intent_paired` are (D11);
+treat it as a standalone Turkish-only ablation (does natural-Turkish labelling
+change what a model can shortcut) rather than as a drop-in replacement in the
+cross-lingual matched-twin comparison.
+
+**Verdict.** Worth shipping as a third, explicitly-labelled variant, not as a
+replacement for `tr_intent`/`tr_intent_paired` — the English-code axis remains
+the headline cross-lingual pair, and this variant is the controlled experiment
+that measures what translating costs, exactly as flagged as future work in
+PAPER_NOTES §5b.
+
+### D19b — the infinitive form (`müzik_çalmak`) leaks 20x less than the imperative form (`müzik_çal`)
+
+**Question asked directly, and worth answering by measurement rather than
+guessing.** The imperative-style translation above (`kur`, `çal`, `aç` — the
+bare verb stem) reproduces exactly how these actions are phrased as commands in
+natural Turkish, which is *why* it leaks. Does using the infinitive/dictionary
+form instead (`kurmak`, `çalmak`, `açmak`) suppress that, or does it backfire —
+Turkish's own `X_mak istiyorum` ("I want to X") construction is itself a common
+polite-request pattern, so the worry going in was that infinitives might leak
+*more*, not less.
+
+**Change.** A second translation map, same 48 labels, infinitive verb forms
+where the label names an action (`alarm_kur` → `alarm_kurmak`, `müzik_çal` →
+`müzik_çalmak`, `taksi_çağır` → `taksi_çağırmak`); left unchanged where the
+original is already a noun phrase (`yemek_tarifi`, `müzik_beğeni`,
+`genel_sohbet`). Shipped as `configs/experimental/tr_intent_trlabel_inf.json`.
+
+**Measured, same 15,075-row pool.**
+
+| variant | leaking rows | rate |
+|---|---|---|
+| English codes (`tr_intent`) | 0 | 0.00% |
+| Turkish infinitive (`tr_intent_trlabel_inf`) | **21** | **0.14%** |
+| Turkish imperative (`tr_intent_trlabel`) | 472 | 3.13% |
+
+**The worry was wrong, by a wide margin — MASSIVE's utterances are overwhelmingly
+phrased as bare imperatives or object-fronted requests ("bana müzik çal"), not as
+`infinitive + istemek`.** The 21 residual hits are almost all the noun-phrase
+labels left untranslated (`yemek_tarifi` 6, `yemek_siparişi` 3) plus a handful of
+genuine infinitive occurrences (`eposta_göndermek` 3, `alarm_kurmak` 2). Built
+and gated: `trivial_baseline.py` clean (no family above its floor, no
+degenerate family this draw), `quality_audit.py` 99% pass, `style_solver.py`
+mean lift −0.10. Same two structural warnings as every intent-axis config
+(length spread 2.0x, ranking-tier pressure at the 100K tier) — both pre-existing
+properties of the 48-class label space, not introduced by this variant.
+
+**Why this is not "gaming" the leakage filter, and the distinction is worth
+stating precisely.** The leakage filter guards against *literal, no-comprehension
+substring matching* — a solver that scores well without understanding a word of
+Turkish, like `trivial_baseline.py`'s. It does **not** guard against a model
+correctly recognising that `çalmak` and `çal` share a root and mean "to play" —
+that recognition is the classification task working as intended, identical in
+kind to a model needing to know that `olumlu` means "positive." A translated
+label a model must still *semantically* interpret against latent content is the
+point of the benchmark; a translated label a *regex* can find verbatim in the
+text is the failure mode D1 exists to remove. Picking the surface form that
+minimises the second without changing the first is a legitimate construction
+choice, not a shortcut against the model.
+
+**Verdict.** If a Turkish-labelled variant ships, prefer the infinitive map
+(`tr_intent_trlabel_inf`) over the imperative one — same semantic content, 20x
+less filtering cost, no measured downside on any of the three gates.

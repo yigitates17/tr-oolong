@@ -22,5 +22,6 @@
   "min_rank_margin": 0.03,
   "min_answer_count": 10,
   "licence": "cc-by-4.0",
-  "label_provenance": "professional_annotation"
+  "label_provenance": "professional_annotation",
+  "text_provenance": "human_translated"
 }

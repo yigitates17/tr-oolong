@@ -1,6 +1,6 @@
 {
-  "version": "0.6.0",
-  "date": "2026-09-04",
+  "version": "0.6.2",
+  "date": "2026-09-09",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -27,6 +27,8 @@
     "separator": "\n\n<<<###>>>\n\n",
     "licence": "",
     "label_provenance": "",
+    "text_provenance": "",
+    "label_translation": {},
     "lvl_same_tol": 0.02,
     "lvl_min_margin": 0.1,
     "render_entity": true,

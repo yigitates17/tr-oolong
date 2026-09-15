@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.6.0"
+VERSION = "0.6.2"
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +114,23 @@ class Config:
     # it is declared by hand rather than inferred.
     licence: str = ""                     # e.g. "cc-by-sa-4.0", or "unknown"
     label_provenance: str = ""            # "author_stars" | "professional_annotation" | "crowd"
+    # Declared, not used by the build -- read by scripts/check_solo.py and
+    # check_pair.py. "human_written" | "human_translated" | "machine_translated"
+    # | "synthetic_generated". Distinct from label_provenance: this is about the
+    # TEXT, not the label. See README section on real-vs-synthetic data for why
+    # synthetic TEXT is a much harder objection than synthetic labels.
+    text_provenance: str = ""
+    # Translate label VALUES (e.g. "play_music" -> "muzik_cal") before anything
+    # else touches them. Empty by default: today's intent labels are English
+    # database codes, and an English code cannot appear inside Turkish prose, so
+    # leakage is 0% BY CONSTRUCTION -- not because the language hides it.
+    # Translating creates leakage rather than removing it, because Turkish is
+    # verb-final and a noun_verb label name can reproduce a natural Turkish
+    # phrase (alarm_kur <- "... alarm kur"). Applied before drop_label_leakage
+    # so the filter measures and removes exactly that cost; unmapped labels
+    # pass through unchanged, so a partial map is safe. See DATACARD/PAPER_NOTES
+    # 5b for the measured cost (0.91%, 137/15,075 rows on the intent axis).
+    label_translation: dict[str, str] = dataclasses.field(default_factory=dict)
     lvl_same_tol: float = 0.02
     # label_vs_label needs a WIDER margin than the ranking families. It is a
     # 3-way call on a continuous quantity, so a pair just outside same_tol is a
@@ -253,6 +270,14 @@ def label_leak_mask(texts: list[str], labels: list[str], language: str) -> list[
 # Load + clean
 # ---------------------------------------------------------------------------
 
+class MissingColumnError(ValueError):
+    """The config names a column the source file doesn't have. Distinguished
+    from a bare KeyError/ColumnNotFoundError so a caller (check_solo.py) can
+    catch this specifically and report it as a clean gate failure instead of
+    a raw Polars stack trace surfacing a config typo or a genuinely
+    label-less source as an unreadable crash."""
+
+
 def load_source(cfg: Config) -> pl.DataFrame:
     p = Path(cfg.source_path)
     if p.suffix in (".jsonl", ".ndjson"):
@@ -262,6 +287,18 @@ def load_source(cfg: Config) -> pl.DataFrame:
     else:
         df = pl.read_csv(p)
     keep = [cfg.text_col, cfg.label_col] + ([cfg.entity_col] if cfg.entity_col else [])
+    missing = [c for c in keep if c not in df.columns]
+    if missing:
+        raise MissingColumnError(
+            f"{cfg.source_path}: no column named {missing} -- declared as "
+            f"text_col={cfg.text_col!r}, label_col={cfg.label_col!r}"
+            + (f", entity_col={cfg.entity_col!r}" if cfg.entity_col else "")
+            + f". Columns actually present: {df.columns}. "
+            "A label is this benchmark's answer key: without one there is nothing "
+            "to aggregate, and this cannot be built as an OOLONG-style source at all "
+            "(see ROADMAP.md 'if we receive new Turkish data, what should we check' -- "
+            "labels are check #1, before size or licence)."
+        )
     df = df.select(keep).drop_nulls()
     df = df.rename({cfg.text_col: "text", cfg.label_col: "label"})
     if cfg.entity_col:
@@ -297,6 +334,12 @@ def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFr
     )
     df = df.filter(~pl.col("label").str.contains(",") & ~pl.col("entity").str.contains(","))
     df = df.unique(subset=["_norm"], keep="first", maintain_order=True).drop("_norm")
+
+    if cfg.label_translation:
+        df = df.with_columns(
+            pl.col("label").replace(cfg.label_translation).alias("label")
+        )
+        stats["label_translation_applied"] = True
 
     # Grep-proofness: drop records whose text contains any label surface form.
     # The drop RATE is itself the label-leakage measurement (see DATACARD) --
@@ -1282,14 +1325,22 @@ def generate_questions(meta, cfg, rng, *, drift_target, unit, k, prior_ent=None,
     # source ships with three families missing: on an 18-class axis the 3-class
     # default of min_rank_margin=0.10 rejects every ranking draw, and the quota
     # spills into count/proportion with no indication anything was lost.
+    #
+    # Reported PER TIER, not per haystack. Printing one line per haystack buried
+    # the signal: `entity_argmax` starving only at the short tiers looked like
+    # thirty identical lines naming the whole set, so a family that is really
+    # LENGTH-GATED read as a family that was broken everywhere. The caller
+    # collects these and prints one grouped summary (see build()).
     for kind, want in quota.items():
         got = realized.get(kind, 0)
-        if want and got == 0:
+        if not want or got >= want:
+            continue
+        if got == 0:
             print(f"[starved] {cfg.out_dir}: family '{kind}' produced 0/{want} questions. "
                   f"The difficulty floors reject every draw for this source. Run "
                   f"--audit for recommended thresholds, or disable the family "
                   f"explicitly via \"families_disabled\".", file=sys.stderr)
-        elif want and got < want:
+        else:
             print(f"[short]   {cfg.out_dir}: family '{kind}' produced {got}/{want}.",
                   file=sys.stderr)
     # spill pass: top up any shortfall with count/proportion (large sampling space)
@@ -1304,6 +1355,42 @@ def generate_questions(meta, cfg, rng, *, drift_target, unit, k, prior_ent=None,
 # ---------------------------------------------------------------------------
 # Build
 # ---------------------------------------------------------------------------
+
+def report_family_availability(cfg: Config, per_tier: dict[str, Counter]) -> None:
+    """Flag families that emit ZERO questions at a tier while emitting some at
+    another. That, not a missed quota, is the signal worth printing.
+
+    A quota shortfall on one haystack is noise -- the quota spills to sibling
+    haystacks and the family ends up well populated. What matters is a family
+    that is *entirely absent at a whole tier*, because it is then length-gated:
+    `min_entity_examples` is an absolute record count while the number of
+    entities clearing it scales with haystack size, so a prior-neutral candidate
+    set cannot be formed in a short haystack. That is the difficulty floors
+    working (D9), but it has two consequences that stay invisible unless printed
+    per tier:
+
+      * the family is really long-tier-only, and the datacard should say so;
+      * at a tier where one half of a twin emits 0 and the other emits some, the
+        two halves are NOT comparable on that family.
+    """
+    if not per_tier:
+        return
+    tiers = sorted(per_tier)
+    families = sorted({k for c in per_tier.values() for k in c})
+    gated = {f: [t for t in tiers if per_tier[t][f] == 0]
+             for f in families
+             if any(per_tier[t][f] == 0 for t in tiers)
+             and any(per_tier[t][f] > 0 for t in tiers)}
+    if not gated:
+        return
+    print(f"\n[family availability] {cfg.out_dir} -- families absent at some tiers")
+    for f, absent in sorted(gated.items()):
+        present = [f"{t}={per_tier[t][f]}" for t in tiers if per_tier[t][f] > 0]
+        print(f"   {f:<15} absent at: {', '.join(absent):<28} present at: {', '.join(present)}")
+    print( "   -> LENGTH-GATED, not broken: the difficulty floors refuse to pose these")
+    print( "      where a haystack is too short to support them. Record them as long-tier")
+    print( "      families, and do not compare them across a twin at a tier listed above.")
+
 
 def build(cfg: Config) -> None:
     count_tokens = make_token_counter(cfg)
@@ -1344,6 +1431,7 @@ def build(cfg: Config) -> None:
     hay_path = out / "haystacks.jsonl"
     q_path = out / "questions.jsonl"
     kind_counts: Counter = Counter()
+    per_tier: dict[str, Counter] = {}
     hs_summary: list[dict] = []
     n_q = 0
 
@@ -1415,11 +1503,15 @@ def build(cfg: Config) -> None:
                     if gt_primary(meta, "shift", label=drift_target) is None:
                         raise RuntimeError(f"persisted drift_target {drift_target!r} is not detectable")
 
+                hs_id = f"{cfg.language}-{'r' if record_mode else ''}{target}-{ki}"
+
                 questions = generate_questions(
                     meta, cfg, rng, drift_target=drift_target, unit=unit, k=k,
                     prior_ent=prior_ent, prior_lab=prior_lab)
-
-                hs_id = f"{cfg.language}-{'r' if record_mode else ''}{target}-{ki}"
+                tier_key = hs_id.rsplit("-", 1)[0]
+                tier_counter = per_tier.setdefault(tier_key, Counter())
+                for _q in questions:
+                    tier_counter[_q["kind"]] += 1
                 meta.write_parquet(out / f"meta_{hs_id}.parquet")
                 hf.write(json.dumps({
                     "haystack_id": hs_id, "language": cfg.language,
@@ -1508,6 +1600,7 @@ def build(cfg: Config) -> None:
     print(f"\nwrote {n_q} questions -> {q_path}")
     print(f"haystacks -> {hay_path}")
     print(f"kind distribution: {dict(sorted(kind_counts.items()))}")
+    report_family_availability(cfg, per_tier)
     print(f"manifest -> {out / 'manifest.json'}")
 
 

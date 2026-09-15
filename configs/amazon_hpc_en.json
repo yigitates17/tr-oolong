@@ -35,5 +35,6 @@
   ],
   "render_entity": true,
   "licence": "unknown",
-  "label_provenance": "author_stars"
+  "label_provenance": "author_stars",
+  "text_provenance": "human_written"
 }

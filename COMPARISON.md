@@ -219,7 +219,13 @@ Per set:
 
 The `en_intent_paired` set is shorter in tokens than its Turkish twin at the same
 record count. That gap **is** the measurement: at identical content, Turkish
-costs **1.30–1.34x** the tokens of English.
+costs **1.30–1.34x** the tokens of English **under Qwen3-8B, the tokenizer this
+benchmark is built with.** Name the tokenizer whenever quoting this — it is not
+a morphology constant. On the same aligned utterances the ratio runs from
+**0.57x** (BERTurk, where Turkish is *cheaper*) to **2.16x** (GPT-2), and even
+across generations of one vendor's own tokenizer it moves substantially (GPT-3
+→ GPT-4o: 2.16x → 1.35x; Mistral's older → current tokenizer: 2.07x → 1.47x).
+See `PAPER_NOTES.md` §1 for the full table and how to state this correctly.
 
 ---
 

@@ -9,3 +9,9 @@ datasets==3.3.2
 # Figures only (scripts/make_readme_figs.py); does not affect benchmark output.
 pandas
 matplotlib
+
+# Tokenizer-spread comparison only (scripts/tokenizer_spread.py); does not
+# affect benchmark output. tiktoken covers the OpenAI encodings; mistral-common
+# needs the [sentencepiece] extra for the pre-Tekken Mistral tokenizer.
+tiktoken
+mistral-common[sentencepiece]

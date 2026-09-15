@@ -22,5 +22,6 @@
     6000
   ],
   "licence": "cc-by-4.0",
-  "label_provenance": "professional_annotation"
+  "label_provenance": "professional_annotation",
+  "text_provenance": "human_translated"
 }

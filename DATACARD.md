@@ -37,9 +37,11 @@ is no manual answer annotation.
   **Impact on the benchmark: none.** Every answer is derived from the *label*,
   which is identical across the pair, so the counting task and its ground truth
   are genuinely the same in both languages. **Impact on the morphology claim:
-  small but real** — the measured 1.30–1.34× token ratio reflects localization as
-  well as agglutination, so it is an upper bound on the pure morphology effect,
-  not a clean estimate of it. Both the leakage filter and the support floor are applied
+  small but real** — the measured 1.30–1.34× token ratio **under Qwen3-8B**
+  reflects localization as well as agglutination, so it is an upper bound on the
+  pure morphology effect, not a clean estimate of it, and it is also specific to
+  that tokenizer (see PAPER_NOTES.md §1: the same aligned text runs 0.57×–2.16×
+  depending on which tokenizer counts it). Both the leakage filter and the support floor are applied
   as a **union over the locale pair** (drop the utterance/class from both if it
   fails in either), so the twin retains an identical label space and an identical
   source row set. Applying either filter per locale would have left TR and EN with
@@ -50,6 +52,13 @@ is no manual answer annotation.
   that claim is **withdrawn** — it is absent from this pool and was confounded by
   matching both locales against the English label vocabulary. See README §4.
   The filter still runs, and still applies as a union over the pair.
+- **Does not ship**, but exists as a measured experiment: `label_translation`
+  translates the 48 intent codes to Turkish (`play_music`→`müzik_çal`), and
+  leakage against the *translated* label reappears — 3.13% for the natural
+  imperative form, 0.14% for the infinitive form. Configs live in
+  `configs/experimental/`, deliberately outside the glob every release script
+  uses, so they cannot be swept into a release by accident. See
+  `DESIGN_DECISIONS.md` D19/D19b for the full measurement.
 - License: MASSIVE is CC-BY-4.0. Verify at release time.
 - Proportion unit: per-mille (label space > 10).
 - **Label noise: measured 2026-09-04.** A native Turkish speaker judged a
@@ -308,18 +317,22 @@ cited and rebuilt by others, adding a second unknown-licence dependency was
 judged not worth a 0.02 improvement in one metric. MARC is Apache-2.0 and its
 text is redistributable, and it reached a *better* asymmetry anyway (0.010).
 
-### Declared per source (read by `scripts/check_pair.py`)
+### Declared per source (read by `scripts/check_pair.py` / `scripts/check_solo.py`)
 
-Two config fields are declared by hand because neither is measurable from the
-data, and one of them withdrew a whole pair in v0.5.0:
+Three config fields are declared by hand because none is measurable from the
+data, and the first withdrew a whole pair in v0.5.0. `text_provenance` is newer
+(v0.6.2) and backfilled here from the facts already established in this
+document — the MASSIVE pair is a **human localization** of English SLURP
+(§ above), never machine translation, and the four review corpora are natively
+written Turkish/English with no translation step at all:
 
-| set | `licence` | `label_provenance` |
-|---|---|---|
-| `tr_intent`, `en_intent` (+paired) | `cc-by-4.0` | `professional_annotation` |
-| `vitamins_tr` | `cc-by-sa-4.0` | `author_stars` |
-| `musteri_tr` | `cc-by-sa-4.0` | `author_stars` |
-| `marc_en` | `apache-2.0` | `author_stars` |
-| `amazon_hpc_en` | `unknown` | `author_stars` |
+| set | `licence` | `label_provenance` | `text_provenance` |
+|---|---|---|---|
+| `tr_intent`, `en_intent` (+paired) | `cc-by-4.0` | `professional_annotation` | `human_translated` |
+| `vitamins_tr` | `cc-by-sa-4.0` | `author_stars` | `human_written` |
+| `musteri_tr` | `cc-by-sa-4.0` | `author_stars` | `human_written` |
+| `marc_en` | `apache-2.0` | `author_stars` | `human_written` |
+| `amazon_hpc_en` | `unknown` | `author_stars` | `human_written` |
 
 ### Before release
 

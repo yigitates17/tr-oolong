@@ -47,6 +47,15 @@ in the first five minutes, and the current framing has no answer.
 
 **Verdict: doable, roughly a day of rewriting plus one measurement script.**
 
+✅ **Resolved, checked 2026-09-09.** All three steps above are done: README §4
+and its opening box name the tokenizer on every mention and carry the full
+generational-trend table (now including Mistral, `scripts/tokenizer_spread.py`);
+`thesis_proposal_revised.md` §4.4.0 re-anchors RQ4 on the record-matched regime
+exactly as recommended. Two docs had lagged behind this fix and were caught and
+corrected today: `COMPARISON.md` and `DATACARD.md` still carried the bare
+"1.30–1.34x" figure with no tokenizer named. See `PAPER_NOTES.md` §1 for the
+current, correct form of this claim.
+
 ---
 
 ## Finding 2 — CRITICAL. No model has ever been run

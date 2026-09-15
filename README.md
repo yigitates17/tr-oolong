@@ -1068,6 +1068,25 @@ On the pairs in this repo it reproduces the verdicts §11 reached by hand:
 family — source-level numbers have already been shown not to predict
 question-level exploitability (§4d).
 
+**Adding a dataset with no partner language?** `check_pair.py` answers "can
+these two halves be compared" and needs a second config to do it. A
+contributor with just one Turkish dataset and no cross-lingual claim doesn't
+have a second config, and the three per-set gates it would otherwise have to
+run by hand (`trivial_baseline.py`, `quality_audit.py`, `style_solver.py`) were
+already twin-agnostic — nobody had wired them into one report for this case.
+`scripts/check_solo.py` does that:
+
+```bash
+python scripts/check_solo.py configs/new_tr_set.json          # pre-build checks only
+python scripts/check_solo.py configs/new_tr_set.json --build   # build it, then run all gates
+```
+
+Same three-tier verdict (`SOLO OK` / `SOLO WITH CAVEATS` / `SOLO INCOMPATIBLE`).
+It also catches a source with no label column as a named failure rather than a
+raw stack trace, and flags a `label_provenance` or `text_provenance` value that
+reads as machine/synthetic — citing the exact precedent (winvoker,
+`DATASET_REVIEW.md`) that already cost this project a corpus once.
+
 ## 12. Repository layout
 
 ```
@@ -1080,16 +1099,21 @@ tr-oolong/
 ├── DATASET_REVIEW.md   # every source considered, the twin search, and each verdict
 ├── PAPER_NOTES.md      # claims to carry into the paper, and what is not yet true
 ├── REVIEW.md           # adversarial read: the weak parts, ranked
-├── ADVISOR_QUESTIONS.md # standing questions and their current answers
 ├── LICENSE             # MIT (code); data licenses in DATACARD
 ├── CHEATSHEET.md       # vocabulary, workflows, and what the golden test is for
 ├── src/build_tr_oolong.py
 ├── src/scoring.py      # FROZEN metric
 ├── scripts/quality_audit.py   # prior-oracle + depth/margin acceptance gate
 ├── scripts/trivial_baseline.py
+├── scripts/check_pair.py      # is this TR/EN pair a usable matched twin?
+├── scripts/check_solo.py      # is this ONE dataset usable, no partner needed?
+├── scripts/tokenizer_spread.py # seeded TR/EN token-cost comparison across tokenizers
 ├── scripts/publish_hf.py      # per-subset licensing for release
 ├── scripts/make_readme_figs.py
-├── configs/            # one config per instance set
+├── configs/            # one config per SHIPPING instance set — globbed by
+│                       #   publish_hf.py / quality_audit.py / verify_release.py
+├── configs/experimental/  # ablations kept OUT of the glob above on purpose;
+│                       #   build/check by explicit path, never swept in
 ├── manifests/          # committed manifest.json per set (post-rebuild)
 ├── examples/           # a real sample question set
 └── data/               # git-ignored; distributed via Hugging Face
