@@ -89,7 +89,7 @@ TR-OOLONG has the same idea but a different second axis, and no third:
 | which entity has the most X (`entity_argmax`) | — | ✅ | ❌ |
 | A or B, which has more X (`pairwise`) | — | ✅ | ❌ |
 | ~~ordered top-k entities (`top_k`)~~ | — | ~~✅~~ **withdrawn v0.5.0** | ❌ |
-| did X's share rise or fall (`shift`) | ✅ | — | ⚠️ positional halves, not dates |
+| did X's share rise or fall (`shift`) | ~~✅~~ withdrawn v0.7.0 | — | a two-window reader scores 1.000; see README §4e-i |
 
 **Read the two tables together and the picture is:** we match their counting
 group **including their label-vs-label comparison as of v0.6.0**, we replace

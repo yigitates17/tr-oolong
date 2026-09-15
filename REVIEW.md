@@ -104,6 +104,7 @@ prose implies, and the discrepancy is visible to anyone who opens the manifest.
 ---
 
 ## Finding 4 — SERIOUS. `shift` is measurably broken and should not ship as-is
+### ✅ RESOLVED 2026-09-16: the family is withdrawn, and for a worse reason than this finding gives
 
 Across the eight shipping sets it is the only family the format solver beats:
 **+0.400** (`amazon_hpc_en`), **+0.300** (`vitamins_tr`), **+0.267**
@@ -124,6 +125,23 @@ construction.
   see Finding 8.
 
 **Verdict: the first two are doable today. The third is currently a dead end.**
+
+**Outcome (2026-09-16): none of the three. The family is removed.** This finding
+underestimated the problem. Style-solvability was the smaller issue. When the
+partial-coverage gate was given a `headtail` reader (k/2 records at the start of
+the document and k/2 at the end, costing exactly what the already-modelled
+`prefix` reader costs), `shift` scored **1.000 on all eight sets at a 25%
+budget** and 0.90 to 1.00 at 5%, against a majority baseline of 0.50 to 0.70.
+
+That also rules out the "medium" option above. Making it 3-way lowers the
+*blind-guessing* ceiling from 0.50 to 0.33, but a two-window reader is not
+guessing: it estimates both block shares directly and a margin band does not
+stop it. The answer is a step function at a known position and its direction is
+one bit, so no variant that asks for a direction survives.
+
+Disabled in all eight configs and the fixture as of v0.7.0. Shipped v0.6.3 data
+is unchanged and still contains `shift`; discard those answers rather than
+caveating them. See `DESIGN_DECISIONS.md` D20, README §4e-i, PAPER_NOTES §13d.
 
 ---
 

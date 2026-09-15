@@ -30,7 +30,7 @@ See §7 for how to say that in the paper.
 | **instance set / "set"** | One source corpus, fully built → one `*_out/` directory. There are six: `tr_intent`, `en_intent`, `tr_oolong`, `en_twin`, `vitamins_tr`, `amazon_hpc_en`. |
 | **axis** | A group of sets sharing a label type. Two axes: **review/sentiment** (3 classes, brand entity) and **intent** (48 classes, scenario entity). |
 | **twin** | The English set built by the identical pipeline from the parallel corpus, so TR-vs-EN differences aren't pipeline artifacts. |
-| **family / kind** | A question type: `count`, `proportion`, `shift`, `most_common`, `least_common`, `second_most`, `entity_count`, `entity_argmax`, `top_k`, `pairwise`. |
+| **family / kind** | A question type: `count`, `proportion`, `most_common`, `least_common`, `second_most`, `entity_count`, `entity_argmax`, `top_k`, `pairwise`. (`shift` was a tenth, withdrawn in v0.7.0; `top_k` in v0.5.0.) |
 | **entity** | A second, non-label attribute of each atom — brand, airline, scenario. Enables "which brand got the most negative reviews". |
 | **orthogonal vs nested entity** | *Orthogonal*: every brand has all 3 sentiments → entity questions are meaningful. *Nested*: each MASSIVE intent belongs to exactly one scenario → entity questions are trivial. The builder detects this and omits the entity families automatically. |
 | **askable entity** | An entity with at least `min_entity_examples` (15) atoms in the haystack. Only these are eligible. |
@@ -39,9 +39,9 @@ See §7 for how to say that in the paper.
 | **thin / knife-edge** | A question decided by too few records (thin) or by too small a margin (knife-edge). Both are rejected at build time. |
 | **entity jitter** | A per-haystack random perturbation of the brand distribution, so brand rankings are a property of the haystack rather than of the corpus. |
 | **paired / record-matched** | A twin sized in *records* rather than tokens, so both languages contain the same records and share gold answers. |
-| **singleton family** | A family where only one question per haystack makes sense (`shift`, `most_common`, `least_common`, `second_most`) — asking twice would be the same question. Quota-capped at 1. |
+| **singleton family** | A family where only one question per haystack makes sense (`most_common`, `least_common`, `second_most`, and `shift` while it existed) — asking twice would be the same question. Quota-capped at 1. |
 | **quota** | How many questions of each family to make per haystack (12 total, split evenly, remainder to `count`/`proportion`). |
-| **drift** | Deliberately over-representing one label in the second half of the haystack so `shift` questions have a real signal. `drift_target` = which label; `drift_ok` = the signal was detectable. |
+| **drift** | Deliberately over-representing one label in the second half of the haystack. `drift_target` = which label; `drift_ok` = the signal was detectable. It existed so `shift` had signal; `shift` is withdrawn in v0.7.0 but the drift is kept, because it is the only thing stopping the document being fully exchangeable. |
 | **per-mille** | When there are >10 labels, percentages round to 0, so `proportion` switches to parts-per-thousand automatically. |
 | **meta parquet** | `meta_<tier>-<k>.parquet` — the exact atom list of one haystack (row_id, text, label, entity, char offsets, which half). This is the evidence the answers were computed from. |
 | **manifest** | `manifest.json` per set — version, config, source hash, tokenizer, cleaning stats, realized family counts. The reproducibility record. |
@@ -462,6 +462,8 @@ config.
 
 **Headline after the rebuild:** 8 sets · 110 haystacks · **1,254 questions** ·
 **28.3M tokens** · 10 families · 630 tr / 624 en · 36,250–987,623 tokens.
+*(v0.6.3 as published. The v0.7 rebuild withdraws `shift`, so it becomes 9
+families and fewer questions; these figures stand until that rebuild runs.)*
 
 ---
 

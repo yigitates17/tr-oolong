@@ -503,13 +503,16 @@ because it carries the entity axis.
 
 ### 3.5 Summary — what each source contributes
 
-| set | source | label origin | classes | entity | ships |
+| set | source | label origin | classes | entity | ships (v0.6.3) |
 |---|---|---|---|---|---|
 | `tr_intent`, `en_intent` (+paired) | MASSIVE | already in the data, professional annotation | 48 | nested, unusable | 6 families |
 | `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | 10 families |
 | `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 10 families |
 | `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | 6 families |
 | `marc_en` | MARC English | **writer's own star rating** | 3 | none | 6 families |
+
+Counts are for v0.6.3 as published. `shift` is withdrawn in v0.7.0 (§4e-i), so
+each row loses one family at the next rebuild.
 
 
 ### 3.6 Example questions (produced by the actual builder)
