@@ -266,7 +266,11 @@ python src/build_tr_oolong.py --config configs/<set>.json --build
 | `question` | the prompt text, self-contained |
 
 `haystacks.jsonl` -- one haystack per line: `haystack_id`, `n_examples`,
-`drift_target`, and `haystack` (the concatenated text).
+`drift_target`, and `haystack` (the concatenated text). **Only `haystack` and
+the question go to the model.** `n_examples` and `drift_target` are build
+metadata for auditing; `drift_target` names the label the `shift` question
+asks about, so passing it into a prompt would hand the model half of that
+question. `scripts/run_eval.py` sends the text alone.
 
 ## Scoring
 
