@@ -218,7 +218,8 @@ One genuine shortcoming sits behind this: the automatic warning for a question t
 
 **Queued for whenever evaluation begins:**
 
-- A retrieval baseline, and a second-level-decomposition run (both §1). Neither is urgent.
+- A retrieval baseline (§1). Not urgent.
+- ~~A second-level-decomposition run.~~ **Removed.** A reproduction study (Wang, 2026) has already run it, and on OOLONG — the benchmark this one is modelled on. Depth 2 degraded accuracy and inflated runtime from 3.6 seconds to 344.5 seconds. Repeating it here would be replication rather than a new result.
 
 **Blocked on data, not effort:**
 

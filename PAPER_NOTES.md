@@ -624,7 +624,7 @@ reportable result whichever way it lands.
 | # | Experiment | Why it is worth running | Cost |
 |---|---|---|---|
 | 1 | **Retrieval / RAG baseline** — top-k chunks, then count | It should fail in a *predictable direction* (systematic undercounting, worsening with length). That is the cleanest evidence the benchmark measures something retrieval cannot do, and it pre-empts the "why not just use RAG" review question | Same questions, same scorer, no new data |
-| 2 | **Recursion depth 2** | The authors' depth-1 sufficiency claim is scoped to "most modern long context benchmarks" — none of which had this task shape. Aggregation at 1M tokens is where a single split produces the largest fan-out, so it is the most plausible regime for a second level to earn its keep. Untested by anyone | One extra config |
+| 2 | ~~**Recursion depth 2**~~ **DOWNGRADED — see §12b** | ~~Untested by anyone~~ **This was wrong.** Wang (arXiv:2603.02615) already ran depth 2, **on OOLONG**, and found it degrades accuracy while inflating runtime 3.6s → 344.5s. The nearest-possible benchmark to ours has answered it | Low value now |
 | 3 | **Concurrent vs. sequential sub-calls** | Pure wall-clock measurement, no accuracy effect. Needed anyway for the HPC resource estimate, which must be computed rather than guessed | Free, a by-product of runs already planned |
 | 4 | **Sampling-extrapolation solver** (§13 below) | A fifth shortcut solver that the existing four are blind to, and the one most likely to undermine the "must process every record" claim | Half a day, no model needed |
 | 5 | **Prompt-language ablation** (EN root/EN child, EN root/TR child, TR root/TR child) | Tests whether matching the instruction language to the content language matters. Small, clean, unpublished for Turkish | Three configs on one set |
@@ -662,6 +662,76 @@ with that. What we *should* do is state our own restrictions with the same
 explicitness — depth 1, one reference tokenizer, frozen metric, no fine-tuning —
 because the failure mode to avoid is not restricting, it is claiming past the
 restriction.
+
+---
+
+## 12b. Depth 2 is already measured, on OOLONG — verified 2026-09-15
+
+**Wang, D. (2026), *Think, But Don't Overthink: Reproducing Recursive Language
+Models*, arXiv:2603.02615.** A direct reproduction of Zhang et al.'s RLM, not a
+generic agent scaffold. Verified against the abstract and listing.
+
+| | |
+|---|---|
+| compares | pure LLM · RLM **depth 1** · RLM **depth 2** |
+| benchmarks | **S-NIAH and OOLONG** |
+| models | DeepSeek v3.2, Kimi K2 |
+| depth-2 result | **degrades accuracy**; runtime **3.6 s → 344.5 s**; token cost rises sharply |
+| stated mechanism | deeper recursion makes models overthink and spawn redundant sub-calls — format collapse, latency, token explosion |
+
+**Consequence, and it corrects an earlier note in this file.** A depth-2 run was
+listed in §11 as "untested by anyone." That was wrong. It has been tested, and
+tested on **OOLONG** — the benchmark this one is modelled on. Running it here
+would be a replication on a Turkish variant, not a new result. Downgraded.
+
+**What is still unexamined, if it is ever wanted:** depth 2 on a *non-English*
+axis, and depth 2 at the 1M-token tier where the single-split fan-out is
+largest. Both are narrow, and neither is worth displacing anything above it.
+
+**A second finding in that paper, which is more useful to us than the depth
+result:** depth-1 RLM **performs worse than a vanilla LLM on simple retrieval
+queries**, while improving on complex reasoning. That is a direct argument for
+why a benchmark of this shape is needed — the method's advantage only appears on
+tasks that genuinely require aggregating over everything, and retrieval-style
+benchmarks will systematically understate it. Worth citing in the motivation.
+
+---
+
+## 12c. Can depth 1 be "recursive" at all? No — and the terminology is worth getting exactly right
+
+Recursion, in the ordinary computer-science sense, requires the call graph to
+contain a **self-reference**: some node whose child is the same kind of thing as
+itself.
+
+At RLM depth 1 the call graph is:
+
+```
+RLM root  ──►  LM   (plain model: answers its chunk, returns, stops)
+          ──►  LM
+          ──►  LM
+```
+
+The root is an RLM; the children are plain LMs with no environment and no
+ability to dispatch. **No node calls its own kind, so there is no self-reference
+and therefore no recursion.** It is a two-level tree: one orchestrator, N
+workers — map-reduce, or in current vocabulary an agent with sub-agents.
+
+**The terminology is slightly generous in the source.** "Recursive depth 1"
+suggests one level of recursion has occurred. It has not: the number of
+*recursive steps* at depth 1 is **zero**. The first genuine self-call appears at
+depth 2 (`RLM → RLM → LM`), which is the configuration Wang tested and found
+harmful.
+
+**The one caveat, stated for fairness.** The paper's abstract says the model
+"recursively call[s] **itself** over snippets," which is a weaker, model-level
+sense: the same LLM invoked on smaller inputs. Even that does not hold in the
+headline configuration, where the root is GPT-5 and the children are
+GPT-5-**mini** — a different, smaller model.
+
+**One-line version:** *at depth 1 no component ever invokes another instance of
+itself, so what runs is delegation, not recursion; the recursion the name refers
+to begins at depth 2, which the original authors did not run and a reproduction
+found harmful.*
 
 ---
 

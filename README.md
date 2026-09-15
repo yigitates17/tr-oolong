@@ -1232,6 +1232,12 @@ but no claim should describe this pool as representative of Turkish review text.
 ## References
 
 - Bertsch et al. (2025), *OOLONG*, arXiv:2511.02817 — construction principle.
+- Wang, D. (2026), *Think, But Don't Overthink: Reproducing Recursive Language
+  Models*, arXiv:2603.02615 — reproduces RLM on S-NIAH and **OOLONG**; depth-2
+  recursion degrades accuracy and inflates runtime 3.6 s → 344.5 s. Also reports
+  that depth-1 RLM underperforms a vanilla LLM on simple retrieval while helping
+  on complex reasoning — the argument for why aggregation-shaped benchmarks are
+  needed to see the method's advantage at all.
 - Hsieh et al. (2024), *RULER*, arXiv:2404.06654 — the four-category long-context
   taxonomy (retrieval / multi-hop tracing / aggregation / QA) this benchmark
   adopts. Its own aggregation tasks are lexical word-frequency extraction (CWE,
