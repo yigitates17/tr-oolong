@@ -192,7 +192,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="hf_release")
     ap.add_argument("--repo", default="", help="e.g. yigitates/tr-oolong")
-    ap.add_argument("--repo-url", default="https://github.com/yigitates/tr-oolong")
+    # NOT cosmetic: `amazon_hpc_en` ships without haystack text, and the card
+    # tells users to clone THIS url and rebuild it locally. A wrong link makes
+    # that subset unusable rather than merely unattributed.
+    ap.add_argument("--repo-url", default="https://github.com/yigitates17/tr-oolong")
     ap.add_argument("--push", action="store_true", help="actually upload")
     args = ap.parse_args()
 
