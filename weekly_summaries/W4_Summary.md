@@ -116,13 +116,19 @@ For the Turkish-label variant, the 0.14% figure is the *cost* of the filter, not
 - Whether to publish the dataset now. Unchanged recommendation: yes.
 - Whether the Turkish dictionary-form label variant replaces the current Turkish intent dataset or remains a side experiment.
 
-**Can be done now, no model required:**
+**Done since the last summary:**
+
+- ✅ **The sampling shortcut detector is built and run** — and it found something material. See §5.
+- ✅ **The entity-mention audit.** A review names a brand other than its own in 0.66% of the Turkish set and 13.8% of the English one, though the English figure is inflated by brand names that are ordinary words. Correctness is unaffected either way, since records are grouped by the printed marker rather than by free-text mentions.
+- ✅ **The brand-question length constraint is recorded in the datacard.**
+
+**Still outstanding, and needs a native speaker:**
 
 - The 150-row re-check separating translation errors from annotation errors.
-- A shortcut detector for sampling-and-extrapolating.
-- The entity-mention audit.
-- Recording the brand-based question types as long-document-only in the datacard.
-- The build-time source-pool partition, required before any trajectory data is used for training.
+
+**Still outstanding, not blocking publication:**
+
+- The build-time source-pool partition, required only before trajectory data is used for training.
 - Confirming whether any source corpus is shared with the English benchmark, which determines whether it is a clean transfer target.
 
 **Queued for evaluation:**
@@ -133,3 +139,27 @@ For the Turkish-label variant, the 0.14% figure is the *cost* of the filter, not
 **Blocked on data:**
 
 - The positional-shift question type, pending a Turkish corpus with real dates.
+
+---
+
+## 5. A fifth shortcut check was built, and it found a real limitation
+
+The four existing checks all ask whether a question can be answered *without reading the document*. None asks whether it can be answered by reading only **part** of it. That gap is now closed, and the answer is uncomfortable.
+
+**A model that reads a random 5% of a document and scales the result up scores 0.95 on counting questions** for the Turkish supplement set, against a baseline of 0.05 for always guessing the most common answer. On "which label is most common" for the e-commerce set it scores 0.99. In other words, for most question types, reading a twentieth of the document is nearly as good as reading all of it.
+
+**Why.** The gap between the most and second-most common label is much wider than it needs to be — a median of 38% and 48% on the two review sets, against a required minimum of 10%. A small sample settles a 38% gap almost every time. The 48-category intent dataset has a median gap of 14% and is correspondingly harder to sample, which confirms the mechanism.
+
+**One question type resists it**, and instructively so: the "is A more common than B, or equal" type, but only on the 48-category dataset, where its 2% "equal" band is narrower than sampling error can resolve. On the three-category sets that band never triggers and the resistance disappears.
+
+**Three qualifications that must accompany this.**
+
+1. **It is an upper bound, not a model result.** The checker is given the correct label of every record it samples. A real model would still have to read and judge them. It measures what a *perfect* reader of a fraction could achieve.
+2. **It applies to the proportional scoring metric.** Under strict exact-match a sampled count of 1,712 against a true 1,600 scores zero. The question types where the two metrics coincide — all the ranking ones — are genuinely exposed.
+3. **It is a consequence of scale.** A benchmark whose answers are single digits cannot be sampled at all. Ours can *because* its answers run to thousands. The large answers are not a difficulty advantage; they are what admits this shortcut.
+
+**What this changes.** Ground truth is untouched — every answer remains exactly correct for its document. What narrows is the claim. This benchmark demonstrably requires *classifying Turkish records and combining them*; it does **not** demonstrably require reading all of them. Any statement that a model "must process every record" should be withdrawn.
+
+**A fix exists for a future version.** The builder currently rejects questions whose deciding margin is too *narrow*. It should also reject those whose margin is too *wide*, since a 38% gap is free to a sampler. That uses machinery already present, but it changes the shipped questions and requires a rebuild, so it is not in this release.
+
+**Recommendation: publish anyway, with this documented.** It is a limitation rather than an error, it was found by our own audit rather than by a reviewer, and a release that reports five shortcut checks including one that partly succeeds is more credible than one reporting four that all fail. The dataset is version-controlled, so the margin-band fix can ship as a later revision.

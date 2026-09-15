@@ -112,6 +112,37 @@ the per-set question counts are not mistaken for a bug.
 | `musteri_tr`, `marc_en` | the four entity families | no product or brand column in either half; kept symmetric on purpose |
 | `amazon_hpc_en` | `top_k` | exact ordering stayed prior-correlated (z=+3.7) |
 
+### ⚠️ The entity families are LENGTH-GATED. Do not read them as available at every tier.
+
+`min_entity_examples` is an absolute record count, while the number of entities
+clearing it scales with haystack size. Short haystacks therefore cannot form a
+prior-neutral candidate set, and the builder correctly declines to emit the
+question rather than shipping one decided by a one-record margin. Measured on
+the shipped build:
+
+| tier | `vitamins_tr` (count / argmax / pairwise) | `amazon_hpc_en` |
+|---|---|---|
+| 100K | 5 / **0** / 5 | 4 / **0** / **0** |
+| 250K | 5 / 2 / 5 | 5 / **0** / 5 |
+| 500K | 5 / 5 / 5 | 5 / 3 / 5 |
+| 750K / 1M | 5 / 5 / 5 | 5 / 5 / 5 |
+
+**Two consequences for anyone using this dataset.** `entity_argmax` is
+effectively a 500K-and-above family on both halves. And **at the 100K tier the
+two halves are not comparable on `pairwise`** — Turkish emits five questions,
+English none — because `amazon_hpc_en` averages ~1.4 reviews per brand at that
+length (1,146 brands over 1,622 records) against ~15.6 for `vitamins_tr`.
+
+Any accuracy-versus-length analysis must state which families exist at which
+tier. The build prints this per tier (`[family availability]`).
+
+**Related, measured the same day:** how often a review names a brand *other*
+than the one it is filed under — `vitamins_tr` **0.66%**, `amazon_hpc_en`
+**13.8%**. The English figure is inflated by brand names that are ordinary
+words, so treat it as an upper bound pending a common-word filter. It does not
+affect correctness either way: the grouping key is the rendered `[[entity]]`
+marker and the metadata column, never free-text mentions.
+
 ## Construction summary
 
 - Recipe: concatenate labeled examples into a length-controlled haystack; the
@@ -189,6 +220,64 @@ current protocol does not do.
 3. **The fix is a two-column protocol** — judge "does the label fit the English"
    and "does it fit the Turkish" as separate questions on the same rows. That
    turns the confound into a measurement, and it is the same 150 rows again.
+
+## ⚠️ Sampling exposure — measured 2026-09-15, and it bounds what this benchmark demonstrates
+
+**Read this before quoting the benchmark as requiring a model to process every
+record.** A fifth acceptance solver (`scripts/sampling_solver.py`) tests whether
+a question can be answered by reading only a *fraction* of the haystack:
+sample records at random, compute the answer on the sample, scale back up. The
+other four solvers are structurally blind to this, because none of them samples.
+
+**It works, and on most families it works very well.** Scores are `relative`,
+averaged over 10 random samples per question, against each family's majority
+baseline:
+
+| set | family | majority | 5% sample | 10% | 25% |
+|---|---|---|---|---|---|
+| `vitamins_tr` | `count` | 0.05 | **0.95** | 0.96 | 0.98 |
+| `musteri_tr` | `most_common` | 0.545 | **0.99** | 0.99 | 1.00 |
+| `tr_intent` | `most_common` | 0.10 | 0.39 | 0.54 | 0.67 |
+| `tr_intent` | `count` | 0.05 | 0.62 | 0.73 | 0.83 |
+| `tr_intent_paired` | `label_vs_label` | 0.50 | **0.52** | 0.55 | 0.54 |
+
+**The mechanism is margin width, and it is measurable.** On `most_common` the
+gap between the top two classes is a *median of 38%* (`vitamins_tr`) and *48%*
+(`musteri_tr`) relative — far above the 10% floor the builder enforces. A 5%
+sample resolves a 38% gap almost every time. The 48-class intent axis has a
+median gap of 14% and is correspondingly harder to sample.
+
+**`label_vs_label` is the one family that resists it, and the reason is
+instructive.** It resists only where its 2% "equal" dead band actually fires —
+the 48-class intent axis (+0.02 to +0.08 over majority). On the 3-class review
+sets "equal" never fires (see D18), the family is effectively binary, and
+sampling beats it by +0.40. **Resistance comes from requiring a distinction
+finer than sampling error can resolve.**
+
+**Three qualifications, all of which matter:**
+
+1. **This is an upper bound, not a model result.** The solver is handed the true
+   label of every record it samples. A real model must still classify what it
+   reads. It measures what a *perfect classifier reading a fraction* achieves.
+2. **It is specific to the `relative` metric.** Under `exact`, a sampled count
+   of 1,712 against a gold of 1,600 scores zero, so exact match is immune. The
+   families where `relative` and `exact` coincide — all the ranking families —
+   are genuinely exposed.
+3. **It is a consequence of scale.** A benchmark whose gold answers are single
+   digits cannot be sampled; one whose answers run to thousands can be. The
+   large answer magnitudes that make this benchmark distinctive are the same
+   property that admits this shortcut.
+
+**What this does and does not mean.** Ground truth is unaffected — every answer
+is still exactly correct with respect to its haystack. What is bounded is the
+*claim*: this benchmark demonstrably requires classifying Turkish records and
+aggregating them, but it does **not** demonstrably require reading all of them.
+Statements that a model "must process every record" should be withdrawn.
+
+**The fix, for a future version, is a margin band rather than a margin floor.**
+The builder currently rejects questions whose decision margin is too *narrow*
+(knife-edge). It should also reject those whose margin is too *wide*, since a
+38% gap is resolvable from a small sample. Not applied in this release.
 
 ## Label noise is a per-family ceiling, not a global one
 

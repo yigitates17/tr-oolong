@@ -255,3 +255,21 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       finding).
 - [ ] Decide whether a `configs/experimental/` variant ever graduates to a
       shipping config, or stays a measured-but-unshipped ablation permanently.
+
+## v0.6.3 (2026-09-15)
+
+- [x] **Fifth acceptance gate: `scripts/sampling_solver.py`.** Tests whether a
+      question can be answered from a FRACTION of the haystack. It can: a 5%
+      sample scores 0.95 on `count` (`vitamins_tr`) and 0.99 on `most_common`
+      (`musteri_tr`). Cause is margin width — median rank-1/rank-2 gap is 38-48%
+      on the review sets against a 10% floor. `manifests/sampling_audit.json`.
+- [x] Entity-mention audit: a review names a brand other than its own in 0.66%
+      (`vitamins_tr`) / 13.8% (`amazon_hpc_en`, inflated by common-word brands).
+      Correctness unaffected — grouping uses the rendered marker, not free text.
+- [x] Entity families recorded as LENGTH-GATED in `DATACARD.md`; `entity_argmax`
+      is a 500K+ family, and the twin is incomparable on `pairwise` at 100K.
+- [ ] **Margin BAND rather than a margin floor** — reject questions whose
+      decision margin is too WIDE as well as too narrow. Would make the ranking
+      families sampling-resistant by construction. Changes shipped questions, so
+      it needs a rebuild and a version bump.
+- [ ] Two-column re-pass on the same 150 rows (native speaker; unchanged).

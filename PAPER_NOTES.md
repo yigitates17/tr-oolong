@@ -833,13 +833,54 @@ the ideal target for it; ranking families are partly protected by the 10% margin
 floor, though 7.5% sampling gives roughly 10% relative error, so close pairs
 would become coin flips).
 
-**Status: an analysis, not a measurement. Nothing here has been run.** The four
-existing solvers cannot detect it — leakage looks for label strings, the
-majority baseline at answer skew, the prior oracle never opens the haystack, and
-the format solver reads shape rather than sampling. This should become **solver
-five** (§11, experiment 4), and if it scores as the arithmetic suggests, the
-right response is the same one used everywhere else in this project: report it,
-bound it, and say which families it does and does not threaten.
+**✅ MEASURED 2026-09-15 — and it is worse than the arithmetic above predicted.**
+`scripts/sampling_solver.py` is now the fifth gate. Full numbers in
+`manifests/sampling_audit.json` and DATACARD. Headline: a **5% sample** scores
+**0.95** on `count` (`vitamins_tr`) and **0.99** on `most_common`
+(`musteri_tr`), against majority baselines of 0.05 and 0.545.
+
+**The mechanism is margin width, and this is the useful part.** On
+`most_common` the relative gap between the top two classes has a **median of
+38%** (`vitamins_tr`) and **48%** (`musteri_tr`) — far above the 10% floor the
+builder enforces. A small sample resolves a 38% gap almost always. The 48-class
+intent axis has a median gap of **14%** and is correspondingly harder to sample
+(`most_common` 0.39 at 5%).
+
+**`label_vs_label` is the only family that resists, and only where its dead
+band fires.** On `tr_intent_paired` it scores **+0.02** over majority; on the
+3-class review sets, where "equal" never fires (D18) and the family is
+effectively binary, it scores **+0.40**. Resistance comes from **requiring a
+distinction finer than sampling error can resolve** — which is exactly what a
+2% dead band is.
+
+**The fix that follows, for a future version: a margin BAND, not a margin
+floor.** The builder rejects questions whose decision margin is below
+`min_rank_margin`. It should also reject those *above* an upper bound, because a
+38% gap is free to a sampler. That single change would make the ranking families
+sampling-resistant by construction, using machinery that already exists. Not
+applied — it changes the shipped questions and needs a rebuild.
+
+**Three qualifications that must travel with the number:**
+
+1. **Upper bound, not a model result.** The solver is handed the true label of
+   every record it samples. It measures a *perfect classifier reading a
+   fraction*, which no real model is.
+2. **Metric-specific.** Under `exact`, a sampled count of 1,712 against gold
+   1,600 scores zero, so exact match is immune. The ranking families, where
+   `relative` and `exact` coincide, are genuinely exposed.
+3. **A consequence of scale, which ties back to §13.** A benchmark with
+   single-digit gold answers cannot be sampled. Ours can *because* its answers
+   run to thousands. The magnitude that was going to be advertised as extra
+   difficulty is the same property that admits this shortcut. That is a second,
+   independent reason not to make the "bigger answers are harder" claim.
+
+**What to write.** The defensible claim shrinks in a specific way: this
+benchmark demonstrably requires **classifying Turkish records and aggregating
+them**, and does **not** demonstrably require reading all of them. Any sentence
+asserting that a model "must process every record" should be withdrawn. Report
+the audit alongside the other four — a self-found limitation reported at release
+is a strength, and it is the fifth instance of this project's recurring lesson
+that a shortcut nobody tested for is a shortcut that works.
 
 **One partial defence already exists by accident, and should be measured rather
 than assumed:** every haystack carries deliberately injected drift (one label
