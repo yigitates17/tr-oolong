@@ -17,5 +17,8 @@
   "top_k_k": 3,
   "reference_tokenizer": "",
   "out_dir": "tests/golden",
-  "render_entity": true
+  "render_entity": true,
+  "families_disabled": [
+    "shift"
+  ]
 }

@@ -25,7 +25,9 @@
     "least_common": "Bu yorumlarda en az görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
     "second_most": "Bu yorumlarda ikinci en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz."
   },
-  "families_disabled": [],
+  "families_disabled": [
+    "shift"
+  ],
   "min_rank_margin": 0.2,
   "licence": "cc-by-sa-4.0",
   "label_provenance": "author_stars",

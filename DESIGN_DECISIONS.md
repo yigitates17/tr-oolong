@@ -810,3 +810,74 @@ choice, not a shortcut against the model.
 **Verdict.** If a Turkish-labelled variant ships, prefer the infinitive map
 (`tr_intent_trlabel_inf`) over the imperative one — same semantic content, 20x
 less filtering cost, no measured downside on any of the three gates.
+
+---
+
+## D20 — `shift` is withdrawn: one bit, recoverable from two cheap windows (v0.7.0)
+
+`shift` asked whether a label's share **rose or fell** between the first and
+second half of the haystack. It is disabled in every config as of v0.7.0
+(`"families_disabled": ["shift"]`). The shipped v0.6.3 data is untouched; the
+family disappears at the next rebuild.
+
+**What forced it.** The partial-coverage gate was extended on 2026-09-16 with
+two readers it had been missing (`headtail`: k/2 records at the start and k/2
+at the end; `stride`: k records evenly spaced). Both cost exactly what the
+`prefix` reader costs. Against `shift` they are decisive:
+
+| set | majority baseline | headtail @5% | headtail @25% | stride @5% |
+|---|---|---|---|---|
+| `vitamins_tr` | 0.55 | **1.000** | **1.000** | 1.000 |
+| `musteri_tr` | 0.60 | **1.000** | **1.000** | 1.000 |
+| `marc_en` | 0.67 | **1.000** | **1.000** | 1.000 |
+| `amazon_hpc_en` | 0.55 | 0.950 | **1.000** | 0.900 |
+| `tr_intent` | 0.60 | **1.000** | **1.000** | 0.800 |
+| `en_intent` | 0.50 | **1.000** | **1.000** | 0.900 |
+| `tr_intent_paired` | 0.70 | 0.900 | **1.000** | 1.000 |
+| `en_intent_paired` | 0.70 | 0.900 | **1.000** | 1.000 |
+
+A reader that classifies fifty records at each end of a 16,000-record document
+answers this family perfectly on every set at 25%, and on six of eight at 5%.
+
+**Why it is structural and not fixable by tuning.** `order_and_assemble` builds
+the haystack as two internally-shuffled blocks split at `n//2`, with the drift
+target taking a 30/70 share across them. The answer is therefore a *step
+function at a known position*, and its direction is a single bit. Two windows
+at the extremes estimate both block shares directly. Widening the drift, moving
+the boundary, or replacing the step with a monotone gradient does not help: any
+of those still leaves the direction recoverable from the two endpoints, because
+direction is all the question asks for. The family is positional retrieval
+wearing an aggregation costume.
+
+**Why the floors did not catch it.** Every difficulty floor in this file
+(`min_answer_count` D3, `min_rank_margin` D10, `lvl_min_margin` D18) constrains
+the *magnitude* of an answer or the *margin* at a boundary. `shift` has neither:
+its answer space is `{rose, fell}`. The floors were written for families whose
+answer is a number or a ranking, and a two-way categorical slipped between them.
+This is the same blind spot Task A addresses from the other side, and it is the
+reason the audit now reports **coverage** per reader: `prefix` cannot answer
+`shift` at all (every record it reads is in the first half), so `shift` showed
+an *empty* prefix cell in every shipped manifest rather than an honest one, and
+nobody noticed the family had never been tested against a partial reader.
+
+**What was already known and not acted on.** README section 4e recorded that
+`shift` has the highest majority baseline in the suite (mean 0.61) and called a
+binary rose/fell over positional halves "simply too coarse". That was the right
+diagnosis with the wrong consequence: it was reported as a limitation and kept.
+A family whose best partial-reader lift is +0.30 to +0.45 over its own reference,
+achievable for 100 records, is not a limitation to disclose. It is a family that
+does not ship.
+
+**What is kept.** `drift_mode` stays on, the `drift_target` is still chosen and
+still required to be detectable, and the `half` column is still written to the
+meta parquet. The drift is what makes the document non-exchangeable, and the
+`half` column is what lets the sampling solvers measure positional readers at
+all. Only the *question family* is withdrawn. If a positional question returns
+it must ask for a magnitude, not a direction, and it must be gated on the
+`headtail` reader before it ships.
+
+**Cost.** Ten families become nine. Question counts fall and the freed quota
+redistributes to `count` and `proportion` via `allocate_quota`, which on the
+3-class sets makes the redundancy that Task B (de-duplicating `count` and
+`proportion` on small label spaces) exists to remove more acute, not less. Do
+Task B in the same release.

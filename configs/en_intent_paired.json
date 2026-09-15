@@ -27,5 +27,8 @@
   ],
   "licence": "cc-by-4.0",
   "label_provenance": "professional_annotation",
-  "text_provenance": "human_written"
+  "text_provenance": "human_written",
+  "families_disabled": [
+    "shift"
+  ]
 }

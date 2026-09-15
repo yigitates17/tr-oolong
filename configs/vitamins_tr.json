@@ -31,6 +31,7 @@
     "second_most": "Bu yorumlarda ikinci en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz."
   },
   "families_disabled": [
+    "shift",
     "top_k"
   ],
   "render_entity": true,
