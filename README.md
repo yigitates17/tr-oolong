@@ -845,14 +845,47 @@ under `relative` it does not establish that a longer document was harder. Any
 reported score must state its reading protocol and be given as lift over
 `blind`; see §13.
 
-**This is a property of the task family, not of this benchmark.** Any
-label-derived aggregation benchmark whose gold answers are large inherits it,
-which includes OOLONG at its longer settings. We have not measured theirs —
-their construction code is unreleased, so their data cannot be rebuilt — and we
-do not claim a defect in it on the strength of an argument. What we do claim is
-narrower and checkable: **nobody in this family has tested for this, and we
-did.** If OOLONG's validated splits are released, running this solver on them is
-a direct follow-up.
+**This is a property of the task family, not of this benchmark, and that is now
+measured rather than argued.** Any label-derived aggregation benchmark whose gold
+answers are large inherits it. OOLONG's *construction code* is unreleased, but its
+*built data* is public and ships `context_window_text_with_labels`, the gold label
+of every record in every context window, so these solvers run on it with nothing
+reimplemented. `scripts/oolong_crosscheck.py` does exactly that, pinned to their
+revision `f0d59eaf`; all 41 test shards, 8 source corpora, K = 2/3/4/10, contexts
+1K to 4M. A question is reported only where a perfect full reader re-derives their
+published gold exactly: **3,553 verified, 197 dropped.**
+
+One quantity governs both benchmarks, the **magnitude of the gold answer** m,
+through `error ≈ sqrt((1-f)/(f·m))` for a reader that classifies a fraction f and
+scales up. Document length, class balance and record ordering do not enter it.
+OOLONG's 817 verified counting questions trace the whole curve, and TR-OOLONG's
+sets land on the same line at matching magnitudes:
+
+| gold answer m | OOLONG n | OOLONG rnd@5% | TR-OOLONG sets at this m |
+|---|---:|---:|---|
+| 1–9 | 284 | **0.00** | none |
+| 10–29 | 72 | 0.21 | none |
+| 30–99 | 76 | 0.60 | `tr_intent` 0.59, `tr_intent_paired` 0.54 |
+| 100–299 | 80 | 0.76 | none |
+| 300–999 | 108 | 0.88 | none |
+| 1,000+ | 197 | 0.96 | `marc_en` 0.89, `musteri_tr` 0.89, `vitamins_tr` 0.92 |
+
+**OOLONG is LESS exposed than TR-OOLONG, and the reason is the fix.** Most of its
+questions are scoped to a subset before being asked ("among instances associated
+with user 22012", "among instances occurring in April"), which makes answers
+small: 284 of its counting questions have m < 10 and score 0.000 for every partial
+reader. TR-OOLONG has none in that range. Its most resistant family,
+`REPRESENTED_N_TIMES` (m = 5, score 0.005), depends on a real date axis.
+
+**What we claim is narrow and checkable: nobody in this family had tested for
+this, and we did, on both benchmarks.** Neither the `blind` floor nor any
+partial-reading measurement appears in OOLONG's documentation, so results reported
+on it, including RLM's, do not separate reading coverage from classification
+accuracy. On their largest family (`RELATIVE_FREQ`, 1,097 verified questions) a
+random 5% reader scores **0.78 under exact match**, their own convention. Do not
+state this as "OOLONG has the same problem so ours is acceptable"; state it as the
+task-family property it is, with the mitigation OOLONG uses and v0.7 adopts.
+Numbers: `manifests/oolong_crosscheck.json`.
 
 **The fix, for a future version, is staged in ROADMAP v0.7.** Three changes
 follow from the measurements above: the withdrawal of `shift` (§4e-i, done), a
