@@ -4,14 +4,30 @@ Per-axis provenance, licensing, and construction. Ground truth for every questio
 is derived from source labels by two independent code paths (see README §5); there
 is no manual answer annotation.
 
+**Covers v0.7.0, published to Hugging Face 2026-09-16: 11 subsets · 195
+haystacks · 2,240 questions · 9 families · 2 languages (1,515 tr / 725 en).**
+
+| axis | sets | questions | very hard |
+|---|---|---:|---:|
+| Intent (parallel TR/EN) | `tr_intent`, `en_intent`, `tr_intent_paired`, `en_intent_paired` | 480 | 45 |
+| Review / sentiment | `vitamins_tr` ↔ `amazon_hpc_en`, `musteri_tr` ↔ `marc_en` | 920 | 46 |
+| Large label space (TR only, new in v0.7.0) | `sikayet_tr`, `interpress_tr`, `sinema_tr` | 840 | **168** |
+
+⚠️ **Do not quote 2,240 as a difficulty figure.** 71.8% of the questions are
+answerable by a reader that sees 5% of the records; **259** are graded very hard.
+Report the easy and very-hard bands separately and report the gap between them.
+The sampling section below is the one part of this document to read before
+citing any number from it.
+
 ## Intent axis (released first)
 
 - Source: Amazon MASSIVE, locales `tr-TR` and `en-US` (AmazonScience/massive),
   fetched by `scripts/massive.py`.
 - Label: `intent` (**48** classes retained of 60). Entity: `scenario` (18) —
   nested in intent, so the four entity families are omitted; the six non-entity
-  families apply (count, proportion, shift, most_common, least_common,
-  second_most). `shift` is withdrawn in v0.7.0 and is present in v0.6.3 only.
+  families apply (count, proportion, most_common, least_common, second_most,
+  label_vs_label). A seventh, `shift`, was **withdrawn in v0.7.0** and is present
+  only in the v0.6.3 data, which is no longer the published revision.
 - **Class support floor.** 12 intents have fewer than 100 rows and were dropped.
   The motivating case: `cooking_query` has 6 rows in 16.5K, so it was the rarest
   label in every haystack and `least_common` was answerable from corpus priors
@@ -67,16 +83,27 @@ is no manual answer annotation.
   95% Wilson CI [5.6%, 15.1%].** Higher than "professionally annotated" would
   suggest, and the reason matters — see the two subsections below.
 
-## Review / sentiment axis (built, not yet distributed)
+## Review / sentiment axis (published in v0.7.0)
 
 Rests on two independent TR–EN corpus pairs, so results can be shown to hold across
 datasets rather than one source. A third pair (Turkish brand reviews ↔ airline
 tweets) was **withdrawn in v0.5.0**: its Turkish half had undocumented label
 provenance, a 3.6x length spread, and zero conflicting labels across 262
-duplicate-text groups where the human-annotated English half had 17.1%. Label is `sentiment` (3 classes); the entity
-(`brand` / `airline`) is orthogonal to the label, so all ten families apply.
+duplicate-text groups where the human-annotated English half had 17.1%.
+
+Label is `sentiment` (3 classes) on both surviving pairs. Pair (a) carries an
+entity column (`brand`) orthogonal to the label, so the four entity families
+apply there; pair (b) has none and is kept deliberately symmetric without them.
 Carries the length gradient up to 1M tokens (see README §4 for how each set's
 maximum length is derived from its smallest class). Proportion unit: percent.
+
+⚠️ **Three classes is this axis's defining weakness, and v0.7.0 is the response.**
+A reader classifying a random 5% of the records and scaling up scores 0.88–0.91
+on these sets' counts. That is arithmetic, not a question-design defect: the
+relative error of a scaled-up sample is `sqrt((1-f)/(f*m))` in the gold magnitude
+`m`, and with N records over K classes the average count is `N/K`, so resistance
+needs a **large K**. See the large-label-space axis below, which exists for this
+reason, and `DESIGN_DECISIONS.md` D21b.
 
 **Pair (a) — supplement reviews (carries the entity axis)**
 - Source (TR): turkish-nlp-suite/vitamins-supplements-reviews (Vitaminler.com).
@@ -85,7 +112,7 @@ maximum length is derived from its smallest class). Proportion unit: percent.
   4–5 positive); the pool is stratified to cap per-class dominance.
 - EN brand attached by joining the review shard to the metadata shard on
   `parent_asin` (`store` field = brand).
-- Domain-matched twin (both supplement/health reviews), tighter than pair (a).
+- Domain-matched twin: both halves are supplement/health reviews.
 - License: TR set is **CC-BY-SA-4.0** — distributable, but share-alike, so this
   subset and anything derived from it must remain CC-BY-SA-4.0. EN
   Amazon-Reviews-2023 review text is governed by **Amazon's Conditions of Use**,
@@ -95,10 +122,130 @@ maximum length is derived from its smallest class). Proportion unit: percent.
   star ratings, which is the strongest provenance available (the person who wrote
   the text chose the label). See the per-family ceiling below.
 
+**Pair (b) — general product reviews (added v0.5.0; the cleanest pair, no entity axis)**
+- Source (TR): turkish-nlp-suite/MusteriYorumlari (Hepsiburada / Trendyol).
+  Twin (EN): SetFit/amazon_reviews_multi_en (MARC English).
+- Same 1–5 star map as pair (a); both halves are the writer's own rating.
+- **No product or brand column exists in either half**, so the four entity
+  families are omitted from both — a symmetry choice, not a data failure.
+- Both halves are redistributable (CC-BY-SA-4.0 and Apache-2.0), the only pair
+  in the benchmark where that is true. Twin asymmetry **0.010**, the lowest here.
+- ⚠️ **This pair is the classification control, not difficulty evidence.**
+  `musteri_tr` contributes **0** very-hard questions and `marc_en` **1**. It
+  exists to support the cross-lingual comparison and must never be cited as
+  evidence that the benchmark requires aggregation.
+- `sealuzh/app_reviews` was a closer length match for the English half and was
+  **rejected on licence grounds**; see below.
+
+## Large-label-space axis (added v0.7.0, Turkish only)
+
+**Why it exists.** Everything above is 3-class or is capped at 16.5K parallel
+utterances. Neither can host a small gold answer at 500K–1M tokens, which by the
+arithmetic in the box above is the only property that resists a sampling reader.
+These three sources were added on 2026-09-16 to supply a large K in Turkish, and
+they now carry **168 of the benchmark's 259 very-hard questions**. All three are
+Turkish-only: none has an English twin, so none of them bears on the
+cross-lingual claim, and they must not be used for it.
+
+⚠️ **Two of the three cannot redistribute their text** and both have an open
+licence enquiry. See the licensing section; this is the biggest unresolved item
+in the release.
+
+**`sikayet_tr` — TC32 consumer complaints (29 classes, 300 questions)**
+- Source: Kaggle `savasy/multiclass-classification-data-for-turkish-tc32`, file
+  `ticaret-yorum.csv`. Kaggle needs an account, so `scripts/sikayet_tr.py` does
+  **not** download: pass it the path to your own copy.
+- 431,306 rows, 32 categories, 12,024–14,009 rows each, so near-balanced before
+  anything here touches it. 280,193 rows survive cleaning.
+- Label: the product category the complainant chose when filing. Slugs are
+  rewritten into natural Turkish (`beyaz-esya` → *beyaz eşya*), both because the
+  templates put them in front of a Turkish reader (D12) and because the
+  word-level leak filter needs real words to match.
+- **The file's structure is not what its header says**, and a native reader
+  spotted it before the code did. The header is `category,text`, but `text` is
+  really `"<TITLE>,<BODY>"` — a complaint headline joined to the narrative by a
+  comma, splitting cleanly on the first comma in 100% of rows. The title is what
+  names the company, so it is kept **out** of the record text.
+- **Two artifacts that would have shipped unnoticed.** 89.7% of bodies end in
+  *"Devamını oku"* ("read more"), a scraping truncation marker, and the 10.3%
+  without it are systematically the shorter complaints — a surface feature
+  correlated with length and therefore possibly with category. Stripped.
+  And category-name leakage is severe for a few classes, measured body-only:
+  `kargo-nakliyat` **84.7%**, `cep-telefon-kategori` **73.4%**, `anne-bebek`
+  **36.9%**, every other class at or under 30%, mean 10.8%. **Those three classes
+  are dropped**, leaving 29.
+- ⚠️ The residual is caught by the builder's filter **only because that filter was
+  hardened for this source**. `leak_surface_forms` previously matched the whole
+  label string, and no Turkish complaint contains the literal `"kargo-nakliyat"`,
+  so it would have reported zero leakage and passed by construction. The config
+  sets `leak_label_words: true`. **Never ship this source with that flag off.**
+  Even so, 24.6% of rows are dropped for label leakage.
+- Licence: **none declared**, text scraped from a third-party site. Text withheld,
+  enquiry open.
+
+**`interpress_tr` — dated Turkish news (16 classes shipped, 300 questions)**
+- Source: the Interpress 270k news archive. The Hugging Face repository
+  `yavuzkomecoglu/interpress_news_category_tr` contains **only a loading script**
+  that no current `datasets` version will run, so `scripts/interpress_tr.py`
+  fetches the archive that script points at and verifies its sha256.
+- 218,839 usable rows, 17 categories, **daily publication dates from 2010-11-02
+  to 2017-11-01** (2,457 distinct days). 97,835 rows survive cleaning; `savunma`
+  falls below the 1,000-row support floor, leaving **16** classes in the built
+  label space against 17 in the source.
+- Label: the publisher's own editorial section.
+- Records are full news articles (median 1,650 characters), so a 100K-token
+  document holds ~206 of them rather than ~1,500. Every one must still be
+  classified to answer "how many are `saglik`", which is what keeps the answers
+  small without turning the question into retrieval. Using `Title` instead was
+  measured and is much worse: 28-character records give ~12,000 per document and
+  a 5%-sample score of 0.86.
+- **It is the only source here with a real length gradient.** Predicted
+  5%-sample score rises 0.00 → 0.33 → 0.52 → 0.66 across the 100K/250K/500K/1M
+  tiers, against 0.88–0.91 flat on the review sets.
+- ⚠️ **35.1% of rows are dropped for label leakage**, by far the highest rate in
+  the benchmark (`sikayet_tr` 24.6%, `sinema_tr` 0.3%, MASSIVE 0.0%). News prose
+  about a section routinely names that section. The filter is doing its job, but
+  the survivors are a heavily selected subset of the corpus and any claim about
+  "Turkish news" from this set should say so.
+- ⚠️ **It carries per-record dates, and they are deliberately unused.** The
+  fetch script keeps a `date` column and the builder ignores it. This is the one
+  source that could support a dated timeline family, and that family is not
+  built. See the blockers section.
+- Licence: card declares none. The Apache-2.0 header on the loading script covers
+  the **script**, not the data. Text withheld, enquiry open.
+
+**`sinema_tr` — BuyukSinema film reviews (10 classes, 240 questions)**
+- Source: `turkish-nlp-suite/BuyukSinema`, revision `137d0ff7`. 67,328 reviews,
+  text median 201 characters; 51,171 rows survive cleaning.
+- Label: **the reviewer's own 10-point rating**, stored zero-indexed, rendered in
+  Turkish as *"1 yıldız"* … *"10 yıldız"* rather than collapsed to sentiment
+  words — collapsing a 10-point scale to 3 classes is exactly what makes the
+  review sets partially readable.
+- Same label provenance as `vitamins_tr` and `musteri_tr` (the writer chose the
+  score) and the closest register match to them, which is why it is the natural
+  strengthening of that axis rather than a separate one.
+- The rating distribution is naturally uneven, from **2.4%** at *3 yıldız* up to
+  **24.4%** at *8 yıldız*. That is what a rating scale looks like, and it is
+  useful here: uneven classes put some counts in the rare band with no
+  construction trick.
+- **It is the only large-K Turkish source found with a declared licence**
+  (CC-BY-SA-4.0), so it is the only one of the three that ships its text. That
+  makes it matter out of proportion to its size: if both open enquiries come back
+  no, it is the only redistributable large-K evidence the benchmark has.
+- Share-alike applies, as for the other two turkish-nlp-suite sets.
+- Shortest of the three: tiers stop at 500K, not 1M.
+
 
 ## Family availability per set
 
-*v0.6.0: `label_vs_label` added on all eight sets; the entity families now
+**Nine families ship in v0.7.0**: `count` (including rare-label counts),
+`proportion`, `most_common`, `least_common`, `second_most`, `label_vs_label`,
+`entity_count`, `entity_argmax`, `pairwise`. Two former families are gone and
+neither is in the published data — `top_k` went with the brand-review pair in
+v0.5.0, since it shipped on that corpus alone, and `shift` was **withdrawn in
+v0.7.0** (see the sampling section). Neither should appear in a results table.
+
+*v0.6.0: `label_vs_label` added on every set; the entity families now
 require `render_entity` (D17) and are asserted at build time.*
 
 Not every family is meaningful on every source, and a family that fails the
@@ -108,9 +255,16 @@ the per-set question counts are not mistaken for a bug.
 | Set | Omitted | Why |
 |---|---|---|
 | `tr_intent`, `en_intent` (+paired) | the four entity families | `scenario` is *nested* in `intent`, so entity questions are trivial or impossible (detected automatically) |
-| `vitamins_tr` | `top_k` | exact ordering stayed prior-correlated (z=+5.5) |
 | `musteri_tr`, `marc_en` | the four entity families | no product or brand column in either half; kept symmetric on purpose |
-| `amazon_hpc_en` | `top_k` | exact ordering stayed prior-correlated (z=+3.7) |
+| `sikayet_tr` | the four entity families | no column orthogonal to the category; the complaint title, which names the company, is deliberately not in the record text |
+| `interpress_tr` | the four entity families, **plus `most_common`, `least_common`, `second_most`** | no orthogonal entity column. The three ranking families are switched off in config: on a 16-class news axis the section shares are close enough that the `min_rank_margin` floor (0.15) rejects nearly every draw |
+| `sinema_tr` | the four entity families, **plus `most_common`, `least_common`, `second_most`** | no orthogonal entity column. The ranking families are **not** disabled in config here — the builder emitted none, because adjacent points on a 10-point rating scale rarely clear the 0.15 margin. This is the starvation case the builder is built to report loudly rather than absorb silently |
+
+**Read the last two rows together with the question counts.** `interpress_tr`
+and `sinema_tr` ship only three kinds each (`count`, `proportion`,
+`label_vs_label`), which is why their 300 and 240 questions are not distributed
+like the other sets'. It is the intended outcome of the difficulty floors, not a
+build failure.
 
 ### ⚠️ The entity families are LENGTH-GATED. Do not read them as available at every tier.
 
@@ -288,15 +442,17 @@ What the length axis still tests is whether a model survives ingestion at all.
 **`shift` is withdrawn in v0.7.0 because a two-window reader solves it.**
 `shift` asked whether a label's share rose or fell between the first and second
 half. A `headtail` reader classifying fifty records at each end of a
-16,000-record document scores **1.000 on all eight sets at a 25% budget** and
-0.90 to 1.00 at 5%, against a majority baseline of 0.50 to 0.70. The haystack is
-two blocks split at the midpoint, so the answer is a step function at a known
-position and its direction is one bit; two windows at the extremes read it off
-directly. Widening the drift or smoothing it into a gradient does not help,
-because direction is the whole question. The family is disabled in every config
-as of v0.7.0 and disappears at the next rebuild. **It is present in the published
-v0.6.3 data; a v0.6.3 result on `shift` should be discarded rather than
-caveated.** Rationale: `DESIGN_DECISIONS.md` D20, README section 4e-i.
+16,000-record document scores **1.000 on all eight sets that then existed, at a
+25% budget** and 0.90 to 1.00 at 5%, against a majority baseline of 0.50 to 0.70.
+The haystack is two blocks split at the midpoint, so the answer is a step
+function at a known position and its direction is one bit; two windows at the
+extremes read it off directly. Widening the drift or smoothing it into a gradient
+does not help, because direction is the whole question. The family is disabled in
+every config as of v0.7.0. **It is absent from the v0.7.0 release: no
+`shift` question ships in any of the eleven subsets.** It was present in the
+v0.6.3 data, which was the published revision until 16 September; **a v0.6.3
+result on `shift` should be discarded rather than caveated.** Rationale:
+`DESIGN_DECISIONS.md` D20, README section 4e-i.
 
 **Every question now carries a measured difficulty grade, and it changes how a
 score must be reported.** Each of the 2,240 questions was run against all four
@@ -333,12 +489,26 @@ classifier that reads every record at 90% accuracy (0.74–0.90) and at 70%
 noise (1.00 at 70% on every 3-class set) *and* sampling-solvable. Full grid:
 `fullread_by_accuracy` in `manifests/sampling_audit.json`.
 
-**Corpus priors leak back in at the longest Turkish tier.** Under `relative`,
-the corpus-share oracle on `vitamins_tr` `count` rises from 0.54 at 100K to
-**0.75 at 750K**: that haystack consumes 54% of a 43K-record pool, so the
-per-haystack Dirichlet prior cannot be realised. Every other set stays at or
-below 0.60 at every tier. Treat `vitamins_tr` 750K as prior-exposed on `count`
-and `proportion`.
+**Corpus priors leak back in where one haystack consumes too much of the pool,
+and in v0.7.0 the exposed set is a different one from what earlier revisions of
+this datacard named.** Under `relative`, the corpus-share oracle rises as the
+per-haystack Dirichlet prior stops being realisable. Current picture, from
+`manifests/quality_audit.json`:
+
+- **`en_intent` `proportion` is the one flagged tier: 0.73 at 100K**, against
+  0.36 at 50K. It is the only family on any set over the 0.70 watch threshold.
+  Treat it as prior-exposed and say so wherever it is scored.
+- ⚠️ **`vitamins_tr` is no longer the exposure case, and the old sentence must
+  not be reused.** It reported 0.75 on `count` at the **750K tier**, and that
+  tier is not in v0.7.0: the manifest records it as dropped
+  (`tiers_dropped_over_pool_cap: [{tier: 750000, reason: drop_tiers}]`). The set
+  now tops out at 500K and its worst prior there is **0.617** on `count`. The
+  claim described data that no longer ships.
+- `vitamins_tr`'s 500K tier *is* built over the 0.35 pool cap, at a pool fraction
+  of **0.3774**, and the builder flags rather than drops it — blanket-thresholding
+  a proxy is what dropped six tiers unnecessarily once before. That is the tier
+  to watch on this set.
+- Every other set peaks at or below **0.55** across all families and tiers.
 
 **Where resistance comes from: answer magnitude, not margin width.**
 `entity_count`, whose answers are small, is the most resistant shipped family
@@ -391,7 +561,7 @@ dataset label at rate ε scores:
 | `count`, N=3,919 (100K tier) | 0.36 | 0.25 | 0.19 | 0.14 |
 | `count`, N=9,873 (500K tier) | 0.26 | 0.18 | 0.13 | 0.09 |
 | `proportion` (percent), N=3,919 | — | 0.95 | 0.92 | — |
-| `most_common` / `pairwise` / `top_k` | P(answer flips) < 1e-6 at every N and ε tested | | | |
+| `most_common` / `pairwise` (and the other ranking families) | P(answer flips) < 1e-6 at every N and ε tested | | | |
 
 Ranking families are effectively immune: the builder enforces a 10% gold margin
 while noise drift grows only as √(Nε). Normalised `proportion` is robust. Raw
@@ -413,6 +583,53 @@ longest class's mean word count to the shortest's.
 | `amazon_hpc_en` | author's own 1–5 stars | 1.1x | −0.008 |
 | `musteri_tr` | author's own 1–5 stars | 1.2x | −0.044 |
 | `marc_en` | author's own 1–5 stars | 1.1x | −0.054 |
+| `sikayet_tr` | complainant's own category | — | **−0.094** |
+| `interpress_tr` | publisher's section | — | **−0.124** |
+| `sinema_tr` | author's own 10-point rating | — | **−0.164** |
+
+**All eleven sets pass gate (d)**: no set exceeds +0.15 mean lift over majority,
+and every set is in fact *negative*, i.e. the format solver does worse than
+guessing the majority answer. Per-family figures for the three v0.7.0 sets:
+
+| set | family | solver | majority | lift |
+|---|---|---:|---:|---:|
+| `sikayet_tr` | `count` | 0.000 | 0.067 | −0.067 |
+| `sikayet_tr` | `proportion` | 0.000 | 0.100 | −0.100 |
+| `sikayet_tr` | `label_vs_label` | 0.320 | 0.400 | −0.080 |
+| `sikayet_tr` | `most_common` | 0.040 | 0.200 | −0.160 |
+| `sikayet_tr` | `least_common` / `second_most` | 0.040 | 0.120 | −0.080 |
+| `interpress_tr` | `count` | 0.000 | 0.056 | −0.056 |
+| `interpress_tr` | `proportion` | 0.000 | 0.051 | −0.051 |
+| `interpress_tr` | `label_vs_label` | 0.241 | 0.506 | −0.265 |
+| `sinema_tr` | `count` | 0.000 | 0.032 | −0.032 |
+| `sinema_tr` | `proportion` | 0.000 | 0.153 | −0.153 |
+| `sinema_tr` | `label_vs_label` | 0.192 | 0.500 | −0.308 |
+
+### ⚠️ How this nearly shipped unmeasured, which is worth keeping
+
+**Found 2026-09-16 while reconciling this datacard against the build, and it was
+the "empty cell" failure mode again**, the same one that let `shift` survive four
+gates. `scripts/style_solver.py` reads its majority baselines from
+`manifests/baseline_report.json` and defaults to that path. The three new sets'
+baselines had been written to the repo-root `baseline_report.json` instead, so
+the solver found no baseline for them, recorded `majority_baseline: null`, and
+propagated `lift: null` and `mean_lift: null` into `manifests/style_audit.json`.
+The audit's summary line then reported a pass over the sets it *could* score and
+said nothing about the three it could not. **A null in a lift column reads as
+"nothing to report" when it actually means the check did not run.**
+
+The raw solver scores had been recorded throughout and were low, so the outcome
+was never in much doubt — but a raw score is not the gate. The gate is the score
+minus the majority baseline, and on a near-binary family a solver scores close to
+the baseline by construction, which is exactly why the subtraction is the part
+that matters. The baseline files have been merged, the solver re-run over all
+eleven configs, and the numbers above are that run.
+
+**The durable fix, applied:** the gate command in the conventions section now
+names all eleven sets for `trivial_baseline.py --out manifests/baseline_report.json`.
+Naming only the original eight is how the split happened. A second hardening is
+still open and worth doing: `style_solver.py` should **fail loudly on a missing
+baseline** rather than emitting a null and continuing.
 
 Two notes on the brand-review set. Its 3.6x length spread is the largest of any
 source here (`olumsuz` averages 33.1 words and ends in a period 48% of the time;
@@ -444,38 +661,66 @@ is the figure that bears on the cross-lingual claim.
   corpora large enough for 100K–1M-token haystacks do not exist for Turkish
   beyond MASSIVE's 16.5K utterances. See `DATASET_REVIEW.md` for the full search.
 
-## Licensing — what can be published, verified 2026-08-25
+## Licensing — what can be published, verified 2026-08-25, revised 2026-09-16
 
-**Nothing here requires an email or a permission request.** Every source is
-publicly licensed. Only one of the eight sets carries a redistribution restriction, and it is
-handled by construction rather than by correspondence.
+⚠️ **This section changed materially in v0.7.0 and the v0.6.x version of it was
+wrong for the current release.** It used to open "nothing here requires an email
+or a permission request". That held while the benchmark was eight sets. It does
+**not** hold now: **two of the eleven sets have no upstream licence at all and a
+permission enquiry is outstanding on both.** Three sets, not one, therefore ship
+without their text.
 
 | set | source | licence | text redistributable? | obligation |
 |---|---|---|---|---|
 | `tr_intent`, `en_intent` (+paired) | AmazonScience/massive | **CC-BY-4.0** | yes | attribute; state changes |
 | `vitamins_tr` | turkish-nlp-suite (Vitaminler.com) | **CC-BY-SA-4.0** | yes | **share-alike**; cite Altınok (ACL 2023) |
 | `musteri_tr` | turkish-nlp-suite (Hepsiburada/Trendyol) | **CC-BY-SA-4.0** | yes | **share-alike** |
+| `sinema_tr` | turkish-nlp-suite/BuyukSinema | **CC-BY-SA-4.0** | yes | **share-alike** |
 | `marc_en` | SetFit/amazon_reviews_multi_en | **Apache-2.0** | yes | include licence |
 | `amazon_hpc_en` | McAuley-Lab/Amazon-Reviews-2023 | repo has **no licence tag**; text under Amazon's Conditions of Use | **no** | withhold text |
+| `sikayet_tr` | Kaggle `savasy/multiclass-classification-data-for-turkish-tc32` | **uploader declares none**; text scraped from a complaints site | **no** | withhold text; **enquiry open** |
+| `interpress_tr` | Interpress news 270k (via `yavuzkomecoglu/interpress_news_category_tr`) | **card declares none** ("[More Information Needed]") | **no** | withhold text; **enquiry open** |
 
-### The three things to be careful about
+The HF release tags the last three `other` rather than guessing a licence;
+`scripts/publish_hf.py` holds the authoritative policy and refuses to package a
+set that is missing from it.
 
-**1. Share-alike is contagious, and it now covers two Turkish sets.**
-`vitamins_tr` and `musteri_tr` are CC-BY-SA-4.0. Anything derived from those
-subsets — including our haystacks, since they are concatenations of the text —
-must be released under CC-BY-SA-4.0. This is why the release is **packaged as one
-Hugging Face config per source**, each with its own licence tag, rather than as a
-single dataset: one licence field cannot describe this collection honestly, and
-merging them would force the strictest terms onto everything.
+### The four things to be careful about
 
-**2. One set must ship without its text.** `amazon_hpc_en` is the genuine hazard:
-the HF repository has **no licence tag at all**, and the review text remains
-subject to Amazon's Conditions of Use, which grant no redistribution. It ships as
-**questions and answers only**, with the haystack text rebuilt locally by a
-deterministic script. This costs nothing, because the build is byte-identical
-from the seed. (A second such set, the CC-BY-NC-SA airline corpus, was withdrawn
-along with its Turkish partner in v0.5.0 — so the release no longer carries any
-non-commercial clause at all, which simplifies downstream use considerably.)
+**1. Share-alike is contagious, and it now covers three Turkish sets.**
+`vitamins_tr`, `musteri_tr` and `sinema_tr` are CC-BY-SA-4.0. Anything derived
+from those subsets — including our haystacks, since they are concatenations of
+the text — must be released under CC-BY-SA-4.0. This is why the release is
+**packaged as one Hugging Face config per source**, each with its own licence tag,
+rather than as a single dataset: one licence field cannot describe this
+collection honestly, and merging them would force the strictest terms onto
+everything.
+
+**2. Three sets must ship without their text**, and the three are not equivalent.
+All ship as **questions, answers and a manifest only**, with the haystack text
+rebuilt locally by a deterministic script — which costs nothing, because the
+build is byte-identical from the seed.
+
+- `amazon_hpc_en` — no licence tag, and the text remains subject to Amazon's
+  Conditions of Use. Investigated exhaustively (2b below). **Settled**: silence
+  is not permission, withholding is the answer, and nothing in the release
+  depends on getting a different one.
+- `sikayet_tr` — the Kaggle uploader declares no licence and the text is scraped
+  from a third-party consumer-complaints site, so there are potentially **two**
+  rights holders. **Open.**
+- `interpress_tr` — the dataset card declares no licence. The Apache-2.0 header
+  on the Hugging Face **loading script** covers that script, not the data, and
+  must never be cited as the data's licence. **Open.**
+
+(A fourth such set, the CC-BY-NC-SA airline corpus, was withdrawn along with its
+Turkish partner in v0.5.0, so the release carries no non-commercial clause.)
+
+**2c. The two open enquiries are the largest unresolved item in the release, and
+they are load-bearing.** `sikayet_tr` and `interpress_tr` supply **142 of the 259
+very-hard questions**, so they are not sets the benchmark can simply drop if the
+answer is no. Until each is answered, both are built, measured and shipped
+text-free, and any write-up should say so rather than implying the licence
+position is settled.
 
 **2b. The Amazon licence was checked exhaustively, 2026-08-30.** The conclusion
 is unchanged but it is now evidenced rather than assumed. There is **no licence
@@ -509,16 +754,24 @@ Three config fields are declared by hand because none is measurable from the
 data, and the first withdrew a whole pair in v0.5.0. `text_provenance` is newer
 (v0.6.2) and backfilled here from the facts already established in this
 document — the MASSIVE pair is a **human localization** of English SLURP
-(§ above), never machine translation, and the four review corpora are natively
-written Turkish/English with no translation step at all:
+(§ above), never machine translation, and every other corpus is natively written
+Turkish/English with no translation step at all:
 
 | set | `licence` | `label_provenance` | `text_provenance` |
 |---|---|---|---|
 | `tr_intent`, `en_intent` (+paired) | `cc-by-4.0` | `professional_annotation` | `human_translated` |
 | `vitamins_tr` | `cc-by-sa-4.0` | `author_stars` | `human_written` |
 | `musteri_tr` | `cc-by-sa-4.0` | `author_stars` | `human_written` |
+| `sinema_tr` | `cc-by-sa-4.0` | `author_stars` | `human_written` |
 | `marc_en` | `apache-2.0` | `author_stars` | `human_written` |
 | `amazon_hpc_en` | `unknown` | `author_stars` | `human_written` |
+| `sikayet_tr` | `unknown` | `crowd` | `human_written` |
+| `interpress_tr` | `unknown` | `professional_annotation` | `human_written` |
+
+Two v0.7.0 notes on `label_provenance`. `sikayet_tr` is `crowd` because the
+category is chosen by the complainant when filing, not assigned by an annotator.
+`interpress_tr` is `professional_annotation` because the section is the
+publisher's own editorial desk assignment.
 
 ### Source revisions are pinned (2026-09-16)
 
@@ -537,6 +790,21 @@ hash could detect that but not recover from it.
 | `turkish-nlp-suite/vitamins-supplements-reviews` | `c4c0928e` (2024-07-15) |
 | `turkish-nlp-suite/MusteriYorumlari` | `7579c679` (2024-11-01) |
 | `SetFit/amazon_reviews_multi_en` | `ec73b665` (2022-04-13) |
+| `turkish-nlp-suite/BuyukSinema` | `137d0ff7` |
+
+**Two v0.7.0 sources cannot be pinned this way, and both matter because neither
+ships its text.**
+
+- `interpress_tr` is not on the Hub as data at all: the repository contains only
+  a loading script no current `datasets` version will run, and the script points
+  at a plain HTTP archive with no revision history. The only reproducibility
+  guarantee available is the **sha256 of what was downloaded**, which
+  `scripts/interpress_tr.py` records as `EXPECT_SHA256` and verifies on every
+  fetch (`f41659ed…46`). A rebuild that fails that check is not this dataset.
+- `sikayet_tr` comes from Kaggle, which requires an account, so the script does
+  not download at all — the user passes the path to their own copy of
+  `ticaret-yorum.csv`. The manifest's `source_hash_first1000` is what ties a
+  local rebuild back to the published build.
 
 ### Before release
 
@@ -549,8 +817,15 @@ hash could detect that but not recover from it.
 
 ## Could this be published tomorrow? Blockers, ranked
 
-**Nothing legal blocks it.** Licences are resolved, the one unlicensed source
-ships text-free, and the per-source config split handles share-alike.
+*Answered by events: v0.7.0 was published to Hugging Face on 2026-09-16. This
+section is kept as the standing assessment, revised for what shipped.*
+
+**Nothing legal blocks the release as packaged, but "licences are resolved" is
+no longer accurate and that sentence has been removed.** Three of the eleven
+sources are unlicensed; all three ship text-free, and the per-source config split
+handles share-alike. What remains open is whether `sikayet_tr` and
+`interpress_tr` can ever ship their text, which is a question about a *future*
+release rather than a defect in this one.
 
 **Two things would draw a reviewer's first question, and neither is fatal:**
 
@@ -570,10 +845,21 @@ ships text-free, and the per-source config split handles share-alike.
 **Three that should be stated rather than fixed:**
 
 3. Label noise ε unmeasured on the annotated sets. The *consequence* is bounded
-   (see above) and five of eight sets have star-derived labels where classical
-   noise is near zero by construction, so this is a datacard gap, not a defect.
-4. No timeline axis, because no Turkish source carries dates. Name it as a
-   limitation before a reviewer finds it.
+   (see above) and five of the eleven sets (`vitamins_tr`, `musteri_tr`,
+   `marc_en`, `amazon_hpc_en`, `sinema_tr`) have star-derived labels where
+   classical noise is near zero by construction, so this is a datacard gap, not
+   a defect. The two v0.7.0 additions that are *not* star-derived are untouched
+   by the measurement: `sikayet_tr`'s category is chosen by the complainant and
+   `interpress_tr`'s section by the publisher's desk, and neither has been
+   sampled for noise.
+4. **No timeline axis is built.** The reason has changed and the old wording
+   should not be reused: it used to be "no Turkish source carries dates", and
+   that is **no longer true** — `interpress_tr` ships with 2,457 distinct daily
+   publication dates, the fetch script keeps a `date` column for exactly this
+   purpose, and the builder ignores it. So this is now an unbuilt family on
+   available data, not a data blocker. Name it as a limitation before a reviewer
+   finds it, and do not claim the data does not exist, because it is in the
+   release.
 5. Haystacks within a tier share 20–38% of records at the longest tiers, so
    tier-level confidence intervals need clustered errors.
 6. **The questions on the 3-class sets are not independent** (added
@@ -590,7 +876,7 @@ ships text-free, and the per-source config split handles share-alike.
    Both are properties of the metric on this task family, not defects in the
    data; they must be stated wherever a score is reported.
 
-**Recommended sequence:** release the dataset now with the datacard as it stands,
-run the baselines, then submit the paper. The release timestamp establishes
-priority and costs nothing, and item 1 is a paper blocker rather than a release
-blocker.
+**Recommended sequence, and where it now stands:** release the dataset, run the
+baselines, then submit the paper. **The first step is done** (v0.7.0, 16
+September), the release timestamp establishes priority, and item 1 remains a
+paper blocker rather than a release blocker.

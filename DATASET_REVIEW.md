@@ -47,7 +47,7 @@ of text, which humans do not produce. Its provenance is undocumented upstream.
 **MüşteriYorumları — the only genuine upgrade over We-Bears.** Better on every
 axis: style +0.004 vs +0.120, spread 1.2x vs 3.6x, ceiling 970K vs 527K, and the
 label is the customer's own star rating rather than undocumented. **Cost: no
-product or brand column, so it carries 6 of 10 families.** That is the whole
+product or brand column, so it carries 6 of the 9 families.** That is the whole
 trade-off.
 
 **BüyükSinema — rejected.** 10 classes and a 1.5M ceiling are attractive, but

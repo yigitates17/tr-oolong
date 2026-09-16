@@ -1,12 +1,18 @@
 """Package TR-OOLONG for Hugging Face and (optionally) push it.
 
-LICENSING IS THE POINT OF THIS SCRIPT. The six instance sets do NOT share one
-license, and two of them must not have their text redistributed at all. Shipping
-them as one undifferentiated dataset would breach Amazon's review terms and the
-Amazon set's withheld text and the share-alike Turkish sets. So each set is packaged into its own
-config, tagged with its own license, and the sets that cannot be redistributed
-ship as *questions and answers only* -- the haystack text is withheld and the
-user rebuilds it locally from the public source with the committed config.
+LICENSING IS THE POINT OF THIS SCRIPT. The eleven instance sets do NOT share one
+license, and THREE of them must not have their text redistributed at all
+(amazon_hpc_en, sikayet_tr, interpress_tr). Shipping them as one undifferentiated
+dataset would breach Amazon's Conditions of Use, redistribute two corpora that
+carry no license grant, and force share-alike onto sets that are not share-alike.
+So each set is packaged into its own config, tagged with its own license, and the
+sets that cannot be redistributed ship as *questions and answers only* -- the
+haystack text is withheld and the user rebuilds it locally from the public source
+with the committed config.
+
+Two of the three withheld sets (sikayet_tr, interpress_tr) have an OPEN licence
+enquiry upstream. Until it is answered they stay withheld; do not flip
+`full_text` on either without a written grant.
 
     # dry run: build the payload, print what would be pushed, push nothing
     python scripts/publish_hf.py --out hf_release
@@ -137,27 +143,18 @@ builder, the configs that reproduce every set byte-for-byte, and
 best of four partial readers does on that question alone. 259 questions (11.6%) are graded
 `very hard`, 1,609 (71.8%) `easy`. Read the section on it below before reporting any score.
 
-| subset | lang | classes | docs | questions | shortest | longest | max records in one doc |
-|---|---|---:|---:|---:|---:|---:|---:|
-| `vitamins_tr` | tr | 3 | 20 | 237 | 99,217 | 744,785 | 19,774 |
-| `amazon_hpc_en` | en | 3 | 20 | 236 | 98,672 | **987,623** | 16,116 |
-| `musteri_tr` | tr | 3 | 15 | 153 | 99,137 | 496,238 | 13,618 |
-| `marc_en` | en | 3 | 15 | 148 | 98,232 | 491,821 | 11,080 |
-| `tr_intent` | tr | **48** | 10 | 120 | 49,981 | 99,998 | 6,169 |
-| `en_intent` | en | **48** | 10 | 120 | 49,921 | 99,871 | 8,122 |
-| `tr_intent_paired` | tr | **48** | 10 | 120 | 47,629 | 99,057 | 6,000 |
-| `en_intent_paired` | en | **48** | 10 | 120 | 36,250 | 75,187 | 6,000 |
+{glance_table}
 
 Lengths are tokens under `Qwen/Qwen3-8B`. Every document also records `n_chars`,
 so lengths can be re-derived under a different tokenizer without rebuilding —
 which matters, because the Turkish/English token ratio on identical content runs
 from 0.57x to 2.16x depending on whose tokenizer counts it.
 
-**Question families** (1,400 total): `count` 474 · `proportion` 304 ·
-`label_vs_label` 162 · `most_common` 113 · `least_common` 107 ·
-`second_most` 103 · `entity_count` 87 · `pairwise` 35 · `entity_argmax` 15.
+**Question families** (2,240 total): `count` 921 · `proportion` 492 ·
+`label_vs_label` 292 · `most_common` 138 · `least_common` 132 ·
+`second_most` 128 · `entity_count` 87 · `pairwise` 35 · `entity_argmax` 15.
 
-**107 of the 474 counts are rare-label counts** (v0.7.0): the answer holds 5 to
+**265 of the 921 counts are rare-label counts** (v0.7.0): the answer holds 5 to
 30 records. They are worded identically to any other count and carry
 `"rare": true`. They exist because a small answer is the only thing that resists
 a partial reader: a reader that opens nothing and answers N/K scores 0.43-0.55
@@ -250,13 +247,13 @@ here is an independent reimplementation from the paper's description.
 | | Oolong | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + a matched English twin** |
-| documents | not reported per split | **110**, 28.3M tokens |
-| context length | reported at 8K-128K | **36K-988K** |
-| label space | 2-10 classes | **3 and 48** |
+| documents | not reported per split | **195**, 50.7M tokens |
+| context length | reported at 8K-128K | **36K-1.0M** |
+| label space | 2-10 classes | **3, 10, 16, 29 and 48** |
 | grouping axis | synthetic user IDs | **real brands** |
-| timeline questions over real dates | **6 families** | ✗ none — no Turkish source carries dates |
+| timeline questions over real dates | **6 families** | ✗ none built — `interpress_tr` ships real dates, but no family uses them yet |
 | cross-lingual | ✗ | **✓ same question, same answer, two languages** |
-| numeric metric | `0.75^\|y-yhat\|` | same **+ a scale-free one** |
+| numeric metric | `0.75^\\|y-yhat\\|` | same **+ a scale-free one** |
 | shortcut audit | not reported | **5 solvers, reports shipped** |
 
 **Where Oolong is harder:** it has six question families conditioned on real
@@ -476,6 +473,12 @@ def main() -> None:
                  f"text may be redistributed before releasing it.")
 
     version, rows, cfg_lines, withheld, licenses = None, [], [], [], set()
+    # The at-a-glance table is DERIVED, never typed. It was hand-maintained
+    # until 2026-09-16 and had drifted badly: it listed eight subsets after
+    # eleven were built, and four of the eight carried doc and question
+    # counts from an older build. A published card that misstates what is in
+    # the files is worse than no table.
+    glance = []
     for name, pol in POLICY.items():
         src = ROOT / name
         if not (src / "questions.jsonl").exists():
@@ -507,6 +510,15 @@ def main() -> None:
         rows.append(f"| `{dst.name}` | {man['config']['language']} | {pol['source']} | "
                     f"`{pol['license']}` | {'yes' if pol['full_text'] else '**no**'} | "
                     f"{man['questions_written']} | {pol['note']} |")
+        hs = man["haystacks"]
+        tok = [h["n_tokens"] for h in hs]
+        recs = [h["n_examples"] for h in hs]
+        lang = man["config"]["language"]
+        k = man["label_space"]
+        glance.append((max(tok), f"| `{dst.name}` | {lang} | "
+                                 f"{'**' + str(k) + '**' if k >= 10 else k} | {len(hs)} | "
+                                 f"{man['questions_written']} | {min(tok):,} | "
+                                 f"{max(tok):,} | {max(recs):,} |"))
         print(f"[ok] {dst.name}: {man['questions_written']} questions, "
               f"{pol['license']}, text={'included' if pol['full_text'] else 'WITHHELD'}")
 
@@ -522,6 +534,11 @@ def main() -> None:
         licenses=("[" + ", ".join(sorted(licenses)) + "]") if len(licenses) > 1
                  else sorted(licenses)[0],
         configs="\n".join(cfg_lines), table=table,
+        glance_table=(
+            "| subset | lang | classes | docs | questions | shortest | longest "
+            "| max records in one doc |\n"
+            "|---|---|---:|---:|---:|---:|---:|---:|\n"
+            + "\n".join(r for _, r in sorted(glance, key=lambda g: -g[0]))),
         withheld="\n".join(withheld) or "_(none)_",
         repo_url=args.repo_url, version=version)
     (out / "README.md").write_text(card, encoding="utf-8")

@@ -671,7 +671,7 @@ filter becomes lexical; the aggregation does not. That is OOLONG's design.
 
 OOLONG has a label-vs-label comparison ("is A more, less, or equally common than
 B") and we did not; our `pairwise` compares two *entities*, which is a different
-question. It needs no entity column, so it ships on all eight sets.
+question. It needs no entity column, so it ships on all eleven sets.
 
 **The outcome is drawn first**, then a label pair is searched for that realizes
 it. Sampling a pair at random instead would make "same" almost never the gold

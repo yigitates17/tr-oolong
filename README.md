@@ -37,13 +37,15 @@
 >
 > **Numbers (v0.7.0):** 11 sets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types
 > · 1,515 tr / 725 en · **every question carries a measured difficulty grade** (§4f)
-> (v0.6.3, still the published release: 8 sets · 110 documents · 1,254 questions · 28.3M tokens · 10 types)
+> (superseded: v0.6.3 was 8 sets · 110 documents · 1,254 questions · 28.3M tokens · 10 types, and served on the Hub until 16 September)
 > · 2 languages.
 >
 > **Released:** <https://huggingface.co/datasets/yigitates17/tr-oolong>
-> (15 September 2026, tag `v0.6.2`). Seven subsets ship their text; `amazon_hpc_en`
-> ships questions and answers only and is rebuilt locally, because Amazon grants
-> no redistribution.
+> (v0.7.0, 16 September 2026). **Eight subsets ship their text; three do not** --
+> `amazon_hpc_en`, `sikayet_tr` and `interpress_tr` ship questions and answers
+> only and are rebuilt locally, because no upstream licence grants
+> redistribution. A licence enquiry is open on the latter two. Full position:
+> [`DATACARD.md`](DATACARD.md).
 >
 > A fuller plain-language walkthrough, including what we got wrong and fixed, is
 > in [`weekly_summaries/W2_Summary.md`](weekly_summaries/W2_Summary.md).
@@ -206,7 +208,7 @@ entity axis orthogonal to the label; none of the candidates surveyed in
 
 **`label_vs_label` (added v0.6.0) closes the last gap in OOLONG's counting
 group.** It mirrors their "is A more common, less common, or the same frequency
-as B", needs no entity column, and therefore ships on all eight sets. Two
+as B", needs no entity column, and therefore ships on all eleven sets. Two
 properties are worth stating because they are not obvious:
 
 - **The asked order is chosen, not inherited.** "A vs B → more" and "B vs A →
@@ -309,7 +311,7 @@ reject a pairing on step-2 numbers alone.**
 
 ## 3. The data sources, one by one
 
-Six corpora feed eight sets. This section shows what each one actually looks
+Nine corpora feed eleven sets. This section shows what each one actually looks
 like, and exactly how its raw fields become the label the benchmark counts.
 Read it before anything else; every design decision downstream follows from
 these tables.
@@ -500,26 +502,108 @@ cross-lingual comparison is trustworthy, it is the best in the benchmark:
 | label provenance | writer's own stars, both | writer's own stars, both | undocumented vs CrowdFlower |
 | text redistributable | **both** | Turkish only | Turkish only |
 
-Its cost is six families instead of ten. It is therefore the **cleanest** pair,
+Its cost is six families instead of nine. It is therefore the **cleanest** pair,
 not the richest — `vitamins_tr` ↔ `amazon_hpc_en` remains the primary pair
 because it carries the entity axis.
+
+### 3.4b `sikayet_tr` / `interpress_tr` / `sinema_tr` — the large-label-space sets
+
+Added 2026-09-16, Turkish only, and added for one reason: **three classes cannot
+host a small gold answer.** A reader classifying a random 5% of a 3-class
+document and scaling up scores 0.88–0.91 on its counts, and that is arithmetic
+rather than a design flaw — relative error goes as `sqrt((1-f)/(f*m))` in the
+gold magnitude `m`, and with N records over K classes the average count is `N/K`.
+Resistance needs a large K. These three supply it (`DESIGN_DECISIONS.md` D21b),
+and they now carry
+**168 of the benchmark's 259 very-hard questions**.
+
+**None of them has an English twin**, so none bears on the cross-lingual claim.
+They are difficulty evidence, not comparison evidence.
+
+**Raw shape, and what survives each stage.** The fetch script applies length and
+class filters; the builder then drops records containing any label's surface
+form:
+
+| set | source rows | after fetch script | after the builder's leak filter | classes |
+|---|---:|---:|---:|---:|
+| `sikayet_tr` | 431,306 | 375,902 | 280,193 (**−24.6%**) | 32 → **29** |
+| `interpress_tr` | 218,839 | 192,369 | 97,835 (**−35.1%**) | 17 → **16** |
+| `sinema_tr` | 67,328 | 56,439 | 51,171 (−0.3%) | **10** |
+
+**Label mapping, per source.**
+
+- `sikayet_tr` — the product category the complainant chose when filing on a
+  consumer-complaints site. Slugs are rewritten into natural Turkish
+  (`beyaz-esya` → *beyaz eşya*, `mutfak-arac-gerec` → *mutfak araç gereç*), both
+  because the templates put them in front of a Turkish reader (`DESIGN_DECISIONS.md` D12) and because
+  the word-level leak filter needs real words to match. Near-balanced as it
+  arrives: 10,856 to 13,609 rows per class.
+- `interpress_tr` — the publisher's own editorial section (*ticaret* 17,266 down
+  to *savunma* 3,202). `savunma` falls below the 1,000-row support floor after
+  filtering, leaving 16 classes in the shipped label space.
+- `sinema_tr` — the reviewer's own 10-point score, stored zero-indexed and
+  rendered as *"1 yıldız"* … *"10 yıldız"* rather than collapsed to sentiment
+  words. Collapsing a 10-point scale to 3 classes is precisely what makes the
+  existing review sets partially readable. Naturally uneven, 2.4% at *3 yıldız*
+  to 24.4% at *8 yıldız*, which usefully puts some counts in the rare band
+  without any construction trick.
+
+**Three findings from building them that are worth carrying.**
+
+1. **`sikayet_tr`'s file is not what its header says.** The header is
+   `category,text`, but `text` is really `"<TITLE>,<BODY>"` — a complaint
+   headline joined to the narrative by a comma, splitting cleanly on the first
+   comma in 100% of rows. The title is the part that names the company, so it is
+   kept **out** of the record text. A native reader spotted this before the code
+   did.
+2. **Two artifacts in `sikayet_tr` would have shipped unnoticed.** 89.7% of
+   bodies end in *"Devamını oku"* ("read more"), a scraping truncation marker,
+   and the 10.3% without it are systematically the shorter complaints — a
+   surface feature correlated with length and so possibly with category.
+   Stripped. And category-name leakage is severe for a few classes, body-only:
+   `kargo-nakliyat` **84.7%**, `cep-telefon-kategori` **73.4%**, `anne-bebek`
+   **36.9%**, all others at or under 30%. Those three classes are dropped.
+   ⚠️ The residual is caught **only because the leak filter was hardened for this
+   source**: it used to match the whole label string, and no Turkish complaint
+   contains the literal `"kargo-nakliyat"`, so it would have reported zero
+   leakage and passed by construction. The config sets `leak_label_words: true`.
+   Never ship this source with that flag off.
+3. **`interpress_tr` is the only set with a real length gradient.** Its records
+   are full news articles (median 1,650 characters), so a 100K-token document
+   holds ~206 of them rather than ~1,500, and the predicted 5%-sample score
+   climbs 0.00 → 0.33 → 0.52 → 0.66 across the tiers instead of sitting flat at
+   0.88–0.91. Using its `Title` column instead was measured and is much worse:
+   28-character records give ~12,000 per document and a 5% score of 0.86.
+
+**Two of the three cannot ship their text.** `sikayet_tr` and `interpress_tr`
+have no upstream licence, so they are released as questions, answers and a
+manifest only, rebuildable locally from the seed. `sinema_tr` is CC-BY-SA-4.0 and
+ships in full, which is why it matters out of proportion to its size. **No
+verbatim record from the two unlicensed sources is quoted in this README**, which
+is why this section shows distributions rather than example rows. Full licence
+position: `DATACARD.md`.
+
+**`interpress_tr` also carries per-record dates** — 2,457 distinct days from
+2010-11-02 to 2017-11-01 — and the builder deliberately ignores them. It is the
+one source here that could support a dated timeline family, and that family is
+not built.
 
 ### 3.5 Summary — what each source contributes
 
 | set | source | label origin | classes | entity | text ships? | very-hard questions |
 |---|---|---|---|---|---|---:|
-| `sikayet_tr` | TC32 complaints (Kaggle) | publisher's product category | **29** | none | no, licence unstated | **77** |
-| `interpress_tr` | Interpress news, dated | publisher's section | **17** | none | no, licence unstated | **64** |
+| `sikayet_tr` | TC32 complaints (Kaggle) | complainant's own product category | **29** | none | no, licence unstated | **76** |
+| `interpress_tr` | Interpress news, dated | publisher's section | **16** (17 in source) | none | no, licence unstated | **66** |
 | `sinema_tr` | BuyukSinema | **writer's own 10-point rating** | **10** | none | yes, cc-by-sa-4.0 | 26 |
 | `tr_intent`, `en_intent` (+paired) | MASSIVE | professional annotation | 48 | nested, unusable | yes | 10–17 each |
-| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | yes | 20 |
+| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | yes | 21 |
 | `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | no, licence unstated | 24 |
 | `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | yes | **0** |
 | `marc_en` | MARC English | **writer's own star rating** | 3 | none | yes | **1** |
 
 **Read the last two columns together.** The three v0.7.0 additions exist because
 a 3-class label space over thousands of records cannot host a small answer
-(`DESIGN_DECISIONS.md` D21b), and they supply 167 of the 259 very-hard questions
+(`DESIGN_DECISIONS.md` D21b), and they supply 168 of the 259 very-hard questions
 in the benchmark. `musteri_tr` and `marc_en` supply **one between them**: they are
 the matched Turkish/English comparison and the classification control, and must
 never be cited as evidence of aggregation difficulty. Two of the three additions
@@ -536,7 +620,7 @@ paths and asserted equal (see §6).
 **Review axis** (orthogonal brand entity), from `vitamins_tr_out/questions.jsonl`:
 
 - `entity_argmax` — *"Şu markalardan hangisi en çok 'olumlu' yorum aldı: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? Sadece marka adını yaz."* → **general mobile**
-- `top_k` — *"Şu markalar arasında en çok 'olumlu' yorum alan ilk 3 marka hangileri: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? …"* → **general mobile > carrefoursa > vestel**
+- ~~`top_k`~~ *(withdrawn in v0.5.0 with the corpus it shipped on; not in the release)* — *"Şu markalar arasında en çok 'olumlu' yorum alan ilk 3 marka hangileri: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? …"* → **general mobile > carrefoursa > vestel**
 - `pairwise` — *"'olumlu' yorumu hangisinde daha çok: 'arzum' mu yoksa 'derimod' mu? Sadece marka adını yaz."* → **arzum**
 - `entity_count` — *"'kahve dünyası' markası hakkındaki yorumlardan kaç tanesi 'nötr'? Sadece sayıyı yaz."* → **10**
 
@@ -547,7 +631,7 @@ It is derived per brand by Turkish vowel harmony (`soru_eki`), not hardcoded.
 
 - `count` — *"Bu kayıtlarda kaç tane 'recommendation_locations' etiketli kayıt var? Sadece sayıyı yaz."* → **15**
 - `proportion` — *"Kayıtların binde kaçı 'alarm_remove' etiketli? …"* → **17** (per-mille)
-- `shift` — *"Kayıtların ikinci yarısında 'qa_currency' etiketli kayıtların oranı ilk yarıya göre arttı mı azaldı mı? 'arttı' veya 'azaldı' yaz."* → **arttı**
+- ~~`shift`~~ — *"Kayıtların ikinci yarısında 'qa_currency' etiketli kayıtların oranı ilk yarıya göre arttı mı azaldı mı? 'arttı' veya 'azaldı' yaz."* → **arttı**. **Withdrawn in v0.7.0 and not in the release** (§4e-i); kept here only to show what the family looked like.
 - `least_common` — *"Bu kayıtlarda en az görülen etiket hangisi? Etiketler: 'alarm_query', 'iot_coffee', 'iot_hue_lightoff', 'play_game', 'social_query'. …"* → **social_query**
 
 **The record-matched twin.** The two sets contain **different text** — Turkish
@@ -707,9 +791,29 @@ model can score on the Turkish half by measuring sentence lengths:
 | `musteri_tr` ↔ `marc_en` | 0.030 |
 
 Every shipping pair is now at or under 0.030. The one pair that sat at **0.108**
-was the brand-reviews/airline pair, withdrawn in v0.5.0. All eight sets pass the
-gate (no set exceeds +0.15 mean lift over majority) and
-`manifests/style_audit.json` is the committed record.
+was the brand-reviews/airline pair, withdrawn in v0.5.0. **All eleven sets pass
+the gate** (no set exceeds +0.15 mean lift over majority; every set is in fact
+negative, so the format solver does worse than guessing the majority answer) and
+`manifests/style_audit.json` is the committed record:
+
+| | mean lift |
+|---|---:|
+| `en_intent` / `en_intent_paired` | −0.175 / −0.146 |
+| `tr_intent` / `tr_intent_paired` | −0.142 / −0.146 |
+| `vitamins_tr` / `amazon_hpc_en` | −0.115 / −0.077 |
+| `musteri_tr` / `marc_en` | −0.143 / −0.108 |
+| `sikayet_tr` / `interpress_tr` / `sinema_tr` | −0.094 / −0.124 / −0.164 |
+
+⚠️ **The three v0.7.0 sets were unmeasured here until 2026-09-16, and the way
+that happened is worth keeping.** `style_solver.py` reads its majority baselines
+from `manifests/baseline_report.json`; the new sets' baselines had been written
+to the repo-root `baseline_report.json` instead, so the solver recorded
+`majority_baseline: null` for them and propagated a null lift into the audit,
+while the summary line still printed a pass over the sets it *could* score. A
+null lift reads as "nothing to report" when it means the check did not run. The
+baseline files have been merged, the solver re-run over all eleven configs, and
+the table above is that run. **This is the same empty-cell failure that let
+`shift` survive four gates (§4e-i), caught a second time by a different route.**
 
 **One family fails this solver everywhere.** `shift` is the only family with a
 positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
@@ -966,10 +1070,13 @@ them. And the partial-coverage gate could not see it, because the only positiona
 reader it modelled was `prefix`, which returns *no answer* for `shift` and so
 left an empty cell that read as absence rather than as a gap in the test.
 
-The family is disabled in all eight configs and in the fixture as of v0.7.0
-(`"families_disabled": ["shift"]`), so the shipped v0.6.3 data is unchanged and
-`shift` disappears at the next rebuild. **The published v0.6.3 tables in this
-README still include it and are still accurate for what was published.**
+The family is disabled in every config and in the fixture as of v0.7.0
+(`"families_disabled": ["shift"]`). **It is gone from the published data**: the
+v0.7.0 release of 16 September carries no `shift` question in any of its eleven
+subsets. It was present in v0.6.3, which was the published revision until then.
+**Tables in this README that are labelled v0.6.3 still include it and remain
+accurate for that superseded revision; a `shift` result should be discarded
+rather than caveated.**
 `drift_mode`, the `drift_target` and the `half` column are all kept: the drift is
 what makes the document non-exchangeable, and `half` is what lets the solvers
 measure positional readers at all. A positional family may return if it asks for
@@ -1169,7 +1276,12 @@ counts therefore differ by language, and that difference is the measurement.
 
   ```bash
   python tests/test_golden.py                        # build is deterministic
-  python scripts/trivial_baseline.py --sets *_out    # leakage + majority baselines
+  # NAME THE SETS. `*_out` sweeps in the experimental trlabel dirs, and a
+  # partial list is how the v0.7.0 sets ended up with no style-gate baseline.
+  python scripts/trivial_baseline.py --out manifests/baseline_report.json --sets \
+      tr_intent_out en_intent_out tr_intent_paired_out en_intent_paired_out \
+      vitamins_tr_out amazon_hpc_en_out musteri_tr_out marc_en_out \
+      sikayet_tr_out interpress_tr_out sinema_tr_out   # leakage + majority baselines
   python scripts/quality_audit.py                    # prior oracle (exact AND relative), depth/margin, pair check
   python scripts/style_solver.py --config configs/*.json --json manifests/style_audit.json
   python scripts/verify_release.py                   # the written files are what they claim
@@ -1614,7 +1726,7 @@ deliberate over-representation of one label in the second half. The target and a
 detectability flag are recorded per haystack (`drift_target`, `drift_ok`).
 
 **Question wording is templated.** As with every synthetic benchmark, a model
-could in principle overfit to the phrasing. Mitigated by ten families across two
+could in principle overfit to the phrasing. Mitigated by nine families across two
 languages, and by the set being evaluation-only — nothing here is for training.
 
 **The retained review pool is not representative Turkish.** 38% of the We-Bears

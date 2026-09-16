@@ -139,8 +139,9 @@ guessing: it estimates both block shares directly and a margin band does not
 stop it. The answer is a step function at a known position and its direction is
 one bit, so no variant that asks for a direction survives.
 
-Disabled in all eight configs and the fixture as of v0.7.0. Shipped v0.6.3 data
-is unchanged and still contains `shift`; discard those answers rather than
+Disabled in every config and in the fixture as of v0.7.0, and **absent from the
+published data**: no `shift` question ships in any of the eleven v0.7.0 subsets.
+The superseded v0.6.3 data still contains it; discard those answers rather than
 caveating them. See `DESIGN_DECISIONS.md` D20, README §4e-i, PAPER_NOTES §13d.
 
 ---
@@ -176,7 +177,7 @@ turn two points into four. Both were already measured; see `DATASET_REVIEW.md`.
 
 ## Finding 7 — MODERATE. The entity axis rests on one corpus
 
-Four of the ten families need an entity that is statistically independent of the
+Four of the nine families need an entity that is statistically independent of the
 label. Only `vitamins_tr` has one (normalised MI 0.022). `tr_oolong`'s brand
 column is correlated (MI 0.226) and `en_twin` has six airlines. The new pair has
 no entity column at all.

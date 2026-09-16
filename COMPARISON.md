@@ -272,10 +272,10 @@ So we report **both**:
   positional halves, and it is the only family our format solver beats
   (+0.400 / +0.300 / +0.267 / +0.100 across sets). **This is the real gap.**
 - ~~A label-vs-label comparison family~~ — **implemented in v0.6.0** as
-  `label_vs_label`, on all eight sets. It is 3-way at 48 classes and collapses to
+  `label_vs_label`, on all eleven sets. It is 3-way at 48 classes and collapses to
   2-way at 3, where near-equality does not occur (D18).
 - A "which user appears most often" family with no label conditioning at all.
-- Far more questions: 17,310 against our 1,254.
+- More questions: 17,310 against our 2,240.
 - Two task flavours — synthetic plus real D&D transcripts. We have only the
   synthetic style.
 

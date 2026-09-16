@@ -291,7 +291,10 @@ Run all four before any release:
 ```bash
 python tests/test_golden.py           # the build is deterministic
 python scripts/quality_audit.py       # + pair check; add --certify 250 pre-release
-python scripts/trivial_baseline.py --sets *_out
+python scripts/trivial_baseline.py --out manifests/baseline_report.json --sets \
+      tr_intent_out en_intent_out tr_intent_paired_out en_intent_paired_out \
+      vitamins_tr_out amazon_hpc_en_out musteri_tr_out marc_en_out \
+      sikayet_tr_out interpress_tr_out sinema_tr_out   # name all 11; `*_out` sweeps the experimental trlabel dirs
 python scripts/style_solver.py --config configs/*.json   # gate (d), added 2026-08-25
 python scripts/verify_release.py      # the written files are what they claim
 ```
@@ -451,7 +454,7 @@ is answerable *too easily*, never whether it is answerable *at all*. See D17.
   counting.
 
 **New family `label_vs_label`** — OOLONG's "is A more, less, or equally common
-than B". Ships on all eight sets. 3-way at 48 classes, 2-way at 3 (D18). It is
+than B". Ships on all eleven sets. 3-way at 48 classes, 2-way at 3 (D18). It is
 the least stable family: `musteri_tr`↔`marc_en` now sits at 0.030, the widest
 of the four pairs.
 
@@ -460,12 +463,13 @@ build it, against the §11 criteria, with a COMPATIBLE / WITH CAVEATS /
 INCOMPATIBLE verdict. Requires `licence` and `label_provenance` declared in each
 config.
 
-**Headline, v0.7.0 as rebuilt 2026-09-16:** 8 sets · 125 haystacks ·
-**2,240 questions** · **50.7M tokens** · 9 families · 1,515 tr / 725 en ·
-36,250–987,623 tokens. 107 of the counts are rare-label counts.
-*(v0.6.3, still what is published on the Hub: 110 haystacks, 1,254 questions,
-28.3M tokens, 10 families. v0.7.0 as rebuilt: 11 sets, 195 haystacks, 2,240
-questions, 50.7M tokens, 9 families, every question difficulty-graded.)*
+**Headline, v0.7.0, built and published 2026-09-16:** **11 sets** ·
+**195 haystacks** · **2,240 questions** · **50.7M tokens** · **9 families** ·
+1,515 tr / 725 en · 36,250–999,625 tokens. **265** of the counts are rare-label
+counts, and every question carries a measured difficulty grade (259 very hard).
+*(Superseded: v0.6.3 was 8 sets, 110 haystacks, 1,254 questions, 28.3M tokens,
+10 families, no grades. It was what the Hub served until 16 September; it is not
+what the Hub serves now.)*
 
 ---
 

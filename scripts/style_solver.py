@@ -129,6 +129,13 @@ def run_set(cfg_path, baselines):
         if lift is not None:
             lifts.append(lift)
     return {"set": out.name, "language": cfg["language"],
+            # Whether this set had an entry in the baseline report at all. A
+            # missing entry and a set with no categorical family both used to
+            # produce `mean_lift: None`, and collapsing the two is how the three
+            # v0.7.0 sets went through this gate unmeasured while the summary
+            # line still printed PASS. They are now distinguished, and a missing
+            # baseline is a hard error.
+            "baseline_found": out.name in baselines,
             "families": fams,
             "mean_lift": round(sum(lifts) / len(lifts), 3) if lifts else None}
 
@@ -156,9 +163,9 @@ def main():
             mb = "  n/a" if v["majority_baseline"] is None else f"{v['majority_baseline']:8.3f}"
             lf = "  n/a" if v["lift"] is None else f"{v['lift']:+8.3f}"
             print(f"{r['set'][:21]:22}{k:15}{v['style_exact']:7.3f}{mb}{lf}")
-        # A set whose families are all NUMERIC (interpress_tr: count, proportion,
-        # label_vs_label) has no categorical family for this solver to attack, so
-        # there is no lift to average. That is a pass by absence, not a crash.
+        # A set with no categorical family for this solver to attack has no lift
+        # to average. That is a pass by absence, not a crash -- but ONLY when the
+        # baseline was found; a missing baseline is caught below and fails.
         if r["mean_lift"] is None:
             print(f"{r['set'][:21]:22}{'== MEAN':15}{'':15}{'  n/a':>8}"
                   f"   (no categorical family to attack)\n")
@@ -175,6 +182,15 @@ def main():
 
     Path(a.json).write_text(json.dumps(reports, indent=2, ensure_ascii=False))
     print(f"\nreport -> {a.json}")
+
+    missing = [r["set"] for r in reports if not r["baseline_found"]]
+    if missing:
+        print(f"\nFAIL: no majority baseline in {a.baseline} for: "
+              + ", ".join(missing)
+              + "\n      Those sets were NOT gated -- a lift needs a baseline to "
+                "subtract.\n      Re-run trivial_baseline.py naming every set, with "
+                f"--out {a.baseline}.")
+        sys.exit(1)
 
     bad = [r for r in reports if r["mean_lift"] is not None and r["mean_lift"] > a.fail_over]
     if bad:

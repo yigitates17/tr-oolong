@@ -1,8 +1,8 @@
 {
-  "version": "0.6.0",
-  "date": "2026-09-05",
-  "n_sets": 8,
-  "total_questions": 1254,
+  "version": "0.7.0",
+  "date": "2026-09-16",
+  "n_sets": 11,
+  "total_questions": 2240,
   "languages": [
     "en",
     "tr"
@@ -16,13 +16,12 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 40,
+        "count": 60,
         "label_vs_label": 10,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 30,
-        "second_most": 10,
-        "shift": 10
+        "proportion": 20,
+        "second_most": 10
       }
     },
     {
@@ -33,13 +32,12 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 40,
+        "count": 60,
         "label_vs_label": 10,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 30,
-        "second_most": 10,
-        "shift": 10
+        "proportion": 20,
+        "second_most": 10
       }
     },
     {
@@ -50,13 +48,12 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 40,
-        "label_vs_label": 10,
+        "count": 58,
+        "label_vs_label": 11,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 30,
-        "second_most": 10,
-        "shift": 10
+        "proportion": 21,
+        "second_most": 10
       }
     },
     {
@@ -67,13 +64,12 @@
       "tokenizer": "Qwen/Qwen3-8B",
       "questions": 120,
       "kind_distribution": {
-        "count": 40,
-        "label_vs_label": 10,
+        "count": 58,
+        "label_vs_label": 11,
         "least_common": 10,
         "most_common": 10,
-        "proportion": 30,
-        "second_most": 10,
-        "shift": 10
+        "proportion": 21,
+        "second_most": 10
       }
     },
     {
@@ -82,18 +78,17 @@
       "language": "tr",
       "source": "datasets/vitamins_tr.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 237,
+      "questions": 236,
       "kind_distribution": {
-        "count": 48,
-        "entity_argmax": 12,
-        "entity_count": 20,
+        "count": 51,
+        "entity_argmax": 7,
+        "entity_count": 40,
         "label_vs_label": 20,
-        "least_common": 18,
-        "most_common": 19,
+        "least_common": 17,
+        "most_common": 20,
         "pairwise": 20,
         "proportion": 42,
-        "second_most": 18,
-        "shift": 20
+        "second_most": 19
       }
     },
     {
@@ -102,18 +97,17 @@
       "language": "en",
       "source": "datasets/amazon_hpc_en.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 236,
+      "questions": 292,
       "kind_distribution": {
-        "count": 55,
+        "count": 69,
         "entity_argmax": 8,
-        "entity_count": 19,
-        "label_vs_label": 20,
-        "least_common": 17,
-        "most_common": 18,
+        "entity_count": 47,
+        "label_vs_label": 26,
+        "least_common": 21,
+        "most_common": 23,
         "pairwise": 15,
-        "proportion": 49,
-        "second_most": 15,
-        "shift": 20
+        "proportion": 63,
+        "second_most": 20
       }
     },
     {
@@ -122,15 +116,14 @@
       "language": "tr",
       "source": "datasets/musteri_tr.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 153,
+      "questions": 199,
       "kind_distribution": {
-        "count": 45,
-        "label_vs_label": 15,
-        "least_common": 13,
-        "most_common": 11,
-        "proportion": 44,
-        "second_most": 10,
-        "shift": 15
+        "count": 59,
+        "label_vs_label": 38,
+        "least_common": 16,
+        "most_common": 15,
+        "proportion": 58,
+        "second_most": 13
       }
     },
     {
@@ -139,15 +132,56 @@
       "language": "en",
       "source": "datasets/marc_en.parquet",
       "tokenizer": "Qwen/Qwen3-8B",
-      "questions": 148,
+      "questions": 193,
       "kind_distribution": {
-        "count": 45,
-        "label_vs_label": 14,
-        "least_common": 10,
-        "most_common": 11,
-        "proportion": 45,
-        "second_most": 8,
-        "shift": 15
+        "count": 59,
+        "label_vs_label": 36,
+        "least_common": 13,
+        "most_common": 15,
+        "proportion": 59,
+        "second_most": 11
+      }
+    },
+    {
+      "config": "configs/sikayet_tr.json",
+      "out_dir": "sikayet_tr_out",
+      "language": "tr",
+      "source": "datasets/sikayet_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 300,
+      "kind_distribution": {
+        "count": 150,
+        "label_vs_label": 25,
+        "least_common": 25,
+        "most_common": 25,
+        "proportion": 50,
+        "second_most": 25
+      }
+    },
+    {
+      "config": "configs/interpress_tr.json",
+      "out_dir": "interpress_tr_out",
+      "language": "tr",
+      "source": "datasets/interpress_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 300,
+      "kind_distribution": {
+        "count": 142,
+        "label_vs_label": 79,
+        "proportion": 79
+      }
+    },
+    {
+      "config": "configs/sinema_tr.json",
+      "out_dir": "sinema_tr_out",
+      "language": "tr",
+      "source": "datasets/sinema_tr.parquet",
+      "tokenizer": "Qwen/Qwen3-8B",
+      "questions": 240,
+      "kind_distribution": {
+        "count": 155,
+        "label_vs_label": 26,
+        "proportion": 59
       }
     }
   ]
