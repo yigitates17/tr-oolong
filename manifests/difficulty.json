@@ -1,0 +1,121 @@
+{
+  "trials": 200,
+  "fractions": [
+    0.05
+  ],
+  "seed": 42,
+  "bands": {
+    "very hard": "<0.35",
+    "hard": "<0.6",
+    "moderate": "<0.8",
+    "easy": "<1.01"
+  },
+  "caveat": "Relative to the readers in sampling_solver.READERS, which are handed the true label of every record they read. 'very hard' means these readers failed, not that no shortcut exists.",
+  "totals": {
+    "easy": 1609,
+    "moderate": 232,
+    "very hard": 259,
+    "hard": 140
+  },
+  "by_set": {
+    "amazon_hpc_en_out": {
+      "n": 292,
+      "very hard": 24,
+      "hard": 7,
+      "moderate": 12,
+      "easy": 249,
+      "borderline": 17,
+      "max_grade_se": 0.0354
+    },
+    "en_intent_out": {
+      "n": 120,
+      "very hard": 9,
+      "hard": 17,
+      "moderate": 20,
+      "easy": 74,
+      "borderline": 30,
+      "max_grade_se": 0.0354
+    },
+    "en_intent_paired_out": {
+      "n": 120,
+      "very hard": 10,
+      "hard": 16,
+      "moderate": 26,
+      "easy": 68,
+      "borderline": 20,
+      "max_grade_se": 0.0354
+    },
+    "interpress_tr_out": {
+      "n": 300,
+      "very hard": 66,
+      "hard": 37,
+      "moderate": 45,
+      "easy": 152,
+      "borderline": 54,
+      "max_grade_se": 0.0354
+    },
+    "marc_en_out": {
+      "n": 193,
+      "very hard": 1,
+      "hard": 0,
+      "moderate": 3,
+      "easy": 189,
+      "borderline": 3,
+      "max_grade_se": 0.0278
+    },
+    "musteri_tr_out": {
+      "n": 199,
+      "very hard": 0,
+      "hard": 0,
+      "moderate": 0,
+      "easy": 199,
+      "borderline": 1,
+      "max_grade_se": 0.0307
+    },
+    "sikayet_tr_out": {
+      "n": 300,
+      "very hard": 76,
+      "hard": 24,
+      "moderate": 29,
+      "easy": 171,
+      "borderline": 41,
+      "max_grade_se": 0.0354
+    },
+    "sinema_tr_out": {
+      "n": 240,
+      "very hard": 26,
+      "hard": 6,
+      "moderate": 37,
+      "easy": 171,
+      "borderline": 19,
+      "max_grade_se": 0.0354
+    },
+    "tr_intent_out": {
+      "n": 120,
+      "very hard": 17,
+      "hard": 13,
+      "moderate": 21,
+      "easy": 69,
+      "borderline": 20,
+      "max_grade_se": 0.0354
+    },
+    "tr_intent_paired_out": {
+      "n": 120,
+      "very hard": 9,
+      "hard": 16,
+      "moderate": 27,
+      "easy": 68,
+      "borderline": 18,
+      "max_grade_se": 0.0354
+    },
+    "vitamins_tr_out": {
+      "n": 236,
+      "very hard": 21,
+      "hard": 4,
+      "moderate": 12,
+      "easy": 199,
+      "borderline": 17,
+      "max_grade_se": 0.0354
+    }
+  }
+}
