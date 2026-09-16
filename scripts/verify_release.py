@@ -25,6 +25,10 @@ from pathlib import Path
 
 import polars as pl
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from build_tr_oolong import leak_surface_forms   # noqa: E402  the CANONICAL definition
+
 
 def fold_tr(s: str) -> str:
     return s.replace("I", "ı").replace("İ", "i").lower()
@@ -145,16 +149,27 @@ def verify(name: str) -> list[str]:
         bad(f"manifest label_space={man['label_space']}, haystacks contain {len(label_space)}")
 
     # --- grep-proofness, verified on the SHIPPED text ----------------------
-    forms = set()
-    for l in label_space:
-        forms.add(fold_tr(l) if lang == "tr" else l.casefold())
-        forms.add(fold_tr(l.replace("_", " ")) if lang == "tr" else l.replace("_", " ").casefold())
+    # Uses the BUILDER's definition of a surface form rather than a local copy.
+    # A local copy is how this check silently weakened: it matched the whole
+    # label string only, so on a hyphenated or multi-word label space such as
+    # `sikayet_tr`'s it would have verified nothing, because no Turkish complaint
+    # contains the literal string "kargo nakliyat" while the single word "kargo"
+    # finds five of six. The config's leak_label_words setting is honoured here
+    # for the same reason it exists in the builder.
+    split_words = bool(man["config"].get("leak_label_words", False))
+    forms = sorted({f for l in label_space
+                    for f in leak_surface_forms(l, lang, split_words)})
+    leaked = 0
     for hid, h in hay_by_id.items():
         folded = fold_tr(h["haystack"]) if lang == "tr" else h["haystack"].casefold()
         hits = sorted(f for f in forms if f in folded)
         if hits:
-            bad(f"{hid}: LABEL LEAKAGE in shipped text: {hits[:5]}")
-            break
+            leaked += 1
+            if leaked == 1:
+                bad(f"{hid}: LABEL LEAKAGE in shipped text "
+                    f"(split_words={split_words}): {hits[:5]}")
+    if leaked:
+        bad(f"label leakage in {leaked}/{len(hay_by_id)} shipped haystacks")
 
     # --- every answer recomputed independently ----------------------------
     checked = 0
