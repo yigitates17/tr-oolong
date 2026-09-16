@@ -1,22 +1,24 @@
 # TR-OOLONG — Week 4
 
-*Updated 2026-09-16. Carries over the items the week 3 meeting ran out of time for. Sections 6 and 7 were added on the 16th; section 7 corrects a conclusion stated in section 6.*
+*Updated 2026-09-16. Carries over the items the week 3 meeting ran out of time for. Section 5 reports a shortcut check built on the 16th and the rebuild that followed it.*
 
 ---
 
 ## 0. Where the benchmark stands
 
-Unchanged from week 3: **8 datasets · 110 documents · 1,254 questions · 28.3M tokens**, plus 3 experimental variants built but deliberately not shipped. Focus remains the dataset itself; evaluation runs are not scheduled yet.
+**Rebuilt on 16 September.** The benchmark is now **8 datasets · 125 documents · 1,400 questions · 26.5M tokens · 9 question types · 2 languages**, 675 Turkish and 725 English, documents from 36,000 to 988,000 tokens. 107 of the counting questions are the new rare-category type.
 
-**Published.** The dataset is public on Hugging Face and tagged `v0.6.3` on GitHub (16 September). The data has not changed since the first release; the revision corrects how the benchmark describes itself, after the check described in section 6.
+**What is published is still the previous version.** Hugging Face and the GitHub tag still serve the 15 September release: 110 documents, 1,254 questions, 28.3M tokens, 10 question types. Nothing has been uploaded since. The published version contains one question type that has since been withdrawn.
 
-**Three figures that are easy to quote wrongly, and the correct framing:**
+**Changes in the rebuild**, all explained in section 5: one question type removed, one document length removed, rare-category counting questions added, more documents at the shortest length on four datasets, and the matched pair now agreeing on all 120 questions rather than 100.
 
-- *"1,254 questions."* Correct as a count. As evidence it overstates: on the three-category review sets, the twelve questions on each document are largely the same two numbers asked in different ways. The unit of evidence is the document, 15 to 20 per set.
-- *"The same question has the same answer in both languages."* 100 of 120 answers are identical character for character; the other 20 are the same fact written in each language's word ("rose" against "arttı"). All 120 are paired.
-- *"Documents up to 1 million tokens."* True as a length. Under the proportional scoring rule, a longer document is not a harder one; see section 6.
-- *"Ten question types."* Correct for the published version. One of the ten has been removed from the builder and will not appear in the next version; see section 7.
-- *"A model forced to truncate the document does worse."* **Not supported.** A reader that spends the same budget on the two ends of the document rather than on its beginning loses almost nothing; see section 7.
+**Figures that are easy to quote wrongly, and the correct framing:**
+
+- *"1,400 questions."* Correct as a count. As evidence it overstates: on the three-category review sets, the questions on each document are largely the same two numbers asked in different ways. The unit of evidence is the document, 20 to 25 per set.
+- *"Documents up to 1 million tokens."* True as a length. Under the proportional scoring rule, a longer document is not a harder one; see section 5.
+- *"Nine question types."* Correct for the rebuild. The published version has ten; the tenth was withdrawn.
+- *"A model forced to truncate the document does worse."* **Not supported.** A reader that spends the same budget on the two ends of a document rather than on its beginning loses almost nothing.
+- *"The benchmark requires a model to process every record."* **Withdrawn.** It requires classifying Turkish records and combining the results, which is a narrower and still substantial claim.
 
 ---
 
@@ -153,123 +155,70 @@ For the Turkish-label variant, the 0.14% figure is the *cost* of the filter, not
 
 ---
 
-## 5. A fifth shortcut check was built, and it found a real limitation
+## 5. A fifth check: can a question be answered by reading only part of the document?
 
-The four existing checks all ask whether a question can be answered *without reading the document*. None asks whether it can be answered by reading only **part** of it. That gap is now closed, and the answer is uncomfortable.
+The four existing checks all ask whether a question can be answered *without opening the document*. None asked whether it can be answered by reading only **part** of it. That check now exists, it was run on this benchmark and on OOLONG, and it changed both the benchmark and what it claims.
 
-**A model that reads a random 5% of a document and scales the result up scores 0.95 on counting questions** for the Turkish supplement set, against a baseline of 0.05 for always guessing the most common answer. On "which label is most common" for the e-commerce set it scores 0.99. In other words, for most question types, reading a twentieth of the document is nearly as good as reading all of it.
+### The four readers, in plain terms
 
-**Why.** The gap between the most and second-most common label is much wider than it needs to be — a median of 38% and 48% on the two review sets, against a required minimum of 10%. A small sample settles a 38% gap almost every time. The 48-category intent dataset has a median gap of 14% and is correspondingly harder to sample, which confirms the mechanism.
+Each reader is given a budget, say 5% of the records, and is told the correct category of every record it reads. They differ only in **which** records they get.
 
-**One question type resists it**, and instructively so: the "is A more common than B, or equal" type, but only on the 48-category dataset, where its 2% "equal" band is narrower than sampling error can resolve. On the three-category sets that band never triggers and the resistance disappears.
+| name | what it does | why it is modelled |
+|---|---|---|
+| **blind** | opens nothing. Counts the separators between records, divides by the number of categories, answers that. | the floor. Any score must be read against this. |
+| **random 5%** | reads a random one-in-twenty records, scales the result up | what a model with code execution can deliberately do |
+| **prefix 5%** | reads the first one-in-twenty records | what a model does by default when the document is longer than its window |
+| **head-and-tail 5%** | reads half its budget at the start and half at the end | what a model does if it is told the document has two ends. Costs the same as prefix. |
 
-**Three qualifications that must accompany this.**
+**A worked example.** A document holds 6,000 reviews, 1,700 of them negative. The question is "how many are negative?"
 
-1. **It is an upper bound, not a model result.** The checker is given the correct label of every record it samples. A real model would still have to read and judge them. It measures what a *perfect* reader of a fraction could achieve.
-2. **It applies to the proportional scoring metric.** Under strict exact-match a sampled count of 1,712 against a true 1,600 scores zero. The question types where the two metrics coincide — all the ranking ones — are genuinely exposed.
-3. **It is a consequence of scale.** A benchmark whose answers are single digits cannot be sampled at all. Ours can *because* its answers run to thousands. The large answers are not a difficulty advantage; they are what admits this shortcut.
+- **blind** answers 6,000 ÷ 3 = 2,000. That is 18% off, which under proportional scoring is worth about **0.82**. It read nothing.
+- **random 5%** reads 300 reviews, finds 85 negative, answers 85 × 20 = 1,700. Almost exact, worth about **0.89**.
+- The same reader on a question whose true answer is **20** reads 300 records and finds **one**, answers 20 × 1 = 20 by luck or 0 by bad luck. Worth about **0.27** on average.
 
-**What this changes.** Ground truth is untouched — every answer remains exactly correct for its document. What narrows is the claim. This benchmark demonstrably requires *classifying Turkish records and combining them*; it does **not** demonstrably require reading all of them. Any statement that a model "must process every record" should be withdrawn.
+That last line is the whole finding.
 
-**A fix exists for a future version.** The builder currently rejects questions whose deciding margin is too *narrow*. It should also reject those whose margin is too *wide*, since a 38% gap is free to a sampler. That uses machinery already present, but it changes the shipped questions and requires a rebuild, so it is not in this release.
+### The rule that explains every number below
 
-**Recommendation: publish anyway, with this documented.** It is a limitation rather than an error, it was found by our own audit rather than by a reviewer, and a release that reports five shortcut checks including one that partly succeeds is more credible than one reporting four that all fail. The dataset is version-controlled, so the margin-band fix can ship as a later revision.
+One quantity decides how well a partial reader does: **how large the true answer is**. Not the document's length, not how balanced the categories are, not the order the records are in. The arithmetic is a poll's margin of error. To estimate "how many are negative" within a few percent, a reader needs to see a few hundred negative examples. If the true answer is 2,000 it will see plenty in any sample. If the true answer is 20 it will see one, and the estimate is worthless.
 
-*Section 6 revisits this finding one day later, with a wider check. The 0.95 figure above stands, but the 0.05 it is compared against turns out to be the wrong comparison, and the margin-band fix turns out to help only some question types.*
+### Finding 1: a reader that opens nothing already scores about half
 
----
+Every document uses a fixed marker between records, so counting the records takes no reading. A reader that counts markers, divides by the number of categories and answers that scores **0.43 to 0.55** on counting questions. That is the floor, and every counting score must be reported as improvement over it.
 
-## 6. The sampling check was a symptom. The scoring rule is the cause
-
-A second, wider check was run on 16 September. Nothing in the data changed. What changed is the understanding of what a score on this benchmark can and cannot show, and the public description was corrected the same day.
-
-### The scoring rule gives partial credit, and that is where everything below comes from
-
-Counting questions ("how many of these 3,919 reviews are negative?") are scored proportionally: an answer of 1,600 against a true 1,650 earns about 97% credit, an answer of 800 earns about 48%. This rule was chosen because exact-match scoring is hopeless at these sizes; no reader lands on 1,650 exactly. The rule is sensible. Its consequences were not fully measured until now.
-
-### Finding 1: a model that reads nothing already scores about half
-
-Every document uses a fixed marker between records, so counting the records takes no reading. A model that counts the markers, divides by three (there are three categories) and answers that number for every counting question scores **0.43 to 0.63** depending on the set. That is the floor, and it is what a counting score must be measured against.
-
-The week 3 comparison, "a 5% sample scores 0.95 against a baseline of 0.05", compared two different scoring rules. The 0.05 was strict exact-match; the 0.95 was proportional. Under the same rule the honest contrast is 0.92 against 0.63. The sampling finding stands, but it is a smaller gap than it looked.
-
-The same mistake sat inside one of the four acceptance checks. The check that asks "can this be answered from general knowledge of the source corpus, without opening the document" scored the counting questions with the strict rule, where a guess can never hit the exact number, and so passed them automatically. It now scores them under both rules.
+A figure quoted in earlier weeks, "a 5% sample scores 0.95 against a baseline of 0.05", compared two different scoring rules. Under the same rule the honest contrast is 0.89 against 0.44.
 
 ### Finding 2: under this rule, a longer document is not a harder document
 
-An election analogy makes this concrete. A poll of 1,000 voters predicts a national result to within about three points whether the country has one million voters or eighty million. The error depends on how many people were asked, not on how many exist.
+A poll of 1,000 voters predicts a national result to within about three points whether the country has one million voters or eighty million. The error depends on how many people were asked, not how many exist.
 
-The same arithmetic holds here. A reader that classifies 1,000 randomly chosen records and scales up scores **0.94 to 0.97** on counting questions at every document length, from 100,000 tokens to one million. A reader that takes only the *first* 1,000 records, which is what any model with a limited window does by default when the document is longer than the window, scores 0.65 to 0.88 and degrades only mildly with length.
-
-**What this means.** On the counting and proportion questions, which are 64% of the benchmark, a proportional score cannot tell a model that read 1,000 records from one that read 16,000. The length axis still tests something real, whether a model can take the document in at all without breaking, but it does not test whether the model aggregated over more of it.
+The same holds here. A reader that classifies 1,000 records and scales up scores **0.94 to 0.97** on counting at every document length from 100,000 tokens to one million. On the counting and proportion questions, a proportional score cannot tell a model that read 1,000 records from one that read 16,000. The length axis still tests whether a model can take the document in at all without breaking, which is real but different.
 
 ### Finding 3: a single score cannot say whether a model read more or judged better
 
-A perfect classifier that reads a random 5% of the document scores 0.89 to 0.92 on counting. A classifier that reads *every* record but misjudges one in ten scores 0.74 to 0.90. The two are indistinguishable from the score alone. This is why the position in section 4 asks for a separate measurement of how well the model classifies single records: once that is known, the aggregate score reveals how much was read.
+A perfect reader of a random 5% scores 0.89 on counting. A reader that opens **every** record but misjudges one in ten scores 0.74 to 0.90. The two are indistinguishable from the score alone. This is why the harness must separately record how well the model classifies single records.
 
-### Finding 4: what actually resists sampling is a small answer, not a wide margin
+### Finding 4: reading the two ends works as well as reading everywhere
 
-Week 3 attributed the sampling exposure to the gap between the top two categories being too wide, and proposed rejecting questions with wide gaps. That mechanism is real for the ranking questions. It does nothing for counting and proportion questions, and those are most of the benchmark.
+Each document is built as two halves, each internally shuffled, with one category deliberately made more common in the second half. A reader confined to the beginning therefore sees a distorted sample. A reader that spends the *same* budget on the first fifty records and the last fifty sees both halves and is not distorted at all: on the largest documents the beginning-only reader scores 0.53 and the two-ends reader scores 0.92.
 
-What does resist sampling is a question whose answer is small. "How many negative reviews does brand X have?" (answers of 10 to 50) is the most sampling-resistant question type shipped: a 5% sample scores only 0.24 to 0.35 on it. And counting questions about rare categories on the 48-category intent sets, which the current build deliberately excludes because their answers are under 30, score 0.29 at a 5% sample against 0.55 for the counts that ship. Every record still has to be judged to answer them ("is this one of the rare ones or not"), so they are genuine aggregation. Adding such questions is the main item planned for the next data version.
+Document order protects nothing. No arrangement of records defeats a reader that samples across the whole document, because sampling ignores order.
 
-### Two smaller things found by the same check
+### Finding 5: one question type was removed from the benchmark
 
-- **The largest Turkish supplement documents look like their source.** A 750,000-token document uses 54% of the available reviews, so its mix of categories cannot drift far from the source's mix. A reader that knows the source's overall proportions and never opens the document scores 0.75 on counting at that length. The other seven sets stay at or below 0.60 at every length. That tier is now labelled as exposed.
-- **The twelve questions on each three-category document are mostly the same two numbers.** Every document is asked "how many" for all three categories and "what percentage" for the same three; the "most common", "second most", "least common" and "is A more common than B" questions follow from those same numbers. For any statistical claim, the unit is the document, not the question.
+One of the ten question types asked whether a category became more or less common in the second half. Against the two-ends reader, fifty records from each end answer it **perfectly on all eight datasets**. The question has two possible answers and the change happens at a known point, so a reader that looks at each end reads the answer off directly. Widening the change or making it gradual would not help, because the question asks only for a direction.
 
-### What was corrected on 16 September
+It has been removed. It is still present in the published version, and results on it should be discarded rather than explained.
 
-1. The public dataset card, the datacard and the README now state the guess-without-reading floor, the flat length axis, the reading-versus-judging ambiguity, the exposed tier, and the question redundancy, with the numbers above.
-2. The twin claim is stated the same way everywhere. It had been given as 100, as 110, and as "the other 20 are shift" in three different places.
-3. Every data-fetching script now fixes the exact upstream version it downloads. Without this, if a source were changed upstream, the one dataset whose text is not redistributed (the English supplement reviews, for licence reasons) could no longer be rebuilt.
-4. The acceptance check described under finding 1 scores counting questions under both rules.
+**How it passed four checks.** Every difficulty rule in the builder constrains either how large an answer must be or how wide a margin must be. Both are rules about *quantities*, and this question's answer is a direction, so it fell between them. The fifth check could not catch it either: its only position-sensitive reader cannot answer that question type at all, so the result table showed an empty cell, and an empty cell was read as "nothing solved this" rather than "nothing tried". The check now reports, for every reader and question type, what fraction it could even attempt.
 
-### What this does and does not mean for the thesis
+### Finding 6: the same measurement was run on OOLONG, and both benchmarks obey the same rule
 
-The data is sound and every answer is still exactly correct for its document. What narrows is the claim: the benchmark demonstrably requires *classifying Turkish records and combining the results*; it does not demonstrate that a model read the whole document, and under proportional scoring it does not demonstrate that longer was harder.
+OOLONG is the English benchmark this one follows and the one the method under study reports its results on. Its construction code is unreleased, but **its built data is public and includes the correct category of every record**, so the same readers run on it directly. All 41 of its files were processed: eight source corpora, category counts from 2 to 10, documents from one thousand to four million tokens. A question was included only where a perfect reader of the whole document reproduces OOLONG's own published answer exactly, which held for 3,553 questions.
 
-For the method under study this matters in one specific way. Its expected advantage is on documents a plain model cannot take in at once. That advantage will show against a model that is *truncated* (which degrades) but not against one that is allowed to *sample* (which does not). The evaluation must therefore state which the baseline is, and report scores as improvement over the guess floor.
+Its counting questions trace the rule exactly:
 
----
-
-## 7. The sampling check itself was incomplete, and a second benchmark was used to test that
-
-Section 6 reported what a partial reader can score. Later on 16 September the check was found to be measuring only two of the four ways a reader can spend a limited budget, and correcting it removed a question type from the benchmark. A comparison against OOLONG, the English benchmark this one follows, was then run to establish whether the underlying problem is specific to this work.
-
-### The rule that explains every number in sections 6 and 7
-
-One quantity decides how well a partial reader does on a counting question: **how large the true answer is**. Not the length of the document, not the number of categories, not how the records are ordered. A reader that classifies a fraction of the records and scales up is doing what a pollster does, and its error follows the same arithmetic as a poll's margin of error.
-
-The practical form: to answer "how many are negative" within a few percent, a reader needs to see a few hundred examples of that category. If the true answer is 2,000, a 5% sample already contains 100 of them and the estimate is close. If the true answer is 20, a 5% sample contains one, and the estimate is worthless.
-
-This is why the counting questions on the three-category review sets are the weak ones. Their answers average 1,200 to 2,700. It is also why the 48-category intent sets hold up: their answers average 73 to 85, and there a 5% sample scores no better than guessing without reading.
-
-### Finding 5: reading the two ends of a document costs the same as reading the beginning, and works far better
-
-The check in section 6 modelled a reader that samples randomly across the document and a reader that reads it from the beginning until it runs out of room. The second reader is the one that stands for a model with a limited window, and it scored poorly, which was read as evidence that being forced to truncate is costly.
-
-That conclusion was an artefact. Each document is built as two halves, each internally shuffled, with one category deliberately made more common in the second half. A reader confined to the beginning therefore sees a distorted sample, but only because its window sits inside one half. A reader that spends the *same* budget on the first fifty records and the last fifty records sees both halves and is not distorted at all. On the largest documents, the beginning-only reader scores 0.53 on counting while the two-ends reader on an identical budget scores 0.92.
-
-**Consequence.** The statement "truncation degrades with length" has been withdrawn from the public description. Document ordering protects nothing: no arrangement of records defeats a reader that samples across the whole document, because sampling ignores order by construction.
-
-### Finding 6: one question type was removed from the benchmark
-
-One of the ten question types asked whether a category became more or less common in the second half of the document. Against the two-ends reader it is not a hard question: fifty records from each end answer it **perfectly on all eight datasets**, and correctly nine times in ten on a budget of a hundred records out of sixteen thousand.
-
-The reason is that the question has only two possible answers and the change it asks about happens at a known point, so a reader that looks at each end reads the answer off directly. Widening the change, moving where it happens, or making it gradual would not help, because the question asks only for a direction.
-
-This question type had already been flagged in week 3 as the weakest in the suite and was being reported as a disclosed limitation. That was the wrong response. It has been removed from the builder and will not appear in the next data version. It is still present in the published version, and any result on it should be discarded rather than explained.
-
-**How it passed four separate checks.** Every difficulty rule in the builder constrains either how large an answer must be or how wide a margin must be at a boundary. Both are rules about *values*, and this question's answer is a direction, so it fell between them. The check that should have caught it could not: the only position-sensitive reader it modelled is unable to answer this question type at all, so the result table showed an empty cell, and an empty cell was read as "no reader could solve this" rather than "no reader tried". The check now reports, for every question type and every reader, what fraction of questions that reader could even attempt.
-
-### Finding 7: the same measurement was run on OOLONG, and both benchmarks obey the same rule
-
-The obvious question is whether any of this is specific to this benchmark or to Turkish. OOLONG's construction code is unreleased, but **its built data is public and includes the correct label of every record in every document**, so the same readers can be run on it directly with nothing reimplemented. All 41 of its test files were processed: eight source corpora, category counts of 2, 3, 4 and 10, documents from one thousand to four million tokens. A question was included only where a perfect reader of the whole document reproduces OOLONG's own published answer exactly, which held for 3,553 questions; 197 were dropped as unverifiable.
-
-Its counting questions trace the entire rule:
-
-| OOLONG's true answer | number of questions | score of a reader seeing 5% |
+| OOLONG's true answer | questions | score of a reader seeing 5% |
 |---|---:|---:|
 | 1 to 9 | 284 | **0.00** |
 | 10 to 29 | 72 | 0.21 |
@@ -278,44 +227,51 @@ Its counting questions trace the entire rule:
 | 300 to 999 | 108 | 0.88 |
 | 1,000 and above | 197 | 0.96 |
 
-TR-OOLONG's own sets fall on the same line at the same answer sizes: the intent sets, with answers near 80, score 0.54 to 0.59, matching OOLONG's 30-to-99 band; the review sets, with answers above 1,000, score 0.89 to 0.92, matching OOLONG's top band.
+This benchmark's own sets fall on the same line at the same answer sizes.
 
-**Three conclusions follow, and the order matters.**
+**Three conclusions, in order of importance.**
 
-1. The exposure is a property of counting over a large collection under a forgiving score. It was not introduced by this pipeline, this corpus, or this language.
-2. **OOLONG is less exposed than TR-OOLONG, and the reason is instructive rather than embarrassing.** Most of its questions are restricted to a subset before being asked, such as "among the entries belonging to this one user" or "among the entries from April", which makes the answers small. 284 of its counting questions have answers below ten and score zero for every partial reader. TR-OOLONG currently has no questions in that range. Its most resistant question type of all, "how many dates appear exactly three times", scores 0.005 and depends entirely on having real dates.
-3. **No published work on OOLONG reports either of these floors.** Neither the guess-without-reading floor described in section 6 nor any partial-reading measurement appears in its documentation, and results reported on it, including those of the method under study, are therefore not separated into how much was read and how well it was judged. On OOLONG's largest question type, 1,097 comparison questions, a reader classifying a random 5% of records scores 0.78 under OOLONG's own strict scoring.
+1. The exposure is a property of counting over a large collection under a forgiving score. It was not introduced by this pipeline, corpus or language.
+2. **OOLONG is less exposed than this benchmark, and the reason is the fix.** Most of its questions are restricted to a subset before being asked, such as "among the entries belonging to this one user" or "among the entries from April", which makes the answers small. 284 of its counting questions have answers below ten and score zero for every partial reader.
+3. **No published work on OOLONG reports either floor.** Neither the read-nothing floor nor any partial-reading measurement appears in its documentation, so results reported on it are not separated into how much was read and how well it was judged. On its largest question type, 1,097 comparison questions, a reader seeing a random 5% scores 0.78 under OOLONG's own strict scoring.
 
-**How to state it.** Not "OOLONG has the same problem, so ours is acceptable". The defensible statement is: this is a measurable property of the task family; it was measured here on both benchmarks; OOLONG mitigates it by restricting questions to subsets; the next version of TR-OOLONG adopts the same mitigation.
+**How to state it.** Not "OOLONG has the same problem, so ours is acceptable". The defensible statement is: this is a measurable property of the task family; it was measured here on both benchmarks; OOLONG mitigates it by restricting questions to subsets; this benchmark now adopts the same mitigation.
 
 ### Does strict scoring solve it?
 
-Partly, and not in the way it first appears. Under strict exact-match, a partial reader scores essentially zero on counting questions, on both benchmarks. But two things spoil it as a remedy.
+Partly, and not usefully. Under strict exact-match a partial reader scores essentially zero on counting questions, on both benchmarks. But six of the nine remaining question types are answered with a category name rather than a number, and those are *already* scored by exact match: a reader seeing 5% answers them correctly 78 to 100 percent of the time.
 
-First, six of the nine remaining question types are answered with a category name rather than a number, and those are *already* scored by exact match. A reader seeing 5% of the records answers them correctly 78 to 100 percent of the time. Strict scoring does nothing for them, on either benchmark.
+More decisively, strict scoring does not only defeat the partial reader, it defeats everyone. A reader that opens every one of 6,469 records and misjudges only one in a hundred scores **0.015** on counting. A near-perfect full reader and a 5% sampler become indistinguishable, because both score zero. That is why the proportional rule exists.
 
-Second, strict scoring does not only defeat the partial reader, it defeats everyone. A reader that opens every one of 6,469 records and misjudges only one in a hundred scores **0.015** on counting. Under strict scoring a near-perfect full reader and a 5% sampler are indistinguishable, because both score zero. That is why the proportional rule exists.
+### Finding 7: the fix is built, and it removes the read-nothing floor entirely
 
-### Finding 8: the first fix is built, and it removes the guess-without-reading floor entirely
+Counting questions about **rare categories** were added: categories holding between five and thirty records in that particular document. They are worded exactly like any other counting question, so a model is not told the answer is small.
 
-The change described above as the main item for the next data version has been built and measured. It adds counting questions about **rare categories**: categories holding between five and thirty records in that particular document. The question is worded exactly like any other counting question, so a model is not told that the answer happens to be small.
-
-Measured on one of the intent datasets, rebuilt into a scratch folder so nothing published was touched:
-
-| | a reader that opens nothing | a reader seeing 5% | a reader seeing 25% |
+| | reads nothing | sees 5% | sees 25% |
 |---|---:|---:|---:|
-| ordinary counting question (typical answer 74) | 0.458 | 0.535 | 0.805 |
-| **rare-category question** (answers 5 to 30) | **0.000** | **0.268** | 0.646 |
+| ordinary counting question (typical answer 74) | 0.46 | 0.54 | 0.81 |
+| **rare-category question** (answers 5 to 30) | **0.00** | **0.27** | 0.65 |
 
-**The first column is the more important result.** Section 6 reported that a model which opens nothing, counts the record separators and divides by the number of categories already scores about 0.46. Against a rare-category question that same model scores **zero**, because dividing by the number of categories gives roughly 62 when the true answer is 20. The guess floor is not reduced, it is removed. Partial reading also roughly halves.
+**The first column is the more important result.** A reader that opens nothing and divides by the number of categories scores about 0.46 on an ordinary question and **zero** on a rare one, because dividing by 48 gives roughly 62 when the true answer is 20. The floor is not reduced, it is removed. A reader that knows the source corpus's overall proportions but never opens the document falls the same way, from 0.41-0.50 to 0.06-0.12.
 
-A wider band of five to fifty was built and measured as well, because the narrow band yields few questions on the longer documents. It was rejected: it lets the guess-without-reading score back up to 0.114 and returns half the resistance. The narrow band stays, and the family simply produces fewer questions on longer documents, which the builder reports.
+A wider band of five to fifty was also built and measured, and rejected: it lets the read-nothing score back up to 0.11 and returns half the resistance.
 
-**What it does not reach.** The two three-category review datasets without a brand column cannot host this question type at all: with three categories over several thousand records, no category is ever that small, and they have no second axis to narrow by. Their counting questions remain the most exposed in the suite. This is a property of a three-category label space, not something question wording can repair, and it should be stated that way rather than implying the fix is general.
+**What it does not reach.** The two three-category review datasets without a brand column cannot host this question type: with three categories over several thousand records no category is ever that small, and they have no second axis to narrow by. Their counting questions remain the most exposed in the suite. This is a property of a three-category label space, not something question wording can repair.
 
-### What this changes about the plan
+### What else changed in this rebuild
 
-The next data version was already going to add counting questions about rare categories. The measurements above make that the central change rather than one of six, and add a second: questions restricted to a subset before being asked, which is available immediately on the two supplement-review sets because they already carry a brand for every record.
+- **A tier was removed.** The largest Turkish supplement documents used 48% of the available reviews, so their category mix could not differ much from the source's, and a reader who knew the source's proportions and never opened the document scored 0.75. That length is gone.
+- **A rule that looked obvious was not adopted.** Capping the share of the source any one document may use was tried as an automatic rule and removed six document lengths across the suite, including the longest. The measurements show why it is the wrong rule: one dataset uses 53% of its source and passes the corpus-knowledge check, while another uses 48% and fails it. A large category space tolerates a share that a small one does not. The share is now reported as a warning and the corpus-knowledge check remains the actual test.
+- **More documents at the shortest length** on the four review sets, since statistical power comes from documents rather than questions. Not done on the four intent sets: their documents already overlap each other by 14 to 39 percent, so more of them would be more correlated evidence rather than more evidence.
+- **The matched Turkish/English pair now agrees on all 120 questions** rather than 100, because the questions whose answer is a word rather than a number now carry a language-neutral key alongside the word.
 
-**Decision required.** The one thing that cannot be built from the current sources is a date. Dates would supply subset-restriction for free and would enable the single most sampling-resistant question type observed in either benchmark. No Turkish source examined so far carries them. The planned search for an additional Turkish corpus is currently specified as "ten or more categories"; it is worth respecifying as "ten or more categories **and a usable date on every record**", since the second property is worth more than the first.
+### What this does and does not mean for the thesis
 
+Every answer remains exactly correct for its document. What narrows is the claim: the benchmark demonstrably requires **classifying Turkish records and combining the results**; it does not demonstrate that a model read the whole document, and under proportional scoring it does not demonstrate that longer was harder.
+
+For the method under study this matters in one specific way. Its expected advantage is on documents a plain model cannot take in at once. That advantage will show against a model that is *truncated*, which degrades, but not against one that is allowed to *sample*, which does not. The evaluation must state which the baseline is, and report scores as improvement over the read-nothing floor.
+
+### Open items from this section
+
+- **One document length is flagged and kept.** On the English intent set at 100,000 tokens, a reader who knows the source corpus scores 0.73 on proportion questions. Its Turkish counterpart, built the same way, scores 0.45 at the same length. The gap between two halves of the same construction indicates sampling noise on ten questions rather than a real exposure, so the length is kept and labelled rather than removed; removing it would halve that dataset and break the pairing.
+- **No suitable additional corpus was found.** A search for a Turkish corpus with many categories and per-record dates returned nothing usable. Dates would be valuable twice over: they allow questions restricted to a time period, which is what makes OOLONG's answers small, and they support the single most sampling-resistant question type observed in either benchmark, which scores 0.005. The one strong Turkish candidate, a 169,000-row news set with 16 categories, declares no licence and was therefore not adopted. A licence answer from its uploader would unblock it.
