@@ -70,24 +70,24 @@
     "min_class_support": 0
   },
   "ranking_feasibility": {
-    "n_classes": 3,
-    "min_class_pool": 241,
-    "max_records": 723,
+    "n_classes": 6,
+    "min_class_pool": 7,
+    "max_records": 42,
     "binding": true,
-    "ranking_length_ceiling_tokens": 25192
+    "ranking_length_ceiling_tokens": 1463
   },
   "tier_overlap": {
     "5000": {
       "n_haystacks": 2,
-      "mean_jaccard": 0.0826,
-      "max_jaccard": 0.0826,
-      "pool_fraction_per_haystack": 0.1638
+      "mean_jaccard": 0.0653,
+      "max_jaccard": 0.0653,
+      "pool_fraction_per_haystack": 0.1631
     },
     "10000": {
       "n_haystacks": 2,
-      "mean_jaccard": 0.1592,
-      "max_jaccard": 0.1592,
-      "pool_fraction_per_haystack": 0.3231
+      "mean_jaccard": 0.1982,
+      "max_jaccard": 0.1982,
+      "pool_fraction_per_haystack": 0.3325
     }
   },
   "max_pool_fraction": 0.35,
@@ -98,22 +98,21 @@
       "pool_fraction": 0.3762
     }
   ],
-  "label_space": 3,
+  "label_space": 6,
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "char_approx(3.4)",
   "questions_written": 40,
   "kind_distribution": {
-    "count": 9,
-    "entity_count": 8,
+    "count": 15,
+    "entity_count": 5,
     "label_vs_label": 4,
-    "least_common": 3,
-    "most_common": 3,
-    "pairwise": 4,
-    "proportion": 7,
+    "most_common": 2,
+    "pairwise": 3,
+    "proportion": 9,
     "second_most": 2
   },
-  "rare_count_questions": 0,
+  "rare_count_questions": 3,
   "rare_band": [
     5,
     30
@@ -122,36 +121,36 @@
     {
       "haystack_id": "tr-5000-0",
       "n_examples": 129,
-      "n_tokens": 4973,
-      "n_chars": 16907,
-      "drift_target": "negative",
-      "drift_ok": true,
-      "n_questions": 10
-    },
-    {
-      "haystack_id": "tr-5000-1",
-      "n_examples": 133,
-      "n_tokens": 4971,
-      "n_chars": 16900,
+      "n_tokens": 4942,
+      "n_chars": 16804,
       "drift_target": "positive",
       "drift_ok": true,
       "n_questions": 10
     },
     {
+      "haystack_id": "tr-5000-1",
+      "n_examples": 132,
+      "n_tokens": 4972,
+      "n_chars": 16904,
+      "drift_target": "spam",
+      "drift_ok": true,
+      "n_questions": 10
+    },
+    {
       "haystack_id": "tr-10000-0",
-      "n_examples": 259,
-      "n_tokens": 9921,
-      "n_chars": 33730,
+      "n_examples": 262,
+      "n_tokens": 9916,
+      "n_chars": 33714,
       "drift_target": "neutral",
       "drift_ok": true,
       "n_questions": 10
     },
     {
       "haystack_id": "tr-10000-1",
-      "n_examples": 258,
-      "n_tokens": 9931,
-      "n_chars": 33764,
-      "drift_target": "negative",
+      "n_examples": 270,
+      "n_tokens": 9933,
+      "n_chars": 33773,
+      "drift_target": "spam",
       "drift_ok": true,
       "n_questions": 10
     }
