@@ -1,3 +1,24 @@
+SCOPE: THIS LICENCE COVERS THE CODE IN THIS REPOSITORY ONLY.
+
+The builder, the scripts, the configs, the tests and the documentation are MIT.
+The DATA is not, and MIT must not be read as a grant over it. Each dataset
+subset carries the licence of its source corpus, and they differ:
+
+  - tr_intent, en_intent (+paired)  CC-BY-4.0
+  - vitamins_tr, musteri_tr,
+    sinema_tr                       CC-BY-SA-4.0  (SHARE-ALIKE, contagious)
+  - marc_en                         Apache-2.0
+  - amazon_hpc_en                   no licence; text withheld, rebuilt locally
+  - sikayet_tr, interpress_tr       no licence; text withheld, rebuilt locally
+                                    (licence enquiry open with the upstream
+                                     rights holders -- see DATACARD.md)
+
+Anything derived from a share-alike subset must stay CC-BY-SA-4.0. The three
+withheld sets ship as questions and answers only. See DATACARD.md for the full
+position and the reasoning behind it.
+
+----------------------------------------------------------------------------
+
 MIT License
 
 Copyright (c) 2026 TR-OOLONG authors

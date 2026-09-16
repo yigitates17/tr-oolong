@@ -16,9 +16,13 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
-FAMILY_ORDER = ["count", "proportion", "shift",
-                "most_common", "least_common", "second_most", "label_vs_label",
-                "entity_count", "entity_argmax", "top_k", "pairwise"]
+# The nine families that ship in v0.7.0, in report order. `shift` (withdrawn
+# v0.7.0) and `top_k` (withdrawn v0.5.0 with the corpus it shipped on) are
+# deliberately absent: a figure that reserves a slot for a family nobody
+# receives invites the reader to ask which sets have it.
+FAMILY_ORDER = ["count", "proportion", "most_common", "least_common",
+                "second_most", "label_vs_label",
+                "entity_count", "entity_argmax", "pairwise"]
 
 
 def load_sets(dirs):
@@ -47,7 +51,11 @@ def fig_family_counts(dist: pd.DataFrame, out: Path):
                       # a family absent from FAMILY_ORDER was previously dropped
                       # from the figure without a word -- append it instead
                       + sorted(set(dist["family"].unique()) - set(FAMILY_ORDER))))
-    ax = pivot.plot(kind="bar", figsize=(9, 5), width=0.8)
+    # 11 sets against matplotlib's 10-colour default cycle silently wraps, and
+    # the two that collide are amazon_hpc_en and vitamins_tr -- the twin pair a
+    # reader is most likely to be comparing. tab20 gives every set its own hue.
+    colors = plt.get_cmap("tab20")(range(len(pivot.columns)))
+    ax = pivot.plot(kind="bar", figsize=(11, 5), width=0.8, color=colors)
     ax.set_ylabel("questions")
     ax.set_xlabel("question family")
     ax.set_title("Question-family counts per set")
@@ -57,20 +65,47 @@ def fig_family_counts(dist: pd.DataFrame, out: Path):
     plt.close()
 
 
+# How many records fit in a token budget is a property of the CORPUS as much as
+# of the language: an interpress_tr news article is ~1,650 characters and a
+# MASSIVE utterance is ~30. Pooling every set by language therefore does not
+# measure morphology, it measures which corpora happen to sit at each tier, and
+# when this was run over all eleven sets it produced a line that doubled back on
+# itself and a Turkish curve that fell at 1M. Restricted to the DOMAIN-MATCHED
+# pairs, where the two languages hold the same kind of record, the comparison is
+# real.
+LENGTH_PAIR_SETS = ["tr_intent_out", "en_intent_out",
+                    "vitamins_tr_out", "amazon_hpc_en_out"]
+
+
 def fig_examples_vs_length(hay: pd.DataFrame, out: Path):
+    pairs = hay[hay["set"].isin(LENGTH_PAIR_SETS)]
+    if pairs.empty:
+        print("  [skip] examples_vs_length: none of the matched-pair sets were "
+              "passed; the figure is only interpretable on those.")
+        return
+    dropped = sorted(set(hay["set"].unique()) - set(LENGTH_PAIR_SETS))
     fig, ax = plt.subplots(figsize=(9, 5))
-    agg = (hay.groupby(["language", "target_tokens"])["n_examples"]
+    agg = (pairs.groupby(["language", "target_tokens"])["n_examples"]
            .mean().reset_index())
     for lang, g in agg.groupby("language"):
         g = g.sort_values("target_tokens")
         ax.plot(g["target_tokens"] / 1000, g["n_examples"], marker="o", label=lang)
     ax.set_xlabel("haystack length (K tokens)")
     ax.set_ylabel("examples per haystack (mean)")
-    ax.set_title("Examples per haystack vs length -- morphology at the tokenizer")
+    ax.set_title("Examples per haystack vs length, domain-matched pairs only")
     ax.legend(title="language")
-    plt.tight_layout()
+    fig.text(0.5, 0.005,
+             "MASSIVE intent + supplement/health reviews. Other sets are excluded: "
+             "their records are a different size,\nso pooling them would show the "
+             "corpus mix, not the language. Token ratios are tokenizer-specific "
+             "(0.57x-2.16x).",
+             ha="center", fontsize=7, color="0.35")
+    plt.tight_layout(rect=(0, 0.06, 1, 1))
     plt.savefig(out / "examples_vs_length.png", dpi=150)
     plt.close()
+    if dropped:
+        print(f"  [note] examples_vs_length excludes {len(dropped)} set(s) whose "
+              f"record size is not comparable: {', '.join(dropped)}")
 
 
 def _discover():
