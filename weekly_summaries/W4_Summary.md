@@ -131,7 +131,27 @@ For the Turkish-label variant, the 0.14% figure is the *cost* of the filter, not
 
 ## 4. Open items
 
-**Needs a decision:**
+### Decisions required, in the order they block things
+
+These are the questions this work cannot settle on its own, phrased as questions rather than as recommendations. A recommendation is given under each, with what it costs.
+
+**1. Should the benchmark be published in its current form now, or wait?** The public version is from 15 September and still contains a question type that has since been withdrawn as unsound, so anyone downloading it today gets questions that should not be scored. Republishing fixes that but also publishes three datasets whose licences are unresolved (see question 3), even though their text is not redistributed.
+*Recommendation: republish now.* Shipping a known-unsound question type is the worse of the two risks, and the licence handling for the three new datasets is the same arrangement one existing dataset has used since the first release.
+
+**2. Should one matched Turkish/English pair be replaced?** The two three-category pairs exist to support the cross-lingual comparison, and they do that well. They contribute almost nothing else: of 259 questions graded very hard, those two pairs supply twenty-one, and one of the four datasets supplies none at all. A replacement partner has been found for the new Turkish complaints dataset: the US consumer-complaints corpus, which is public-domain, has the same register, carries a comparable category space, and additionally has company and date fields.
+*Recommendation: build it and compare before deciding.* This is the largest change on the table, because the matched pair is the centre of the cross-lingual claim, and it should not be swapped on the strength of a table alone.
+
+**3. Should the two licence enquiries be sent, and by whom?** Two of the three new Turkish datasets declare no licence. Their text is therefore not redistributed and is rebuilt locally by a script, which is workable but weaker than shipping the text. Those two datasets supply 141 of the 259 very hard questions, so they are not marginal. A clear answer from either uploader would upgrade the strongest part of the benchmark from questions-only to full text.
+*Recommendation: send both, this week.* They are short enquiries and the answer cannot arrive sooner than it is asked for.
+
+**4. How should a score be reported, now that questions carry difficulty grades?** The options are a single pooled figure over all questions, or the two band scores plus the gap between them.
+*Recommendation: the two bands and the gap, never the pooled figure.* A pooled figure over a question set that is 71.8% easy mostly measures whether the model can read Turkish. Section 5, finding 9.
+
+**5. Is eleven datasets within the scope this thesis should carry?** Three were added in one week to fix a measured weakness. That is defensible on its own terms, but it enlarges what has to be described, gated and maintained.
+*No recommendation; this one is genuinely a supervision question.*
+
+### Previously open
+
 
 - ✅ Published on 15 September; corrected description published on the 16th.
 - Whether the Turkish dictionary-form label variant replaces the current Turkish intent dataset or remains a side experiment.
