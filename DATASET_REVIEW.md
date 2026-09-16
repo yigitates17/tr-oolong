@@ -390,3 +390,51 @@ of `habanoz/haberler-news-tr-v1.0` (unblocks 16 classes, not dates); a Turkish
 news archive with publication dates under a declared licence (unblocks both);
 or scraping one, which reintroduces every provenance problem this project has
 so far refused.
+
+
+## Third sweep, continued: what a wider search added
+
+The first pass of this sweep ran about ten keyword queries. A wider one followed,
+covering parallel and multilingual corpora containing Turkish, Turkish product and
+e-commerce category sets, and the MTEB collection. Two things changed and one
+limit of the search itself is worth stating.
+
+**RESOLVED: the HuffPost licence question from the second sweep.** That sweep left
+it as *"its licence was not verifiable from the Kaggle page and must be checked
+before anyone invests in this."* Checked: `heegyu/news-category-dataset` declares
+**`cc-by-4.0`** and credits the Kaggle original. 209,527 rows, **42 categories**,
+a `date` column with 3,890 distinct dates, and an `authors` column with 29,169
+values, which is a second entity axis. The English side of a dated, many-class
+pair is therefore fully available and clean. It is not adopted, because a
+Turkish counterpart does not exist and an English-only set cannot be twinned. It
+is the partner to reach for the moment one does.
+
+**HARDENED: the Turkish news candidate is rejected on provenance, not just
+licence.** `habanoz/haberler-news-tr-v1.0` has a README containing **only the
+auto-generated schema block**: no licence, no description, no source attribution,
+no statement of where 169,603 Turkish news articles came from. That is not a
+missing licence tag, it is the absence of any provenance at all, which is the
+same ground on which the Turkish brand-review pair was withdrawn in v0.5.0 and
+`sealuzh/app_reviews` was rejected. Firmly out.
+
+**Confirmed dead on scale, with numbers this time:**
+
+| candidate | what it actually is | why not |
+|---|---|---|
+| `mteb/sib200`, `Davlan/sib200` | 7 categories, genuinely parallel across 200+ languages | **701 rows per language.** A single 100K-token document needs ~1,500 |
+| `cis-lmu/Taxi1500-RawData` | 6 categories, bible verses | same scale problem, and the register is wrong |
+| `Hulusiaa/turkish-product-category-finetune-openai` | 28,474 rows | chat-format fine-tuning file, a `messages` column of system/user structs, not a labelled corpus |
+| `fthbrmnby/turkish_product_reviews`, `asparius/Turkish-Product-Review` | Turkish product reviews | sentiment, 2 to 3 classes: the label space this benchmark already has too much of |
+
+**A limit of this search that should be stated rather than glossed.** Everything
+above was searched on the Hugging Face Hub. Kaggle, Zenodo, institutional
+repositories, TÜBİTAK collections and datasets released only as paper
+supplements were **not** searched. The claim supported by this record is
+therefore *"no suitable Turkish corpus was found on the Hugging Face Hub"*, not
+*"none exists"*. A targeted look at Turkish university NLP group releases and at
+Kaggle is the obvious next step and does not need code.
+
+**Standing conclusion, unchanged by the wider search.** The English side of a
+dated, many-class pair is solved and licence-clean. The Turkish side is not. The
+date axis therefore cannot be twinned, and the three-category review sets keep
+the partial-readability limitation described in README 4e.
