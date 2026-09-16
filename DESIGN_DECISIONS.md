@@ -949,3 +949,40 @@ available to them at all. Their numeric families remain the most partially
 readable in the suite, and that is a property of a 3-class label space over
 thousands of records, not something question design can repair. State it as a
 limitation rather than implying the v0.7 fix reaches them.
+
+### D21b. Two ways to give the 3-class review sets a small-answer family, both built and both rejected
+
+The rare-label count family reaches the 48-class intent sets and not the four
+3-class review sets, which are the most partially-readable part of the suite
+(a 5% reader scores 0.88 to 0.91 on their counts). Two ways to reach them were
+tried on the real data rather than argued about.
+
+**1. Use the 5-point star rating as the label instead of collapsing it to 3
+sentiment classes.** The sources support it: `vitamins_tr`'s raw stars are
+1: 5.2%, 2: **2.0%**, 3: 4.4%, 4: 9.7%, 5: 78.7%, so a 2-star class in a
+1,471-record haystack is about 29 records, inside the band. **Rejected on
+arithmetic before building.** The relative error of a scaled-up sample is
+`sqrt((1-f)/(f·m))`, so resistance needs `m` under roughly 60, and with `N`
+records over `K` classes the average count is `N/K`. At `N` = 1,471 that
+requires **`K` of about 25 or more**. Going from 3 classes to 5 moves the
+average count from 490 to 294 and the predicted 5% score from 0.88 to 0.75:
+still in the "bad" band. It buys one rare class at the cost of relabelling the
+axis, changing the twin, and re-deriving every published number.
+
+**2. Lower `dirichlet_alpha` so the per-haystack prior produces a rare class by
+chance.** At alpha 1.0 (shipped) a simulation says about 10% of 1,471-record
+haystacks should contain a class in [5,30]; at 0.5, about 22%. Built
+`vitamins_tr` at alpha 0.5 and measured: **zero rare counts produced**, and the
+ranking families starved badly, with `least_common`, `most_common`,
+`second_most` and `entity_argmax` each returning 0 of 1 on most haystacks. The
+simulation over-predicts because the realised median smallest class at alpha 0.5
+is about 54 records, above the band, and the token-budget trim moves it further.
+So the change costs four families and delivers nothing.
+
+**Conclusion, and it is arithmetic rather than a failure of searching.** A label
+space of 3 classes over several thousand records cannot host a small answer. The
+fix is a corpus with roughly 25 or more classes at 30,000-plus rows, which is
+exactly what the intent axis already is and what the review axis lacks. Until
+such a Turkish corpus exists, the review sets' `count` and `proportion` families
+should be reported as partially readable, with `entity_count` (5% score 0.24 to
+0.34) as the small-answer family those sets do have.
