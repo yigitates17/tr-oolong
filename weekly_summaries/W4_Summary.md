@@ -178,6 +178,34 @@ Each reader is given a budget, say 5% of the records, and is told the correct ca
 
 That last line is the whole finding.
 
+### What the numbers mean, and which direction is good
+
+**All scores in this document run from 0 to 1, not out of 100.** 1.00 is a perfect answer, 0.50 is halfway, 0.00 is completely wrong.
+
+**Every score in this section is a cheater's score, so a high number is bad news.** These are not results for any model. They are what a deliberately impoverished solver achieves, and the purpose of building such a solver is that it should fail. A model scoring 0.90 would be excellent; a cheater scoring 0.90 means the question can be answered without doing the work.
+
+| a cheater scores | verdict | what it means |
+|---|---|---|
+| 0.00 to 0.35 | **good** | the shortcut fails. The document has to be read. |
+| 0.35 to 0.60 | acceptable | partial credit, but real reading still wins clearly |
+| 0.60 to 0.80 | weak | the question is doing little work |
+| 0.80 to 1.00 | **bad** | the question is answerable without reading |
+
+Two thresholds are enforced automatically: a solver that beats its floor by more than 0.15 fails the formatting check, and a corpus-knowledge score above 0.70 at any document length raises a warning.
+
+**Where the benchmark stands against that scale, after the rebuild:**
+
+| dataset | question type | reads nothing | reads 5% | verdict |
+|---|---|---:|---:|---|
+| the four intent sets | **rare-category counts** | **0.00** | **0.26 to 0.29** | **good** |
+| `amazon_hpc_en`, `vitamins_tr` | **brand counts** | n/a | **0.24 to 0.34** | **good** |
+| the four intent sets | ordinary counts | 0.46 to 0.47 | 0.54 to 0.63 | acceptable to weak |
+| the four review sets | ordinary counts | 0.44 to 0.55 | **0.88 to 0.91** | **bad** |
+
+Two things follow. First, read the *reads nothing* column: on the Turkish supplement set a solver that never opens the document scores 0.55 on counting, which is why results must be reported as improvement over that floor rather than as raw scores. Second, on rare-category questions that same floor is 0.00, which is what the rebuild bought.
+
+The last row is the honest weak point. Three categories over several thousand records means every answer is around 2,000, and an answer that large is always estimable from a sample. No wording change repairs it; it needs a corpus with more categories.
+
 ### The rule that explains every number below
 
 One quantity decides how well a partial reader does: **how large the true answer is**. Not the document's length, not how balanced the categories are, not the order the records are in. The arithmetic is a poll's margin of error. To estimate "how many are negative" within a few percent, a reader needs to see a few hundred negative examples. If the true answer is 2,000 it will see plenty in any sample. If the true answer is 20 it will see one, and the estimate is worthless.
