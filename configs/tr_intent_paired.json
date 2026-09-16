@@ -26,6 +26,5 @@
   "text_provenance": "human_translated",
   "families_disabled": [
     "shift"
-  ],
-  "allow_pool_overrun": true
+  ]
 }

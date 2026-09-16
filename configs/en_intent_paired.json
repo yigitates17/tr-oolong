@@ -30,6 +30,5 @@
   "text_provenance": "human_written",
   "families_disabled": [
     "shift"
-  ],
-  "allow_pool_overrun": true
+  ]
 }

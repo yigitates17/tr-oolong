@@ -20,6 +20,5 @@
   "render_entity": true,
   "families_disabled": [
     "shift"
-  ],
-  "allow_pool_overrun": true
+  ]
 }

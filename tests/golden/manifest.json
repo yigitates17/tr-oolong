@@ -44,6 +44,7 @@
     "rare_min_labels": 2,
     "max_pool_fraction": 0.35,
     "allow_pool_overrun": true,
+    "drop_tiers": [],
     "min_entity_answer": 10,
     "min_rank_margin": 0.1,
     "entity_candidates": 5,

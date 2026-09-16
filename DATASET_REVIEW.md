@@ -318,3 +318,75 @@ Kaggle page and must be checked before anyone invests in this.
 **Next step is not code.** It is an email to the uploader or to Interpress asking
 what terms the data is under. Until that is answered the timeline axis stays
 blocked, and the correct thing to do is state it as a limitation.
+
+---
+
+# Third sweep, 2026-09-16: searching specifically for what fixes partial readability
+
+**Why this sweep had a different target from the first two.** Those searched for
+a *twin*: a corpus comparable to a Turkish one in provenance and label space.
+This one searched for the two properties the partial-coverage measurements
+showed actually matter (README 4e, `DESIGN_DECISIONS.md` D21):
+
+1. **Many classes**, because a partial reader's error goes as
+   `sqrt((1-f)/(f·m))` in the gold answer magnitude `m`, and more classes make
+   every count smaller. A 3-class set over 6,000 records cannot have a small
+   answer; a 16-class one can.
+2. **Dates**, which are worth more than the class count. Dates give
+   subset-scoped questions for free ("among the entries from April"), and they
+   are what OOLONG's most sampling-resistant family depends on: its
+   `REPRESENTED_N_TIMES` scores **0.005** for a 5% reader
+   (`manifests/oolong_crosscheck.json`).
+
+Every candidate below was checked by loading its actual columns, not its card.
+
+| candidate | rows | classes | dates | verdict |
+|---|---:|---:|:---:|---|
+| `habanoz/haberler-news-tr-v1.0` | **169,603** | **16** (`Tag`) | no | **best Turkish find; blocked on licence** |
+| `heegyu/news-category-dataset` (HuffPost) | 209,527 | **42** | **yes, 3,890 distinct** | available, but English only |
+| `GoktugD/turkish-topic-classification-1.5m` | 1,500,000 | 20 | no | **rejected: synthetic text** |
+| `yankihue/turkish-news-categories` | 24,097 | 7 | no | too few classes, under 30K |
+| `savasy/ttc4900` | 4,900 | 7 | no | far too small |
+| `anilguven/turkish_news_dataset` | 4,200 | 7 | no | far too small |
+| `denizzhansahin/Turkish_News_CNN-News-2024` | 5,600 | 8 | no | too small |
+| `oguzinc/turkish-news-articles-sequence-classification` | 68,713 | 2 | no | sentence-pair task, wrong shape |
+| `yavuzkomecoglu/interpress_news_category_tr` | n/a | n/a | n/a | **now unloadable** |
+| `alibayram/onedio_haberler` | n/a | n/a | n/a | gated repo, 403 |
+
+**The two that decided the sweep.**
+
+`GoktugD/turkish-topic-classification-1.5m` looked ideal on its card: 20 classes,
+1.5M rows, Turkish. Its own columns disqualify it. `source_type` is
+`synthetic_rule_based`, `provenance` is `synthetic://...`, and `template_id` has
+**8 distinct values across 100,000 rows**. The text is template-generated. That
+fails the `text_provenance` criterion outright, and 8 templates would be trivially
+recoverable by `scripts/style_solver.py`. **Card claims are not evidence; load the
+columns.**
+
+`habanoz/haberler-news-tr-v1.0` is the real find and the frustrating one: 169,603
+rows of genuine Turkish news, a 16-class `Tag` column that is the publisher's own
+section (the same kind of found label as a star rating), and a `Summary` field
+that is the right length for a haystack record. It would give the review axis a
+third label-space point (3, 16, 48) and would make rare-label counts available
+outside the intent axis for the first time. **It declares no licence at all.**
+That is the same veto that rejected `sealuzh/app_reviews` and that
+`scripts/check_solo.py` fails on. Not adopted.
+
+**The Interpress entry above is now doubly blocked.** The second sweep left it
+pending an email about terms. It is now also unloadable: the repository contains
+only `README.md` and a loading script, with no data files, and script-based
+datasets no longer load under current `datasets` versions.
+
+**Result, and it is a result rather than a gap.** *No Turkish corpus carrying
+per-record dates was found among Interpress, Onedio, Habanoz, TTC-4900, the
+CNN-Türk and Onedio news dumps, the YTU-CE-COSMOS collection, the Trendyol
+collection, and the turkish-nlp-suite collection.* The English side is solved
+(HuffPost has 42 categories, dates and an author axis) and the Turkish side is
+not, so **the date axis cannot be twinned and stays blocked**. State it that way
+in DATACARD rather than as an unexplored direction.
+
+**What would unblock it, in order of cost:** a licence answer from the uploader
+of `habanoz/haberler-news-tr-v1.0` (unblocks 16 classes, not dates); a Turkish
+news archive with publication dates under a declared licence (unblocks both);
+or scraping one, which reintroduces every provenance problem this project has
+so far refused.

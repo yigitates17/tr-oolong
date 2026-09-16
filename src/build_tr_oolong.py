@@ -178,8 +178,25 @@ class Config:
     # corpus-share oracle reaches 0.75 under `relative` (README 4e). A tier over
     # the cap is DROPPED unless allow_pool_overrun is set, in which case it is
     # built and must be labelled prior-exposed wherever it is reported.
+    # WARNS by default and does not drop. A first version of this dropped every
+    # tier over the threshold and removed six tiers across the suite, including
+    # the entire 1M tier and both intent sets' 100K tier. That was wrong, and the
+    # measurements say why: pool fraction does NOT predict prior exposure.
+    #
+    #   en_intent   100K   pool fraction 0.53   corpus prior PASSES (<=0.60)
+    #   vitamins_tr 750K   pool fraction 0.48   corpus prior FAILS  (0.75)
+    #
+    # A 48-class label space realises a per-haystack Dirichlet prior at a share
+    # where a 3-class one cannot, so the same fraction means different things.
+    # The real test is the corpus-prior oracle scored under `relative`
+    # (scripts/quality_audit.py), which is a measurement rather than a proxy.
+    # This stays as a loud flag recorded in the manifest; removals are explicit.
     max_pool_fraction: float = 0.35
-    allow_pool_overrun: bool = False
+    allow_pool_overrun: bool = True
+    # Tiers to remove outright, by target. Explicit because the evidence that
+    # condemns a tier is the prior gate, not the fraction. vitamins_tr 750K is
+    # the one tier measured at 0.75 and is dropped this way.
+    drop_tiers: list[int] = dataclasses.field(default_factory=list)
     min_entity_answer: int = 10           # entity_count answers below this likewise
     min_rank_margin: float = 0.10         # relative gap needed at a ranking boundary
     entity_candidates: int = 5            # named candidates for entity_argmax/top_k
@@ -1535,6 +1552,10 @@ def build(cfg: Config) -> None:
         for target in targets:
             # Pool-fraction cap. Checked on the ESTIMATE, before any haystack at
             # this tier is built, so an over-large tier costs nothing.
+            if target in cfg.drop_tiers:
+                print(f"[tiers] {cfg.language}-{target}: DROPPED by drop_tiers.")
+                dropped_tiers.append({"tier": target, "reason": "drop_tiers"})
+                continue
             est_need = target if record_mode else round(target / (mean_tok + sep_tok) * 1.05)
             pool_frac = est_need / max(1, df.height)
             if pool_frac > cfg.max_pool_fraction:
@@ -1545,13 +1566,13 @@ def build(cfg: Config) -> None:
                       f"per-haystack label prior cannot be realised and the tier "
                       f"is answerable from corpus statistics.")
                 if not cfg.allow_pool_overrun:
-                    print(f"[POOL] {where}: TIER DROPPED. "
-                          f"Set allow_pool_overrun=true to build it anyway, and "
-                          f"label it prior-exposed wherever it is reported.")
-                    dropped_tiers.append({"tier": target, "pool_fraction": round(pool_frac, 4)})
+                    print(f"[POOL] {where}: TIER DROPPED (allow_pool_overrun=false).")
+                    dropped_tiers.append({"tier": target, "pool_fraction": round(pool_frac, 4),
+                                          "reason": "pool_cap"})
                     continue
-                print(f"[POOL] {where}: built anyway (allow_pool_overrun). "
-                      f"This tier is PRIOR-EXPOSED.")
+                print(f"[POOL] {where}: BUILT AND FLAGGED. Check this tier's "
+                      f"corpus-prior score in quality_audit.py before reporting it; "
+                      f"the fraction alone does not decide.")
                 overrun_tiers.append({"tier": target, "pool_fraction": round(pool_frac, 4)})
             for ki in range(hs_per_tier[target]):
                 # pair_seed: a parallel corpus (MASSIVE tr/en) is row-aligned after

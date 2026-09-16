@@ -231,7 +231,16 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
     for line in Path(name, "questions.jsonl").read_text(encoding="utf-8").splitlines():
         q = json.loads(line)
         sup, rm = question_support(q, metas[q["haystack_id"]], k_top)
-        if sup < depth_min:
+        if q.get("rare"):
+            # THIN means "too few records decide the answer, so it is retrieval".
+            # For a COUNT that reasoning does not hold: every record must still
+            # be judged, one by one, to know whether it is an X. The answer's
+            # magnitude is not the question's depth. This is the same correction
+            # DESIGN_DECISIONS D21 makes to the builder's min_answer_count floor,
+            # and it has to be made in both places or the audit condemns exactly
+            # the family the builder was changed to create.
+            v = "KNIFE" if (rm is not None and rm < margin_min) else "OK"
+        elif sup < depth_min:
             v = "THIN"
         elif rm is not None and rm < margin_min:
             v = "KNIFE"
@@ -241,7 +250,7 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
         sc = score(q, prior_prediction(q, st))
         prior_hits[fam(q)].append(sc["exact"])
         chances[fam(q)].append(chance_rate(q["kind"], K, q))
-        if q["kind"] in NUMERIC_KINDS:
+        if q["kind"] in NUMERIC_KINDS:   # `rare` counts carry kind "count"
             tier = q.get("target_tokens") or q.get("target_records")
             prior_rel[fam(q)].append(sc["relative"])
             prior_rel_tier[(fam(q), tier)].append(sc["relative"])
@@ -269,7 +278,7 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
                       "prior_acc": round(sum(hits) / len(hits), 3),
                       "chance": round(ch, 3), "p_value": round(p, 5),
                       "prior_shortcut": bool(p < 0.05 and sum(hits) / len(hits) > ch)}
-        if kind in NUMERIC_KINDS and prior_rel[kind]:
+        if (kind in NUMERIC_KINDS or kind == "count_rare") and prior_rel[kind]:
             by_tier = {str(t): round(sum(v) / len(v), 3)
                        for (k2, t), v in sorted(prior_rel_tier.items(), key=lambda kv: kv[0][1])
                        if k2 == kind}
