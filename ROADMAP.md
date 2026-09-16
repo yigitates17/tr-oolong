@@ -318,9 +318,16 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
 
 ## v0.7 (planned) — changes that need a rebuild
 
-- [ ] **Rare-label `count` family** (intent axis): labels holding 5–30 records
-      in the haystack. Measured sampling resistance 0.29 at a 5% sample vs 0.55
-      for shipped counts. Needs a `count`-specific depth rule: every record is
+- [x] **DONE 2026-09-16. Rare-label `count` family** (intent axis): labels
+      holding 5–30 records in the haystack. Built and measured on
+      `tr_intent_paired`: `blind` falls 0.458 → **0.000**, a 5% random reader
+      0.535 → **0.268**, a 5% headtail reader 0.542 → **0.348**. Emitted as
+      `kind: "count"` with `rare: true` so `src/scoring.py` stays frozen. Band
+      [5,30] chosen against a built-and-measured [5,50] alternative, which
+      readmitted the read-nothing guess at 0.114. Length-gated at the long tier
+      by supply. Spare quota now goes to the small-answer families first.
+      `DESIGN_DECISIONS.md` D21. Original note follows.
+      Needs a `count`-specific depth rule: every record is
       judged for a count, so answer magnitude is not depth. On the 3-class sets
       the equivalent is `entity_count`, which already ships.
 - [ ] **Cap the pool fraction one haystack may consume** (~0.35) so the top

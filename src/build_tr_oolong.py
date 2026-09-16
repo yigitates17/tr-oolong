@@ -1270,8 +1270,14 @@ def allocate_quota(families: list[str], total: int) -> dict[str, int]:
     base, rem = divmod(total, len(families))
     for f in families:
         quota[f] = base
-    priority = [f for f in ("count", "count_rare", "proportion", "entity_argmax",
-                            "top_k", "entity_count", "pairwise") if f in families]
+    # Spare quota goes to the SMALL-ANSWER families first. They are the only
+    # ones that resist a partial reader: `count_rare` and `entity_count` have
+    # answers of 5 to 50 records, where a 5% sample sees one or two and cannot
+    # estimate anything. The large-answer and ranking families are settled by a
+    # hundred records whatever share they get, so giving them the remainder buys
+    # no discrimination. Order changed in v0.7.0; see DESIGN_DECISIONS D21.
+    priority = [f for f in ("count_rare", "entity_count", "count", "proportion",
+                            "entity_argmax", "top_k", "pairwise") if f in families]
     i = 0
     while rem > 0 and priority:
         quota[priority[i % len(priority)]] += 1

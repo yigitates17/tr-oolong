@@ -296,6 +296,23 @@ First, six of the nine remaining question types are answered with a category nam
 
 Second, strict scoring does not only defeat the partial reader, it defeats everyone. A reader that opens every one of 6,469 records and misjudges only one in a hundred scores **0.015** on counting. Under strict scoring a near-perfect full reader and a 5% sampler are indistinguishable, because both score zero. That is why the proportional rule exists.
 
+### Finding 8: the first fix is built, and it removes the guess-without-reading floor entirely
+
+The change described above as the main item for the next data version has been built and measured. It adds counting questions about **rare categories**: categories holding between five and thirty records in that particular document. The question is worded exactly like any other counting question, so a model is not told that the answer happens to be small.
+
+Measured on one of the intent datasets, rebuilt into a scratch folder so nothing published was touched:
+
+| | a reader that opens nothing | a reader seeing 5% | a reader seeing 25% |
+|---|---:|---:|---:|
+| ordinary counting question (typical answer 74) | 0.458 | 0.535 | 0.805 |
+| **rare-category question** (answers 5 to 30) | **0.000** | **0.268** | 0.646 |
+
+**The first column is the more important result.** Section 6 reported that a model which opens nothing, counts the record separators and divides by the number of categories already scores about 0.46. Against a rare-category question that same model scores **zero**, because dividing by the number of categories gives roughly 62 when the true answer is 20. The guess floor is not reduced, it is removed. Partial reading also roughly halves.
+
+A wider band of five to fifty was built and measured as well, because the narrow band yields few questions on the longer documents. It was rejected: it lets the guess-without-reading score back up to 0.114 and returns half the resistance. The narrow band stays, and the family simply produces fewer questions on longer documents, which the builder reports.
+
+**What it does not reach.** The two three-category review datasets without a brand column cannot host this question type at all: with three categories over several thousand records, no category is ever that small, and they have no second axis to narrow by. Their counting questions remain the most exposed in the suite. This is a property of a three-category label space, not something question wording can repair, and it should be stated that way rather than implying the fix is general.
+
 ### What this changes about the plan
 
 The next data version was already going to add counting questions about rare categories. The measurements above make that the central change rather than one of six, and add a second: questions restricted to a subset before being asked, which is available immediately on the two supplement-review sets because they already carry a brand for every record.

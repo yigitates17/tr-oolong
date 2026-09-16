@@ -171,6 +171,7 @@ families are meaningful:
 | Family | Question shape | Review axis | Intent axis |
 |---|---|:---:|:---:|
 | `count` | how many records have label X | ✓ | ✓ |
+| `count` with `rare` | the same question, about a label holding 5 to 30 records (v0.7.0) | — no rare labels | ✓ |
 | `proportion` | what share have label X (percent, or per-mille if >10 classes) | ✓ | ✓ (per-mille) |
 | ~~`shift`~~ | *(withdrawn in v0.7.0, see §4e-i)* | — | — |
 | `most_common` | which label is most frequent | ✓ | ✓ |
@@ -887,11 +888,31 @@ state this as "OOLONG has the same problem so ours is acceptable"; state it as t
 task-family property it is, with the mitigation OOLONG uses and v0.7 adopts.
 Numbers: `manifests/oolong_crosscheck.json`.
 
-**The fix, for a future version, is staged in ROADMAP v0.7.** Three changes
-follow from the measurements above: the withdrawal of `shift` (§4e-i, done), a
-rare-label `count` family whose answers are small enough to resist sampling, and
-a cap on the fraction of the pool one haystack may consume so the top tier stays
-prior-neutral. The margin band
+**The fix is staged in ROADMAP v0.7, and two of the three are now built.**
+The withdrawal of `shift` (§4e-i) and a **rare-label `count` family** whose
+answers are small enough to resist sampling are done; a cap on the fraction of
+the pool one haystack may consume is not yet.
+
+The rare-label family is phrased identically to an ordinary count and carries
+`kind: "count"` with `rare: true`, so `src/scoring.py` is untouched. Measured on
+`tr_intent_paired`, built to a scratch directory:
+
+| | `blind` | random 5% | headtail 5% | random 25% |
+|---|---:|---:|---:|---:|
+| ordinary `count` (median answer 74) | 0.458 | 0.535 | 0.542 | 0.805 |
+| **rare `count`** (answers 5 to 30) | **0.000** | **0.268** | **0.348** | 0.646 |
+
+The larger of the two effects is the first. A reader that opens nothing and
+answers N/K scores 0.458 on an ordinary count and **0.000** on a rare one,
+because N/K is wrong by an order of magnitude when the true answer is 20.
+Spare question quota now also goes to the small-answer families first
+(`count_rare`, `entity_count`) rather than to the ones a hundred records settle.
+Rationale and the rejected wider band: `DESIGN_DECISIONS.md` D21.
+
+**This does not reach `musteri_tr` or `marc_en`.** They have no entity axis and,
+with three classes over thousands of records, no rare labels, so neither
+small-answer family is available to them. Their numeric families remain the most
+partially readable in the suite. The margin band
 recorded in earlier revisions is kept as a third, weaker option: it helps the
 ranking families only (capping at 0.15 drops their 5%-sample score from 0.755
 to 0.393 at the cost of 384 of 452 ranking questions) and cannot help

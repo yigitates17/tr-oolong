@@ -91,15 +91,15 @@
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "char_approx(3.4)",
-  "questions_written": 39,
+  "questions_written": 40,
   "kind_distribution": {
-    "count": 10,
-    "entity_count": 4,
+    "count": 9,
+    "entity_count": 8,
     "label_vs_label": 4,
     "least_common": 3,
     "most_common": 3,
     "pairwise": 4,
-    "proportion": 9,
+    "proportion": 7,
     "second_most": 2
   },
   "rare_count_questions": 0,
@@ -124,7 +124,7 @@
       "n_chars": 16900,
       "drift_target": "positive",
       "drift_ok": true,
-      "n_questions": 9
+      "n_questions": 10
     },
     {
       "haystack_id": "tr-10000-0",
