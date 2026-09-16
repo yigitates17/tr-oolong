@@ -491,6 +491,46 @@ script is. Re-check at submission time.
 
 ---
 
+## 8d. OOLONG's DATA is public, including per-record labels (2026-09-16)
+
+Section 8c is about their *construction pipeline*, which is still unreleased.
+Their **built data is not**, and the distinction matters because it unblocks the
+cross-benchmark check:
+
+- `oolongbench/oolong-synth`, 41 test shards, pinned revision `f0d59eaf`.
+  8 source corpora (metaphors, negation, formality, imdb, app_reviews, yahoo,
+  multinli, agnews), label spaces K = 2, 3, 4, 10, contexts 1K to 4M tokens.
+- `oolongbench/oolong-real`, a separate subset, not yet checked here.
+- Critically, every row carries **`context_window_text_with_labels`**: the gold
+  label of every record in the context window, one per line, formatted
+  `Date: .. || User: .. || Instance: .. || Label: ..`.
+
+So TR-OOLONG's partial-coverage solvers run on OOLONG directly, with no
+reimplementation of their pipeline. `scripts/oolong_crosscheck.py` does exactly
+that. It includes a question only if a perfect full reader re-derives their
+published gold answer exactly, so anything our adapter parses or scopes wrongly
+is dropped rather than reported, and the kept/dropped counts ship in
+`manifests/oolong_crosscheck.json`.
+
+**Correct the README and DATACARD sentences that say their splits are
+unreleased and the solver "would be a direct follow-up if they are".** It has
+been run.
+
+### Third-party RLM reproductions on OOLONG, worth reading before writing §12
+
+- **`Rickesh/rlm-oolong-reproduction`** (Hub dataset, MIT, Aug 2026). A
+  **negative** reproduction of Recursive Language Models on OOLONG-synth, run
+  with Claude Haiku 4.5 as both root and recursive model. Headline: wrapping the
+  model in an RLM made it **worse** than reading the same context straight
+  through, **0.269 vs 0.428 on OOLONG-131k**. Treat as an unrefereed Hub
+  artifact, not a paper, and verify its protocol before citing. It is
+  nonetheless the second independent signal that the RLM advantage is
+  configuration-sensitive, alongside Wang (arXiv:2603.02615) on depth 2 (§12b).
+- Relevant to §12 because the open question there is what the RLM advantage
+  actually comes from. Our cross-check adds a third possibility neither
+  reproduction controls for: **on the OOLONG families that admit a partial-
+  reading shortcut, a score cannot separate coverage from classification.**
+
 ## 9. Headline numbers, current
 
 8 sets · 110 haystacks · **1,254 questions** · **28.3M tokens** ·
