@@ -438,3 +438,57 @@ Kaggle is the obvious next step and does not need code.
 dated, many-class pair is solved and licence-clean. The Turkish side is not. The
 date axis therefore cannot be twinned, and the three-category review sets keep
 the partial-readability limitation described in README 4e.
+
+## The turkish-nlp-suite collection, all 24 checked (2026-09-16)
+
+Prompted by a fair challenge: one dataset was adopted from this collection and
+the other 23 were dismissed from their tags rather than from their contents.
+They were then opened. **Every dataset here is cc-by-sa-4.0**, which is why the
+collection is worth exhausting: it is the only large body of Turkish data found
+with a declared licence, and licence is what forces `interpress_tr` and
+`sikayet_tr` to ship text-withheld.
+
+| dataset | what it actually contains | verdict |
+|---|---|---|
+| **BuyukSinema** | 67,328 film reviews, **10-point reviewer rating** | **ADOPTED as `sinema_tr`** |
+| SentiTurca / e-commerce | 73,920 rows, **5 labels**: `MusteriYorumlari`'s raw 5-star scale before it is collapsed to 3 | near-miss, see below |
+| SentiTurca / movies | 60,411 rows, 2 labels | binary |
+| SentiTurca / hate | 42,175 rows, 4 labels | 4 classes, sensitive domain |
+| TurkishHateMap (6 configs) | 4 labels each, 712 to 16,136 rows. `cities` carries 31 distinct target cities, `ethnicity` 21 | too small; label space is 3-4 |
+| TrGLUE (6 configs) | `cola` `mnli` `mrpc` `qnli` `qqp` `rte`: GLUE ported to Turkish | 2-3 classes by construction |
+| TrCOLA | acceptability | binary |
+| beyazperde-all / beyazperde-top-300 / sinefil | film reviews, sentiment | 2-3 classes, and BuyukSinema dominates them on K |
+| Havadis | 129,096 news, `url` + `text`, **no category column** | section is only recoverable from the URL, and 73,884 of the path segments are article slugs rather than sections |
+| OzenliDerlem (6 configs) | `GeziNotlari` 33K, `PopulerBilim` 23K, `MasalMasal` 2.6K, plus 3 more. `url` + `text`, **no label column** | see "the genre idea" below |
+| ForumSohbetleri (6 configs) | 162K rows per forum, `url` + `texts`, **no label column** | same |
+| AkademikDerlem (5 configs) | academic abstracts and articles | same |
+| BellaTurca, temiz-mC4, temiz-OSCAR, temiz-Wiki, OzenliDerlem-as-corpus | raw pretraining corpora | unlabelled by design |
+| InstrucTurca | instruction tuning pairs | not a classification corpus |
+| turkish-wikiNER, vitamins-supplements-NER, turkish-morph-analysis, Treebank-Benchmarking | token-level annotation | wrong task shape: this benchmark aggregates a label per RECORD |
+| Corona-mini | n < 1K, summarization | far too small |
+| MusteriYorumlari, vitamins-supplements-reviews | already shipped | already in the benchmark |
+
+**The near-miss, and why it was not taken.** `SentiTurca/e-commerce` is the same
+data as the shipped `musteri_tr`, with its **5-point** scale intact rather than
+collapsed to 3 sentiment classes. Rebuilding `musteri_tr` on 5 classes is
+therefore free of any new provenance question. It was rejected on the arithmetic
+in D21b: going from 3 classes to 5 moves the average count from about 490 to 294
+and the predicted 5%-sample score from 0.88 to 0.75, which is still inside the
+"weak" band. It buys a little and costs a relabelled twin. **Revisit it only if
+the twin is being rebuilt for another reason.**
+
+**The genre idea, recorded because it is the one unexplored large-K option here.**
+`OzenliDerlem`, `ForumSohbetleri` and `AkademikDerlem` have no label column, but
+each is split into named subcorpora: travel notes, fairy tales, popular science,
+six named forums, five academic document types. Treating "which subcorpus a
+passage came from" as the label would give roughly 17 classes over millions of
+rows at cc-by-sa-4.0, which is the profile the review axis wants.
+
+It was not built, for one measurable reason and one judgement. The measurable
+one: genre and forum-of-origin are carried by vocabulary, so this is very likely
+**format-solvable**, which is what `scripts/style_solver.py` exists to reject, and
+a fairy tale against a hardware-forum post is about as separable as text gets.
+The judgement: the task would become register identification rather than latent
+topic or sentiment aggregation, which is a different claim from the one the
+thesis makes. If it is ever built, run the style solver first and treat a mean
+lift above +0.15 as a rejection rather than a caveat.
