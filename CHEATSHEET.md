@@ -460,10 +460,11 @@ build it, against the §11 criteria, with a COMPATIBLE / WITH CAVEATS /
 INCOMPATIBLE verdict. Requires `licence` and `label_provenance` declared in each
 config.
 
-**Headline after the rebuild:** 8 sets · 110 haystacks · **1,254 questions** ·
-**28.3M tokens** · 10 families · 630 tr / 624 en · 36,250–987,623 tokens.
-*(v0.6.3 as published. The v0.7 rebuild withdraws `shift`, so it becomes 9
-families and fewer questions; these figures stand until that rebuild runs.)*
+**Headline, v0.7.0 as rebuilt 2026-09-16:** 8 sets · 125 haystacks ·
+**1,400 questions** · **26.5M tokens** · 9 families · 675 tr / 725 en ·
+36,250–987,623 tokens. 107 of the counts are rare-label counts.
+*(v0.6.3, still what is published on the Hub: 110 haystacks, 1,254 questions,
+28.3M tokens, 10 families.)*
 
 ---
 

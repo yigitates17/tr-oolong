@@ -35,7 +35,8 @@
 > 100K tokens as at 1M. Report scores as lift over that floor, and do not read
 > the length axis as a difficulty axis under this metric. See §4e.
 >
-> **Numbers:** 110 documents · 1,254 questions · 28.3M tokens · 10 question types
+> **Numbers (v0.7.0):** 125 documents · 1,400 questions · 26.5M tokens · 9 question types
+> (v0.6.3, still the published release: 110 documents · 1,254 questions · 28.3M tokens · 10 types)
 > · 2 languages.
 >
 > **Released:** <https://huggingface.co/datasets/yigitates17/tr-oolong>

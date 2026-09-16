@@ -102,7 +102,7 @@ builder, the configs that reproduce every set byte-for-byte, and
 
 ## At a glance
 
-**8 subsets · 110 documents · 1,254 questions · 28.3M tokens · 2 languages · 10 question families**
+**8 subsets · 125 documents · 1,400 questions · 26.5M tokens · 2 languages · 9 question families**
 
 | subset | lang | classes | docs | questions | shortest | longest | max records in one doc |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -120,9 +120,16 @@ so lengths can be re-derived under a different tokenizer without rebuilding —
 which matters, because the Turkish/English token ratio on identical content runs
 from 0.57x to 2.16x depending on whose tokenizer counts it.
 
-**Question families** (1,254 total): `count` 353 · `proportion` 300 ·
-`shift` 110 · `label_vs_label` 109 · `most_common` 99 · `least_common` 98 ·
-`second_most` 91 · `entity_count` 39 · `pairwise` 35 · `entity_argmax` 20.
+**Question families** (1,400 total): `count` 474 · `proportion` 304 ·
+`label_vs_label` 162 · `most_common` 113 · `least_common` 107 ·
+`second_most` 103 · `entity_count` 87 · `pairwise` 35 · `entity_argmax` 15.
+
+**107 of the 474 counts are rare-label counts** (v0.7.0): the answer holds 5 to
+30 records. They are worded identically to any other count and carry
+`"rare": true`. They exist because a small answer is the only thing that resists
+a partial reader: a reader that opens nothing and answers N/K scores 0.43-0.55
+on an ordinary count and **0.000** on a rare one, and a corpus-prior oracle
+falls from 0.41-0.50 to 0.06-0.12.
 
 ## What the questions look like
 
