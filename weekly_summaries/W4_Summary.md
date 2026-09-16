@@ -6,19 +6,27 @@
 
 ## 0. Where the benchmark stands
 
-**Rebuilt on 16 September.** The benchmark is now **8 datasets · 125 documents · 1,400 questions · 26.5M tokens · 9 question types · 2 languages**, 675 Turkish and 725 English, documents from 36,000 to 988,000 tokens. 107 of the counting questions are the new rare-category type.
+**Rebuilt and extended on 16 September.** The benchmark is now **11 datasets · 195 documents · 2,240 questions · 9 question types · 2 languages**, documents from 3,000 records to one million tokens. Three Turkish datasets were added this week specifically to fix a weakness described in section 5, and every question now carries a measured difficulty grade.
 
-**What is published is still the previous version.** Hugging Face and the GitHub tag still serve the 15 September release: 110 documents, 1,254 questions, 28.3M tokens, 10 question types. Nothing has been uploaded since. The published version contains one question type that has since been withdrawn.
+**What is published is still the previous version.** Hugging Face and the GitHub tag serve the 15 September release: 8 datasets, 110 documents, 1,254 questions, 10 question types. Nothing has been uploaded since. The published version contains one question type that has since been withdrawn.
 
-**Changes in the rebuild**, all explained in section 5: one question type removed, one document length removed, rare-category counting questions added, more documents at the shortest length on four datasets, and the matched pair now agreeing on all 120 questions rather than 100.
+| | published (15 Sep) | current build (16 Sep) |
+|---|---|---|
+| datasets | 8 | **11** |
+| documents | 110 | **195** |
+| questions | 1,254 | **2,240** |
+| question types | 10 | **9** |
+| largest label space | 48 | 48 |
+| difficulty grades | none | **per question** |
 
 **Figures that are easy to quote wrongly, and the correct framing:**
 
-- *"1,400 questions."* Correct as a count. As evidence it overstates: on the three-category review sets, the questions on each document are largely the same two numbers asked in different ways. The unit of evidence is the document, 20 to 25 per set.
-- *"Documents up to 1 million tokens."* True as a length. Under the proportional scoring rule, a longer document is not a harder one; see section 5.
-- *"Nine question types."* Correct for the rebuild. The published version has ten; the tenth was withdrawn.
-- *"A model forced to truncate the document does worse."* **Not supported.** A reader that spends the same budget on the two ends of a document rather than on its beginning loses almost nothing.
-- *"The benchmark requires a model to process every record."* **Withdrawn.** It requires classifying Turkish records and combining the results, which is a narrower and still substantial claim.
+- *"2,240 questions."* Correct as a count, misleading as evidence. **71.8% of them can be answered by a reader that sees a twentieth of the document.** The number to quote is the 259 graded very hard, or the pair of band scores. Section 5, finding 9.
+- *"Documents up to 1 million tokens."* True as a length. Under the proportional scoring rule a longer document is not a harder one.
+- *"Eleven datasets."* Correct, but two of them contain essentially no hard questions and exist for the matched Turkish/English comparison rather than for difficulty.
+- *"A model forced to truncate the document does worse."* **Not supported.** A reader spending the same budget on the two ends of a document loses almost nothing.
+- *"The benchmark requires a model to process every record."* **Withdrawn.** It requires classifying Turkish records and combining the results, which is narrower and still substantial.
+- *"Difficulty grades show the benchmark is hard."* **No.** They show which questions are hard, measured against four specific shortcut strategies. They are a disclosure and an instrument, not a difficulty claim.
 
 ---
 
@@ -285,6 +293,76 @@ Counting questions about **rare categories** were added: categories holding betw
 A wider band of five to fifty was also built and measured, and rejected: it lets the read-nothing score back up to 0.11 and returns half the resistance.
 
 **What it does not reach.** The two three-category review datasets without a brand column cannot host this question type: with three categories over several thousand records no category is ever that small, and they have no second axis to narrow by. Their counting questions remain the most exposed in the suite. This is a property of a three-category label space, not something question wording can repair.
+
+### Finding 8: three new datasets were added, because the old ones cannot be repaired
+
+The weakness above is concentrated in the four three-category datasets, and it is arithmetic rather than a defect. To answer "how many of these records are negative" within a few percent, a reader needs to see a few hundred negative examples. With three categories over several thousand records every answer is around 1,500, so a one-in-twenty sample already contains 75 of them and the estimate is close. Getting answers small enough requires **more categories**, which requires a different corpus.
+
+Three were found and built, all Turkish:
+
+| dataset | what it is | categories |
+|---|---|---:|
+| `sikayet_tr` | consumer complaints | **29** |
+| `interpress_tr` | news articles, with publication dates | **17** |
+| `sinema_tr` | film reviews on a 10-point rating | **10** |
+
+The benchmark is now 11 datasets, 195 documents, 2,240 questions.
+
+Two of the three cannot redistribute their text, because neither uploader states a licence. They ship as questions and answers with a script that rebuilds the text locally, which is the arrangement one existing dataset already uses. The third is under a clear licence and ships normally.
+
+### Finding 9: every question now carries a measured difficulty, and this is the part that matters
+
+The measurements above were made per question *type*. Averaging over a type hides the spread: a type that looks resistant still contains individually trivial questions. Every one of the 2,240 questions was therefore graded on its own, by running all four readers against it and recording the best score any of them achieved.
+
+| grade | meaning | questions | share |
+|---|---|---:|---:|
+| **very hard** | no reader seeing 5% got close | 259 | 11.6% |
+| hard | | 140 | 6.2% |
+| moderate | | 232 | 10.4% |
+| **easy** | a reader seeing 5% answers it | 1,609 | **71.8%** |
+
+**Grading does not make the 71.8% smaller, and it is not meant to.** What it buys is a measuring instrument the benchmark did not have.
+
+An easy question can be answered from a twentieth of the document, so what it tests is whether a model can **classify Turkish records at all**. A very hard question cannot, so what it tests is whether the model **worked through the whole document**. Those are different abilities, and until now a single score mixed them, which is exactly the problem stated in finding 3.
+
+With graded questions they separate:
+
+- A model scoring 0.90 on easy and 0.30 on very hard is **sampling**: it reads Turkish well and does not read much of the document.
+- A model scoring 0.40 on both **cannot read Turkish**, and its poor long-document result says nothing about long documents.
+- A model scoring well on both is doing the task.
+
+The gap between the two band scores is an estimate of how much of the document the model actually read. No comparable benchmark reports this, OOLONG included.
+
+Every document length contains very hard questions, between 3% and 15%, so the headline result can still be reported as a curve over length.
+
+**The grades are stable enough to publish.** Each is averaged over 200 samples; the largest remaining uncertainty on any single question is 0.035. The 10.7% of questions close enough to a boundary that the grade could move are marked as such rather than presented as settled.
+
+### What a reviewer will attack, and what has to be said before they do
+
+Each of these is true, and each is worse if it is found rather than declared.
+
+1. **"Most of your benchmark is easy."** True: 71.8% of questions can be answered by reading a twentieth of the document. The answer is not a denial. It is that the easy questions are labelled as such, are reported separately, and serve as the classification control that makes the hard ones interpretable.
+
+2. **"Your difficulty grades only reflect your own four readers."** Also true. A grade of very hard means these four strategies failed, not that no shortcut exists. A fifth reader could crack questions currently graded hardest, exactly as the third and fourth readers did when they were added partway through this work.
+
+3. **"Your readers are given the correct label of every record they read."** True, and deliberate. They are perfect classifiers reading part of the document, so they are upper bounds: a real model does worse on the same amount of reading. A shortcut that fails even for a perfect classifier is not available to anything.
+
+4. **"Two of your new datasets have no licence."** True. Their text is not redistributed and is rebuilt locally from the original source. The question should be put to both uploaders.
+
+5. **"Two of your datasets contain no hard questions at all."** True and specific: one has zero very hard questions and another has one. Those two exist to support the matched Turkish/English comparison and to serve as the classification control. They should never be cited as evidence of aggregation difficulty.
+
+6. **"This is a property of the metric, not of the data."** True. The proportional scoring rule gives most of the credit for an approximately right answer. Under strict scoring almost every counting question becomes very hard, but so does every honest full reader: a model that opens all 6,469 records and misjudges one in a hundred scores 0.015. Strict scoring does not separate good from bad; it fails everyone.
+
+### How the position changed over the week, in order
+
+Stating this plainly, because each step was caused by a measurement rather than a change of opinion.
+
+1. A fifth check was built, asking whether a question can be answered by reading only part of the document. It could, on most question types.
+2. The check was then found to have the wrong reference point. The honest comparison is against a reader that opens nothing, which already scores about half.
+3. The check was found to model only two of the four ways to spend a reading budget. Adding the other two withdrew a published claim about document length and removed one question type entirely.
+4. The same check was run on OOLONG. Both benchmarks obey the same rule, and OOLONG is less exposed because most of its questions are restricted to a subset before being asked.
+5. Question types were added and datasets were found that make small answers possible, which is the only thing the arithmetic allows.
+6. Grading was added per question, which does not reduce the exposure but converts it into a measurement.
 
 ### What else changed in this rebuild
 
