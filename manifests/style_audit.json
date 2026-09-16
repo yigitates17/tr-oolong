@@ -129,6 +129,31 @@
     "mean_lift": -0.146
   },
   {
+    "set": "interpress_tr_out",
+    "language": "tr",
+    "families": {
+      "count": {
+        "n": 142,
+        "style_exact": 0.0,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "label_vs_label": {
+        "n": 79,
+        "style_exact": 0.241,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "proportion": {
+        "n": 79,
+        "style_exact": 0.0,
+        "majority_baseline": null,
+        "lift": null
+      }
+    },
+    "mean_lift": null
+  },
+  {
     "set": "marc_en_out",
     "language": "en",
     "families": {
@@ -213,6 +238,74 @@
       }
     },
     "mean_lift": -0.143
+  },
+  {
+    "set": "sikayet_tr_out",
+    "language": "tr",
+    "families": {
+      "count": {
+        "n": 150,
+        "style_exact": 0.0,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "label_vs_label": {
+        "n": 25,
+        "style_exact": 0.32,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "least_common": {
+        "n": 25,
+        "style_exact": 0.04,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "most_common": {
+        "n": 25,
+        "style_exact": 0.04,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "proportion": {
+        "n": 50,
+        "style_exact": 0.0,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "second_most": {
+        "n": 25,
+        "style_exact": 0.04,
+        "majority_baseline": null,
+        "lift": null
+      }
+    },
+    "mean_lift": null
+  },
+  {
+    "set": "sinema_tr_out",
+    "language": "tr",
+    "families": {
+      "count": {
+        "n": 155,
+        "style_exact": 0.0,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "label_vs_label": {
+        "n": 26,
+        "style_exact": 0.192,
+        "majority_baseline": null,
+        "lift": null
+      },
+      "proportion": {
+        "n": 59,
+        "style_exact": 0.0,
+        "majority_baseline": null,
+        "lift": null
+      }
+    },
+    "mean_lift": null
   },
   {
     "set": "tr_intent_out",
