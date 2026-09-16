@@ -193,7 +193,7 @@ OOLONG has no cross-lingual dimension at all.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 (synth) + 10,810 (real) | **1,254** |
+| questions | 6,500 (synth) + 10,810 (real) | **2,240** (1,254 at v0.6.3) |
 | haystacks | not reported per split | **110** |
 | context lengths | 1K–4M, reported at 8K–128K | 36K–987K |
 | **shortest haystack** | — | **36,250 tokens** |
@@ -303,3 +303,77 @@ still listed as unreleased:
 Everything else — the generator, Turkish handling, the matched twin, the entity
 axis, per-string tokenizer measurement, dual-path ground truth, the four
 acceptance gates, the reproducible manifests — is built here.
+
+
+---
+
+# Shortcut resistance, measured on both benchmarks (2026-09-16)
+
+Everything above compares construction. This compares the one property that
+decides whether either benchmark measures what it claims: **can a question be
+answered by reading only part of the document?**
+
+`scripts/oolong_crosscheck.py` runs TR-OOLONG's four partial readers against
+OOLONG's own published data, which is possible because OOLONG ships
+`context_window_text_with_labels`, the gold label of every record. All 41 test
+shards, 8 source corpora, label spaces of 2 to 10, contexts from 1K to 4M
+tokens. A question is reported only where a perfect full reader reproduces
+OOLONG's published answer exactly: **3,553 verified, 197 dropped.**
+
+## Both benchmarks obey the same rule
+
+The relative error of a scaled-up sample is `sqrt((1-f)/(f*m))` in the gold
+magnitude `m`. Document length, class balance and record ordering do not enter
+it. OOLONG's 817 verified counting questions trace the whole curve:
+
+| OOLONG's true answer | questions | score of a reader seeing 5% |
+|---|---:|---:|
+| 1 to 9 | 284 | **0.00** |
+| 10 to 29 | 72 | 0.21 |
+| 30 to 99 | 76 | 0.60 |
+| 100 to 299 | 80 | 0.76 |
+| 300 to 999 | 108 | 0.88 |
+| 1,000 and above | 197 | 0.96 |
+
+TR-OOLONG's sets fall on the same line at matching magnitudes. **This is a
+property of label-aggregation benchmarks, not of either implementation.**
+
+## Where the two differ, and it is not in our favour
+
+| | OOLONG | TR-OOLONG |
+|---|---|---|
+| most questions are | **scoped to a subset** before being asked ("among the entries belonging to user 22012", "among entries from April") | asked over the whole document |
+| consequence | answers are small; 284 counting questions have answers below 10 and score **0.00** for every partial reader | answers are large on the 3-class sets; 0.88 to 0.91 |
+| most resistant family | `REPRESENTED_N_TIMES`, score **0.005**, depends on a real date axis | rare-label `count`, score 0.17 to 0.35 |
+| partial-reading analysis | **not reported** | reported per family and per question |
+| read-nothing floor | **not reported** | reported as `blind` |
+
+**OOLONG is less exposed than TR-OOLONG on counting, and the reason is the
+fix.** Scoping questions to a subset is what makes its answers small, and it
+gets scoping free from a date axis that no Turkish corpus examined provides
+(`DATASET_REVIEW.md`). TR-OOLONG v0.7 adopts the same mitigation by other means:
+rare-label counts and entity-scoped counts.
+
+## What TR-OOLONG has that OOLONG does not
+
+Neither the read-nothing floor nor any partial-reading measurement appears in
+OOLONG's documentation. On its largest family, 1,097 verified `RELATIVE_FREQ`
+questions, a reader classifying a random 5% of records scores **0.78 under exact
+match**, their own convention. Results reported on OOLONG, including those of
+the recursive-model work this thesis studies, therefore do not separate reading
+coverage from classification accuracy.
+
+TR-OOLONG reports both, and ships a **per-question difficulty grade** (§4f of
+the README) so the separation can be made per model: easy questions measure
+classification, very-hard questions measure aggregation, and the gap estimates
+coverage.
+
+**How to state this, and how not to.** Not "OOLONG has the same problem, so ours
+is acceptable" — that is a tu quoque and a reviewer will say so, and it is
+factually wrong because OOLONG is better positioned on counting. The defensible
+statement is: this is a measurable property of the task family; it was measured
+here on both benchmarks; OOLONG mitigates it by scoping; TR-OOLONG adopts the
+same mitigation and additionally publishes a per-question grade so a reported
+score can be read correctly.
+
+Numbers: `manifests/oolong_crosscheck.json`, `manifests/difficulty.json`.

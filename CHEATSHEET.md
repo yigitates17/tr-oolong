@@ -261,8 +261,8 @@ imprecision a reviewer notices.
 - **Benchmark** = the *task definition*: the question families, the construction
   procedure, the ground-truth derivation, and the frozen metric. That is the
   contribution. TR-OOLONG **is a benchmark**.
-- **Dataset** = the *files* one particular run of the generator produced — 1,254
-  questions over 110 haystacks. That is an *instantiation* of the benchmark, and
+- **Dataset** = the *files* one particular run of the generator produced, currently 2,240
+  questions over 195 haystacks. That is an *instantiation* of the benchmark, and
   it is what goes on Hugging Face.
 
 Use it like this:
@@ -461,16 +461,17 @@ INCOMPATIBLE verdict. Requires `licence` and `label_provenance` declared in each
 config.
 
 **Headline, v0.7.0 as rebuilt 2026-09-16:** 8 sets · 125 haystacks ·
-**1,400 questions** · **26.5M tokens** · 9 families · 675 tr / 725 en ·
+**2,240 questions** · **50.7M tokens** · 9 families · 1,515 tr / 725 en ·
 36,250–987,623 tokens. 107 of the counts are rare-label counts.
 *(v0.6.3, still what is published on the Hub: 110 haystacks, 1,254 questions,
-28.3M tokens, 10 families.)*
+28.3M tokens, 10 families. v0.7.0 as rebuilt: 11 sets, 195 haystacks, 2,240
+questions, 50.7M tokens, 9 families, every question difficulty-graded.)*
 
 ---
 
 ## v0.6.1 / v0.6.2 — what changed, in one place (2026-09-09)
 
-**Headline is unchanged: still 8 sets, 110 haystacks, 1,254 questions, 28.3M
+**Headline at that time: 8 sets, 110 haystacks, 1,254 questions, 28.3M
 tokens.** Everything below is either a new *declared metadata* field on the
 existing 8, a new *tool*, or a new *experimental* config that deliberately does
 not count toward the shipping numbers.

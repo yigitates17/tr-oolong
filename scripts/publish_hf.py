@@ -73,6 +73,35 @@ POLICY = {
         note="Review text is governed by Amazon's Conditions of Use, not by the "
              "repository's license. Text withheld; rebuild locally with "
              "scripts/health.py + configs/amazon_hpc_en.json."),
+    # --- v0.7.0 additions. All three exist because the 3-class review sets
+    # cannot host a small answer (DESIGN_DECISIONS D21b), and two of the three
+    # cannot ship their text.
+    "sikayet_tr_out": dict(
+        license="other", full_text=False,
+        source="Kaggle savasy/multiclass-classification-data-for-turkish-tc32",
+        note="29 categories of Turkish consumer complaints. The uploader declares "
+             "NO license and the text is scraped from a complaints site, so the "
+             "text is withheld. Rebuild locally with scripts/sikayet_tr.py, which "
+             "takes the path to a copy of ticaret-yorum.csv downloaded from Kaggle. "
+             "Three of the original 32 categories were dropped for category-name "
+             "leakage above 30%. Resolve the license before relying on this set."),
+    "interpress_tr_out": dict(
+        license="other", full_text=False,
+        source="Interpress Turkish news category corpus, 270k",
+        note="17 categories of Turkish news with daily publication dates. The "
+             "upstream card declares no license. Text withheld; rebuild locally "
+             "with scripts/interpress_tr.py, which fetches the archive the "
+             "Hugging Face loading script points at and verifies its sha256. The "
+             "Apache header on that loading script covers the SCRIPT, not the "
+             "data, and must not be cited as the data's license."),
+    "sinema_tr_out": dict(
+        license="cc-by-sa-4.0", full_text=True,
+        source="turkish-nlp-suite/BuyukSinema",
+        note="Turkish film reviews labelled with the reviewer's own 10-point "
+             "rating. The only large-label-space Turkish source found with a "
+             "declared license, so unlike the other two v0.7.0 additions its text "
+             "ships normally. Share-alike: anything derived from this subset "
+             "stays CC-BY-SA-4.0."),
 }
 
 CARD = """---
@@ -102,7 +131,11 @@ builder, the configs that reproduce every set byte-for-byte, and
 
 ## At a glance
 
-**8 subsets · 125 documents · 1,400 questions · 26.5M tokens · 2 languages · 9 question families**
+**11 subsets · 195 documents · 2,240 questions · 50.7M tokens · 2 languages · 9 question families**
+
+**Every question carries a measured difficulty grade** in `difficulty.jsonl`: how well the
+best of four partial readers does on that question alone. 259 questions (11.6%) are graded
+`very hard`, 1,609 (71.8%) `easy`. Read the section on it below before reporting any score.
 
 | subset | lang | classes | docs | questions | shortest | longest | max records in one doc |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -334,6 +367,29 @@ a majority baseline of 0.50-0.70. The answer is a step function at a known
 position and its direction is one bit. **`shift` questions are present in this
 published data. Discard them rather than caveating them**; they will not be
 rebuilt.
+
+**Every question carries a measured difficulty grade, in `difficulty.jsonl`.**
+Each question was run against four partial readers at a 5% budget; the grade is
+the best score any of them achieved on that question alone.
+
+| grade | questions | share | what it measures |
+|---|---:|---:|---|
+| very hard (< 0.35) | 259 | 11.6% | whether the model aggregated over the document |
+| hard | 140 | 6.2% | |
+| moderate | 232 | 10.4% | |
+| easy (>= 0.80) | 1,609 | 71.8% | whether the model can classify Turkish records |
+
+**Report the bands separately and report the gap between them; do not pool all
+2,240 questions into one number.** The gap estimates how much of the document a
+model read. easy 0.90 / very-hard 0.30 is a sampler. 0.40 on both means the model
+cannot classify Turkish, and its long-context result says nothing about long
+context.
+
+Caveats that travel with the grade: it is relative to these four readers, which
+are given the true label of every record they read and are therefore upper
+bounds; it is a property of the question AND the proportional metric; and
+`musteri_tr` has 0 very-hard questions while `marc_en` has 1, so neither is
+evidence of aggregation difficulty.
 
 **So the supported claim is that this benchmark requires classifying latent
 Turkish labels and aggregating them. It does not establish that a model has

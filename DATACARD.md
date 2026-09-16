@@ -298,6 +298,34 @@ as of v0.7.0 and disappears at the next rebuild. **It is present in the publishe
 v0.6.3 data; a v0.6.3 result on `shift` should be discarded rather than
 caveated.** Rationale: `DESIGN_DECISIONS.md` D20, README section 4e-i.
 
+**Every question now carries a measured difficulty grade, and it changes how a
+score must be reported.** Each of the 2,240 questions was run against all four
+partial readers at a 5% budget; the grade comes from the best score any reader
+achieved on that question alone.
+
+| grade | questions | share | what it measures |
+|---|---:|---:|---|
+| **very hard** (< 0.35) | 259 | 11.6% | whether the model aggregated over the whole document |
+| hard (0.35–0.60) | 140 | 6.2% | |
+| moderate (0.60–0.80) | 232 | 10.4% | |
+| **easy** (≥ 0.80) | 1,609 | **71.8%** | whether the model can classify Turkish records at all |
+
+**Report the two bands separately and report the gap. Never pool all 2,240 into
+one number.** The gap between a model's `easy` score and its `very hard` score is
+an estimate of how much of the document it read, which is the attribution a
+single score cannot make (see the paragraph below). A model at 0.90 easy and 0.30
+very-hard is sampling; a model at 0.40 on both cannot classify Turkish and its
+long-context result is uninterpretable.
+
+Grades are averaged over 200 samples, worst standard error **0.035**, and the
+**10.7%** of questions within two standard errors of a band boundary carry
+`borderline: true`. They are relative to these four readers, which are handed the
+true label of every record they read and are therefore upper bounds. **`musteri_tr`
+has 0 very-hard questions and `marc_en` has 1**; those two sets are the matched
+Turkish/English comparison and the classification control, never evidence of
+aggregation difficulty. Files: `<set>/difficulty.jsonl`, `manifests/difficulty.json`,
+method in README §4f.
+
 **A single score cannot attribute credit between reading and classifying.** A
 perfect classifier reading a random 5% (0.89–0.92 on `count`) outscores a
 classifier that reads every record at 90% accuracy (0.74–0.90) and at 70%

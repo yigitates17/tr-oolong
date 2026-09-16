@@ -35,8 +35,9 @@
 > 100K tokens as at 1M. Report scores as lift over that floor, and do not read
 > the length axis as a difficulty axis under this metric. See §4e.
 >
-> **Numbers (v0.7.0):** 125 documents · 1,400 questions · 26.5M tokens · 9 question types
-> (v0.6.3, still the published release: 110 documents · 1,254 questions · 28.3M tokens · 10 types)
+> **Numbers (v0.7.0):** 11 sets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types
+> · 1,515 tr / 725 en · **every question carries a measured difficulty grade** (§4f)
+> (v0.6.3, still the published release: 8 sets · 110 documents · 1,254 questions · 28.3M tokens · 10 types)
 > · 2 languages.
 >
 > **Released:** <https://huggingface.co/datasets/yigitates17/tr-oolong>
@@ -505,16 +506,26 @@ because it carries the entity axis.
 
 ### 3.5 Summary — what each source contributes
 
-| set | source | label origin | classes | entity | ships (v0.6.3) |
-|---|---|---|---|---|---|
-| `tr_intent`, `en_intent` (+paired) | MASSIVE | already in the data, professional annotation | 48 | nested, unusable | 6 families |
-| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | 10 families |
-| `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | 10 families |
-| `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | 6 families |
-| `marc_en` | MARC English | **writer's own star rating** | 3 | none | 6 families |
+| set | source | label origin | classes | entity | text ships? | very-hard questions |
+|---|---|---|---|---|---|---:|
+| `sikayet_tr` | TC32 complaints (Kaggle) | publisher's product category | **29** | none | no, licence unstated | **77** |
+| `interpress_tr` | Interpress news, dated | publisher's section | **17** | none | no, licence unstated | **64** |
+| `sinema_tr` | BuyukSinema | **writer's own 10-point rating** | **10** | none | yes, cc-by-sa-4.0 | 26 |
+| `tr_intent`, `en_intent` (+paired) | MASSIVE | professional annotation | 48 | nested, unusable | yes | 10–17 each |
+| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | yes | 20 |
+| `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | no, licence unstated | 24 |
+| `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | yes | **0** |
+| `marc_en` | MARC English | **writer's own star rating** | 3 | none | yes | **1** |
 
-Counts are for v0.6.3 as published. `shift` is withdrawn in v0.7.0 (§4e-i), so
-each row loses one family at the next rebuild.
+**Read the last two columns together.** The three v0.7.0 additions exist because
+a 3-class label space over thousands of records cannot host a small answer
+(`DESIGN_DECISIONS.md` D21b), and they supply 167 of the 259 very-hard questions
+in the benchmark. `musteri_tr` and `marc_en` supply **one between them**: they are
+the matched Turkish/English comparison and the classification control, and must
+never be cited as evidence of aggregation difficulty. Two of the three additions
+cannot redistribute their text, which is why `sinema_tr` matters out of
+proportion to its size: it is the only large-label-space Turkish source found
+with a declared licence.
 
 
 ### 3.6 Example questions (produced by the actual builder)
@@ -965,6 +976,70 @@ measure positional readers at all. A positional family may return if it asks for
 a **magnitude** rather than a direction, and it must clear the `headtail` reader
 before it ships. Full rationale: `DESIGN_DECISIONS.md` D20.
 
+**(f) Per-question difficulty grades, and what they are actually for**
+(`scripts/grade_questions.py`, added 2026-09-16, `manifests/difficulty.json`).
+Solver (e) reports per FAMILY. Averaging over a family hides the spread: a family
+whose mean lands in the resistant band still contains individually trivial
+questions. Every question is therefore graded on its own, from the **best** score
+any of the four readers achieves at a 5% budget, because a shortcut only has to
+work once.
+
+| grade | threshold | questions | share |
+|---|---|---:|---:|
+| **very hard** | best partial reader < 0.35 | 259 | 11.6% |
+| hard | 0.35 to 0.60 | 140 | 6.2% |
+| moderate | 0.60 to 0.80 | 232 | 10.4% |
+| **easy** | 0.80 and above | **1,609** | **71.8%** |
+
+**Grading does not reduce the 71.8%, and is not intended to. It converts it into
+an instrument.** An easy question is answerable from a twentieth of the records,
+so it measures whether a model can **classify** Turkish records. A very hard one
+is not, so it measures whether the model **aggregated over the whole document**.
+A single aggregate score cannot separate reading from classifying (§4e); two band
+scores can:
+
+| model scores | reading of it |
+|---|---|
+| easy 0.90, very hard 0.30 | **sampling.** Classifies well, reads little |
+| easy 0.40, very hard 0.40 | **cannot classify Turkish.** Its long-context result says nothing about long context |
+| easy 0.90, very hard 0.85 | doing the task |
+
+**The gap between the two bands is the coverage estimate this benchmark
+previously could not produce.** Report both bands and the gap, never a single
+pooled number over all 2,240 questions.
+
+Every tier carries very-hard questions (3.3% to 15.0% from 3K records to 1M
+tokens), so the headline subset still supports a length curve.
+
+**Grades are stable enough to publish, and their instability is reported rather
+than assumed.** Each is averaged over 200 samples of the stochastic reader; the
+largest standard error on any single question is **0.035**. The **10.7%** of
+questions within two standard errors of a band boundary carry `borderline: true`
+and should not be treated as settled.
+
+**Four things that must travel with any published grade.**
+
+1. **The grade is relative to THESE four readers.** `very hard` means `random`,
+   `prefix`, `headtail` and `stride` all failed, not that no shortcut exists. A
+   fifth reader could crack questions graded hardest, exactly as `headtail` and
+   `stride` did to `shift` when they were added (§4e-i).
+2. **The readers are handed the true label of every record they read**, so they
+   are upper bounds. A real model does worse on the same reading. A shortcut that
+   fails a perfect classifier is unavailable to anything.
+3. **The grade is a property of the question AND the `relative` metric.** Under
+   `exact` nearly every numeric question would grade very hard, and that is
+   uninformative because a full reader fails too: a reader that opens all 6,469
+   records and misjudges one in a hundred scores **0.015**.
+4. **Two sets contain essentially no hard questions.** `musteri_tr` has **0**
+   very-hard questions and `marc_en` has **1**. They exist for the matched
+   Turkish/English comparison and as the classification control. Never cite them
+   as evidence of aggregation difficulty.
+
+Grades live in `<set>/difficulty.jsonl`, keyed by question `id`, alongside the
+raw `shortcut_score` and which reader achieved it. They are a SIDECAR:
+`questions.jsonl` is unchanged, so the build stays byte-identical against
+`tests/golden/`.
+
 **Questions must be answerable only by aggregating.** The same audit measures how
 much of the haystack determines each answer. The median `tr_oolong` `pairwise`
 question used to rest on **8 records out of 3,919**, with a margin of 2 — that is
@@ -1044,7 +1119,7 @@ utterances give 2.16× (GPT-2), 1.53× (Qwen3-8B), 1.29× (mBERT) and **0.57×**
 | `musteri_tr` | tr | 3 | 100K / 250K / 500K | 15 | 153 | 496,238 |
 | `marc_en` | en | 3 | 100K / 250K / 500K | 15 | 148 | 491,821 |
 
-**1254 questions over 110 haystacks**, eight instance sets. Realized
+**2,240 questions over 195 haystacks**, eleven instance sets (v0.6.3 shipped 1,254 over 110 from eight). Realized
 haystack lengths are within 0.97–1.00 of target on every set (D14); each
 manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
 
@@ -1192,7 +1267,7 @@ which their paper reports as the hardest of the three.
 | | OOLONG | TR-OOLONG |
 |---|---|---|
 | languages | English | **Turkish + matched English** |
-| questions | 6,500 synth + 10,810 real | 1,254 |
+| questions | 6,500 synth + 10,810 real | **2,240** (1,254 at v0.6.3) |
 | haystacks | not reported per split | **110**, 28.2M tokens total |
 | context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 257K) |
 | label space | 2–10 classes | **3 and 48** |
@@ -1506,7 +1581,7 @@ for the same labels (44 of 45 `count` questions have a `proportion` twin on the
 same haystack and label); `most_common`, `second_most`, `least_common` and
 `label_vs_label` are then determined by those same two numbers, and `shift`
 adds one bit. Twelve questions per haystack therefore carry about two
-continuous degrees of freedom and one bit. The headline 1,254 is a question
+continuous degrees of freedom and one bit. The headline question total is a question
 count, not an evidence count: for any statistical claim on the review sets the
 unit is the haystack (15–20 per set), further reduced by the tier overlap
 above. The intent sets are not affected (one duplicate in 69), because 48
