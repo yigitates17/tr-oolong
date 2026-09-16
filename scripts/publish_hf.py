@@ -303,7 +303,20 @@ python src/build_tr_oolong.py --config configs/<set>.json --build
 | `kind` | question family |
 | `label` / `entity` / `candidates` | what the question is about |
 | `answer` | gold answer, computed from source labels |
+| `answer_key` | language-neutral form of the answer, where the answer is a word (`label_vs_label`). `answer` is what to score; this is for comparing the matched pair across languages |
+| `rare` | present and true on a rare-label `count`: the gold answer is 5-30 records |
 | `question` | the prompt text, self-contained |
+
+`difficulty.jsonl` -- one row per question, joined on `id`:
+
+| field | meaning |
+|---|---|
+| `shortcut_score` | best score any of the four partial readers achieved on this question at a 5% budget |
+| `shortcut_reader` | which reader achieved it |
+| `difficulty` | `very hard` / `hard` / `moderate` / `easy`, from that score |
+| `blind_score` | what a reader that opens nothing scores |
+| `grade_se` | standard error of the grade over 200 samples |
+| `borderline` | true when the grade is within two standard errors of a band boundary and could flip |
 
 `haystacks.jsonl` -- one haystack per line: `haystack_id`, `n_examples`,
 `drift_target`, and `haystack` (the concatenated text). **Only `haystack` and
@@ -474,6 +487,16 @@ def main() -> None:
         dst.mkdir()
         shutil.copy(src / "questions.jsonl", dst / "questions.jsonl")
         shutil.copy(src / "manifest.json", dst / "manifest.json")
+        # The per-question difficulty grade ships with the questions it grades.
+        # The card documents it, so omitting it would leave the card describing a
+        # file nobody receives. It is derived, not source text, so it ships even
+        # for the sets whose text is withheld.
+        if (src / "difficulty.jsonl").exists():
+            shutil.copy(src / "difficulty.jsonl", dst / "difficulty.jsonl")
+        else:
+            raise SystemExit(
+                f"refusing to package: {src.name} has no difficulty.jsonl. "
+                f"Run scripts/grade_questions.py before publishing.")
         if pol["full_text"]:
             shutil.copy(src / "haystacks.jsonl", dst / "haystacks.jsonl")
         else:
