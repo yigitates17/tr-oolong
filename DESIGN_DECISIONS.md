@@ -881,3 +881,71 @@ redistributes to `count` and `proportion` via `allocate_quota`, which on the
 3-class sets makes the redundancy that Task B (de-duplicating `count` and
 `proportion` on small label spaces) exists to remove more acute, not less. Do
 Task B in the same release.
+
+---
+
+## D21. Rare-label counts, and why the depth floor does not apply to them (v0.7.0)
+
+A `count` question whose gold answer is between `rare_min` (5) and `rare_max`
+(30) records **in this haystack**. Emitted as `kind: "count"` with `rare: true`,
+so `src/scoring.py` scores it numerically with no change to the frozen metric.
+Only on label spaces large enough to contain such labels, which in practice
+means the 48-class intent axis; on a 3-class set no label is ever this small,
+the family is simply not emitted, and `entity_count` is that axis's small-answer
+family instead.
+
+**Why the existing floor rejected exactly the questions worth asking.**
+`min_answer_count` (D3) rejects counts below 20 on the grounds that a small
+answer is retrieval rather than aggregation. That reasoning is correct for the
+**ranking** families, where a small support means the answer turns on a handful
+of records and the rest of the document is irrelevant. It is wrong for a count.
+To answer "how many records are labelled X", **every record must still be
+judged**: each one is either X or not. The answer's magnitude is not the
+question's depth. The floor was written for one family and applied to all.
+
+**Why magnitude is the only lever that exists.** A reader that classifies a
+fraction `f` of the records and scales up has relative error
+`≈ sqrt((1 - f) / (f · m))` in the gold magnitude `m`. Document length, class
+balance and record ordering do not appear in it. That is the whole reason this
+family exists, and it is confirmed on a second benchmark: OOLONG's 817 verified
+counting questions trace the curve from `m` under 10 (score 0.00 at a 5% sample)
+to `m` above 1,000 (0.96). See `manifests/oolong_crosscheck.json`.
+
+**Measured on `tr_intent_paired`, built to a scratch directory at both tiers:**
+
+| | read-nothing (`blind`) | random 5% | headtail 5% | random 25% |
+|---|---:|---:|---:|---:|
+| ordinary `count` (median answer 74) | 0.458 | 0.535 | 0.542 | 0.805 |
+| **rare `count`** (answers 5 to 30) | **0.000** | **0.268** | **0.348** | 0.646 |
+
+Two separate effects, and the first is the larger one. **The read-nothing
+baseline collapses from 0.458 to 0.000**, because answering N/K is wrong by an
+order of magnitude when the true answer is 20. And partial reading roughly
+halves, 0.54 to 0.27.
+
+**Why the band is [5, 30] and not wider.** Widening to [5, 50] was built and
+measured, because the band is thin at the long tier. It costs more than it buys:
+
+| band | `blind` | random 5% | in-band labels at 3,000 / 6,000 records |
+|---|---:|---:|---|
+| **[5, 30]** | **0.000** | **0.268** | 14.6 / 2.8 |
+| [5, 50] | 0.114 | 0.417 | 25.0 / 5.6 |
+
+The wider band readmits the read-nothing guess (0.000 to 0.114) and gives back
+half the resistance. The cost of keeping [5, 30] is that the family is
+**length-gated**: at 6,000 records only about 3 labels are in band, so the
+long tier yields fewer rare counts than its quota asks for. The builder reports
+that as a starvation warning, which is the intended behaviour, and the family
+should be recorded as length-gated in the same way the entity families are.
+
+**`rare_min` is 5, not 1.** Below about 5 the question does become retrieval:
+a reader can plausibly spot two or three records and stop. At 5 to 30 the
+answer cannot be reached without judging the whole document, but it also cannot
+be estimated from a sample.
+
+**What this does not fix.** The 3-class review sets. `musteri_tr` and `marc_en`
+have no entity axis and no rare labels, so neither small-answer family is
+available to them at all. Their numeric families remain the most partially
+readable in the suite, and that is a property of a 3-class label space over
+thousands of records, not something question design can repair. State it as a
+limitation rather than implying the v0.7 fix reaches them.

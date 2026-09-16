@@ -139,6 +139,19 @@ def prior_prediction(q: dict, st: dict) -> str:
 
 
 NUMERIC_KINDS = ("count", "proportion", "entity_count")
+
+
+def fam(q: dict) -> str:
+    """The family a question is REPORTED under.
+
+    A rare-label count carries kind "count", so src/scoring.py (frozen) scores it
+    numerically with no change. It is a different difficulty regime though: the
+    read-nothing guess N/K is wrong by an order of magnitude on a 20-record
+    answer, where on an ordinary count it is worth 0.43 to 0.63. Pooling the two
+    would average away exactly the effect the family exists to create, so every
+    grouping key uses this and every COMPUTATION still uses q["kind"].
+    """
+    return "count_rare" if q.get("rare") else q["kind"]
 REL_WATCH = 0.70     # corpus prior under `relative` above this at any tier is reported
 
 
@@ -224,17 +237,17 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
             v = "KNIFE"
         else:
             v = "OK"
-        defects[q["kind"]][v] += 1
+        defects[fam(q)][v] += 1
         sc = score(q, prior_prediction(q, st))
-        prior_hits[q["kind"]].append(sc["exact"])
-        chances[q["kind"]].append(chance_rate(q["kind"], K, q))
+        prior_hits[fam(q)].append(sc["exact"])
+        chances[fam(q)].append(chance_rate(q["kind"], K, q))
         if q["kind"] in NUMERIC_KINDS:
             tier = q.get("target_tokens") or q.get("target_records")
-            prior_rel[q["kind"]].append(sc["relative"])
-            prior_rel_tier[(q["kind"], tier)].append(sc["relative"])
+            prior_rel[fam(q)].append(sc["relative"])
+            prior_rel_tier[(fam(q), tier)].append(sc["relative"])
             b = blind_prediction(q, st["nrec"][q["haystack_id"]], K, st["scale"])
             if b is not None:
-                blind_rel[q["kind"]].append(score(q, b)["relative"])
+                blind_rel[fam(q)].append(score(q, b)["relative"])
 
     # majority baseline per family: the score of always emitting the most common
     # gold answer. For free-form numeric families this, not 0, is the reference a
@@ -242,7 +255,7 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
     gold = collections.defaultdict(list)
     for line in Path(name, "questions.jsonl").read_text(encoding="utf-8").splitlines():
         q = json.loads(line)
-        gold[q["kind"]].append(json.dumps(q["answer"], ensure_ascii=False))
+        gold[fam(q)].append(json.dumps(q["answer"], ensure_ascii=False))
     majority = {k: collections.Counter(v).most_common(1)[0][1] / len(v)
                 for k, v in gold.items()}
 

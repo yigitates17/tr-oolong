@@ -150,6 +150,20 @@ class Config:
     # --- question-difficulty floors (v0.4.0) --------------------------------
     # Each rejects a class of question that is answerable WITHOUT aggregating.
     min_answer_count: int = 20            # count answers below this are retrieval
+    # --- rare-label counts (v0.7.0) -----------------------------------------
+    # A COUNT question about a label holding between rare_min and rare_max
+    # records IN THIS HAYSTACK. `min_answer_count` rejects exactly these, and
+    # that floor was written for the RANKING families, where a small support
+    # means the answer rests on a handful of records and the question is
+    # retrieval. For a count it is the opposite: every record must still be
+    # judged ("is this one X or not"), so the answer's magnitude is not the
+    # question's depth. See DESIGN_DECISIONS D21 for the measurement that
+    # forced this, and README 4e for why a small answer is the ONLY thing that
+    # resists partial reading: the relative error of a scaled-up sample is
+    # ~sqrt((1-f)/(f*m)) in the answer magnitude m, so m is the only lever.
+    rare_min: int = 5
+    rare_max: int = 30
+    rare_min_labels: int = 2              # need this many in-band labels to emit the family
     min_entity_answer: int = 10           # entity_count answers below this likewise
     min_rank_margin: float = 0.10         # relative gap needed at a ranking boundary
     entity_candidates: int = 5            # named candidates for entity_argmax/top_k
@@ -840,6 +854,11 @@ LVL_ANSWER = {
 
 
 def resolve_template(cfg: Config, kind: str, unit: str | None = None) -> str:
+    # A rare-label count is phrased EXACTLY like any other count. The band is a
+    # construction constraint, not something the model is told: signalling it in
+    # the wording would hand over the fact that the answer is small.
+    if kind == "count_rare":
+        kind = "count"
     lang = cfg.language
     if kind == "proportion":
         if unit == "percent":
@@ -875,10 +894,14 @@ def _margin_ok(hi: int, lo: int, min_margin: float) -> bool:
 
 def gt_primary(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=None,
                label_a=None, label_b=None, same_tol=0.0,
-               unit="percent", k=3, askable=None, min_margin=0.0, min_answer=0):
+               unit="percent", k=3, askable=None, min_margin=0.0, min_answer=0,
+               rare_min=0, rare_max=10**9):
     askable = askable or []
     if kind == "count":
         return str(meta.filter(pl.col("label") == label).height)
+    if kind == "count_rare":
+        n = meta.filter(pl.col("label") == label).height
+        return None if not (rare_min <= n <= rare_max) else str(n)
     if kind == "proportion":
         scale = PROP_SCALE[unit]
         return str(math.floor(scale * meta.filter(pl.col("label") == label).height / meta.height + 0.5))
@@ -973,13 +996,17 @@ def _label_stat(ranked, kind, min_margin=0.0, min_answer=0):
 
 def gt_check(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=None,
              label_a=None, label_b=None, same_tol=0.0,
-             unit="percent", k=3, askable=None, min_margin=0.0, min_answer=0):
+             unit="percent", k=3, askable=None, min_margin=0.0, min_answer=0,
+             rare_min=0, rare_max=10**9):
     askable = set(askable or [])
     labels = meta["label"].to_list()
     ents = meta["entity"].to_list()
     halves = meta["half"].to_list()
     if kind == "count":
         return str(sum(1 for l in labels if l == label))
+    if kind == "count_rare":
+        n = sum(1 for l in labels if l == label)
+        return None if not (rare_min <= n <= rare_max) else str(n)
     if kind == "proportion":
         scale = PROP_SCALE[unit]
         return str(math.floor(scale * sum(1 for l in labels if l == label) / len(labels) + 0.5))
@@ -1048,6 +1075,7 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k,
               ent_counts=None, prior_ent=None, prior_lab=None):
     """Return a question dict for `kind`, or None if this draw is degenerate."""
     mm, ma = cfg.min_rank_margin, cfg.min_answer_count
+    ma_rare = (cfg.rare_min, cfg.rare_max)
     label_list = ", ".join(f"'{l}'" for l in labels)
     if kind == "count":
         label = rng.choice(labels)
@@ -1057,6 +1085,23 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k,
             return None
         return {"kind": kind, "label": label, "answer": gt,
                 "question": resolve_template(cfg, kind).format(label=label)}
+
+    if kind == "count_rare":
+        # Pick from the labels whose IN-HAYSTACK count falls in the band. The
+        # emitted kind is "count" with rare=True, so src/scoring.py (frozen)
+        # scores it numerically with no change, and a rare count dedups against
+        # an ordinary count of the same label rather than duplicating it.
+        counts = Counter(meta["label"].to_list())
+        valid = sorted(l for l, c in counts.items() if ma_rare[0] <= c <= ma_rare[1])
+        if not valid:
+            return None
+        label = rng.choice(valid)
+        gt = verified_gt(meta, kind, label=label,
+                         rare_min=ma_rare[0], rare_max=ma_rare[1])
+        if gt is None:
+            return None
+        return {"kind": "count", "rare": True, "label": label, "answer": gt,
+                "question": resolve_template(cfg, "count_rare").format(label=label)}
 
     if kind == "proportion":
         label = rng.choice(labels)
@@ -1205,7 +1250,9 @@ def _dedup_key(q: dict) -> tuple:
     if q["kind"] in ("entity_argmax", "top_k", "most_common", "least_common",
                      "second_most"):                # same family, different candidates
         return (q["kind"], q["label"], tuple(q.get("candidates") or ()))
-    return (q["kind"], q["label"])
+    return (q["kind"], q["label"])   # a rare count carries kind "count", so it
+                                     # dedups against an ordinary count of the
+                                     # same label rather than repeating it
 
 
 ENTITY_FAMILIES = ("entity_count", "entity_argmax", "pairwise", "top_k")
@@ -1223,8 +1270,8 @@ def allocate_quota(families: list[str], total: int) -> dict[str, int]:
     base, rem = divmod(total, len(families))
     for f in families:
         quota[f] = base
-    priority = [f for f in ("count", "proportion", "entity_argmax", "top_k",
-                            "entity_count", "pairwise") if f in families]
+    priority = [f for f in ("count", "count_rare", "proportion", "entity_argmax",
+                            "top_k", "entity_count", "pairwise") if f in families]
     i = 0
     while rem > 0 and priority:
         quota[priority[i % len(priority)]] += 1
@@ -1250,6 +1297,13 @@ def generate_questions(meta, cfg, rng, *, drift_target, unit, k, prior_ent=None,
     )   # min_entity_examples counts records IN THIS HAYSTACK, not in the pool
     families = ["count", "proportion", "most_common", "least_common", "second_most",
                 "label_vs_label"]
+    # Rare-label counts need enough in-band labels to ask more than one. On a
+    # 3-class set no label is ever this small, so the family is simply not
+    # emitted there and `entity_count` is that axis's small-answer family.
+    rare_pool = [l for l, c in Counter(meta["label"].to_list()).items()
+                 if cfg.rare_min <= c <= cfg.rare_max]
+    if len(rare_pool) >= cfg.rare_min_labels:
+        families.append("count_rare")
     if drift_target is not None:
         families.append("shift")
     # Entity-relational families are only meaningful when the entity axis is
@@ -1431,6 +1485,7 @@ def build(cfg: Config) -> None:
     hay_path = out / "haystacks.jsonl"
     q_path = out / "questions.jsonl"
     kind_counts: Counter = Counter()
+    rare_counts: Counter = Counter()   # rare-label counts, a subset of kind "count"
     per_tier: dict[str, Counter] = {}
     hs_summary: list[dict] = []
     n_q = 0
@@ -1525,6 +1580,11 @@ def build(cfg: Config) -> None:
 
                 for qi, q in enumerate(questions):
                     kind_counts[q["kind"]] += 1
+                    if q.get("rare"):
+                        # emitted as kind "count" so the frozen scorer treats it
+                        # numerically; counted separately so the manifest still
+                        # says how many of the counts are rare-label ones
+                        rare_counts["count"] += 1
                     qf.write(json.dumps({
                         "id": f"{hs_id}-q{qi}", "haystack_id": hs_id,
                         "language": cfg.language,
@@ -1593,6 +1653,9 @@ def build(cfg: Config) -> None:
         "tokenizer": cfg.reference_tokenizer or f"char_approx({cfg.chars_per_token})",
         "questions_written": n_q,
         "kind_distribution": dict(sorted(kind_counts.items())),
+        # of the `count` questions above, how many are rare-label counts (v0.7.0)
+        "rare_count_questions": sum(rare_counts.values()),
+        "rare_band": [cfg.rare_min, cfg.rare_max],
         "haystacks": hs_summary,
     }
     (out / "manifest.json").write_text(

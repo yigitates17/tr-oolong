@@ -172,6 +172,8 @@ def blind_prediction(q: dict, n_records: int, n_labels: int) -> str | None:
     separator count) and how many labels the question space has. This is the
     floor a numeric family must be judged against under `relative`."""
     if q["kind"] == "count":
+        # For a rare-label count the read-nothing guess is still N/K: a reader
+        # that opens nothing cannot know the label is a small one.
         return str(round(n_records / n_labels))
     if q["kind"] == "proportion":
         unit = 1000 if q.get("unit") == "per_mille" else 100
@@ -284,7 +286,10 @@ def run_set(d: Path, fractions: list[float], absolutes: list[int], trials: int,
         labels_all = [r[0] for r in rows_all]
         space = sorted(set(labels_all))
         N, K, tier = len(rows_all), len(space), _tier(q)
-        f = fam[q["kind"]]
+        # A rare-label count carries kind "count" so the frozen scorer treats it
+        # numerically, but it is a DIFFERENT difficulty regime and pooling the two
+        # would hide exactly the effect this family exists to create.
+        f = fam["count_rare" if q.get("rare") else q["kind"]]
         a = q["answer"]
         f["gold"].append(tuple(a) if isinstance(a, list) else a)
 

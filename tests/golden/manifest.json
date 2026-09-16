@@ -39,6 +39,9 @@
     "proportion_unit": "auto",
     "top_k_k": 3,
     "min_answer_count": 20,
+    "rare_min": 5,
+    "rare_max": 30,
+    "rare_min_labels": 2,
     "min_entity_answer": 10,
     "min_rank_margin": 0.1,
     "entity_candidates": 5,
@@ -99,6 +102,11 @@
     "proportion": 9,
     "second_most": 2
   },
+  "rare_count_questions": 0,
+  "rare_band": [
+    5,
+    30
+  ],
   "haystacks": [
     {
       "haystack_id": "tr-5000-0",
