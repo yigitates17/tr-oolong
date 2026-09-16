@@ -231,11 +231,13 @@ def audit_set(name: str, cfg_path: str, depth_min: int, margin_min: float | None
     for line in Path(name, "questions.jsonl").read_text(encoding="utf-8").splitlines():
         q = json.loads(line)
         sup, rm = question_support(q, metas[q["haystack_id"]], k_top)
-        if q.get("rare"):
+        if q.get("rare") or q["kind"] == "proportion":
             # THIN means "too few records decide the answer, so it is retrieval".
-            # For a COUNT that reasoning does not hold: every record must still
-            # be judged, one by one, to know whether it is an X. The answer's
-            # magnitude is not the question's depth. This is the same correction
+            # For a COUNT or a PROPORTION that reasoning does not hold: every
+            # record must still be judged, one by one, to know whether it is an
+            # X. The answer's magnitude is not the question's depth. A proportion
+            # of 4% is not shallower than one of 40%; both require the whole
+            # document. This is the same correction
             # DESIGN_DECISIONS D21 makes to the builder's min_answer_count floor,
             # and it has to be made in both places or the audit condemns exactly
             # the family the builder was changed to create.

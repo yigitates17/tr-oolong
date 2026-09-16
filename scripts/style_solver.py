@@ -156,11 +156,19 @@ def main():
             mb = "  n/a" if v["majority_baseline"] is None else f"{v['majority_baseline']:8.3f}"
             lf = "  n/a" if v["lift"] is None else f"{v['lift']:+8.3f}"
             print(f"{r['set'][:21]:22}{k:15}{v['style_exact']:7.3f}{mb}{lf}")
-        print(f"{r['set'][:21]:22}{'== MEAN':15}{'':15}{r['mean_lift']:+8.3f}\n")
+        # A set whose families are all NUMERIC (interpress_tr: count, proportion,
+        # label_vs_label) has no categorical family for this solver to attack, so
+        # there is no lift to average. That is a pass by absence, not a crash.
+        if r["mean_lift"] is None:
+            print(f"{r['set'][:21]:22}{'== MEAN':15}{'':15}{'  n/a':>8}"
+                  f"   (no categorical family to attack)\n")
+        else:
+            print(f"{r['set'][:21]:22}{'== MEAN':15}{'':15}{r['mean_lift']:+8.3f}\n")
 
     by_lang = defaultdict(list)
     for r in reports:
-        by_lang[r["language"]].append((r["set"], r["mean_lift"]))
+        if r["mean_lift"] is not None:
+            by_lang[r["language"]].append((r["set"], r["mean_lift"]))
     print("twin asymmetry is the number that matters for the cross-lingual claim:")
     for lang, items in sorted(by_lang.items()):
         print(f"  {lang}: " + ", ".join(f"{s}={m:+.3f}" for s, m in items))

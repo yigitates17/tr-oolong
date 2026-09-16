@@ -224,7 +224,7 @@
   {
     "set": "en_intent_paired_out",
     "n_questions": 120,
-    "pct_ok": 99,
+    "pct_ok": 100,
     "families": {
       "count": {
         "n": 33,
@@ -292,8 +292,8 @@
       },
       "proportion": {
         "n": 21,
-        "ok": 20,
-        "thin": 1,
+        "ok": 21,
+        "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
         "chance": 0.143,
@@ -316,6 +316,80 @@
         "chance": 0.2,
         "p_value": 1.0,
         "prior_shortcut": false
+      }
+    }
+  },
+  {
+    "set": "interpress_tr_out",
+    "n_questions": 300,
+    "pct_ok": 100,
+    "families": {
+      "count": {
+        "n": 83,
+        "ok": 83,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.012,
+        "chance": 0.072,
+        "p_value": 0.99803,
+        "prior_shortcut": false,
+        "prior_rel": 0.44,
+        "blind_rel": 0.451,
+        "prior_rel_by_tier": {
+          "100000": 0.577,
+          "250000": 0.411,
+          "500000": 0.353,
+          "1000000": 0.314
+        },
+        "prior_rel_watch": false
+      },
+      "count_rare": {
+        "n": 59,
+        "ok": 59,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.102,
+        "p_value": 1.0,
+        "prior_shortcut": false,
+        "prior_rel": 0.265,
+        "blind_rel": 0.239,
+        "prior_rel_by_tier": {
+          "100000": 0.488,
+          "250000": 0.123,
+          "500000": 0.036,
+          "1000000": 0.0
+        },
+        "prior_rel_watch": false
+      },
+      "label_vs_label": {
+        "n": 79,
+        "ok": 79,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.405,
+        "chance": 0.506,
+        "p_value": 0.97238,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 79,
+        "ok": 79,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.013,
+        "chance": 0.051,
+        "p_value": 0.98351,
+        "prior_shortcut": false,
+        "prior_rel": 0.317,
+        "blind_rel": 0.33,
+        "prior_rel_by_tier": {
+          "100000": 0.296,
+          "250000": 0.453,
+          "500000": 0.353,
+          "1000000": 0.177
+        },
+        "prior_rel_watch": false
       }
     }
   },
@@ -586,7 +660,7 @@
   {
     "set": "tr_intent_paired_out",
     "n_questions": 120,
-    "pct_ok": 99,
+    "pct_ok": 100,
     "families": {
       "count": {
         "n": 33,
@@ -654,8 +728,8 @@
       },
       "proportion": {
         "n": 21,
-        "ok": 20,
-        "thin": 1,
+        "ok": 21,
+        "thin": 0,
         "knife": 0,
         "prior_acc": 0.0,
         "chance": 0.143,

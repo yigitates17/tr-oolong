@@ -1,0 +1,41 @@
+{
+  "source_path": "datasets/interpress_tr.parquet",
+  "text_col": "text",
+  "label_col": "label",
+  "entity_col": "",
+  "language": "tr",
+  "min_words": 20,
+  "min_class_support": 1000,
+  "seed": 42,
+  "dirichlet_alpha": 0.4,
+  "haystacks_per_length": [
+    10,
+    5,
+    5,
+    5
+  ],
+  "questions_per_haystack": 12,
+  "proportion_unit": "auto",
+  "top_k_k": 3,
+  "reference_tokenizer": "Qwen/Qwen3-8B",
+  "out_dir": "interpress_tr_out",
+  "min_rank_margin": 0.15,
+  "min_answer_count": 10,
+  "rare_min": 5,
+  "rare_max": 30,
+  "haystack_target_tokens": [
+    100000,
+    250000,
+    500000,
+    1000000
+  ],
+  "licence": "unknown",
+  "label_provenance": "professional_annotation",
+  "text_provenance": "human_written",
+  "families_disabled": [
+    "shift",
+    "most_common",
+    "least_common",
+    "second_most"
+  ]
+}
