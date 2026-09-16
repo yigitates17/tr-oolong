@@ -500,7 +500,14 @@ cross-benchmark check:
 - `oolongbench/oolong-synth`, 41 test shards, pinned revision `f0d59eaf`.
   8 source corpora (metaphors, negation, formality, imdb, app_reviews, yahoo,
   multinli, agnews), label spaces K = 2, 3, 4, 10, contexts 1K to 4M tokens.
-- `oolongbench/oolong-real`, a separate subset, not yet checked here.
+- `oolongbench/oolong-real` (revision `6bc9ef04`), **checked and NOT usable for
+  this.** Four JSONL files (`dnd/`, `toy_dnd/`), D&D session transcripts, with
+  questions like "Total number of rolls in this episode?". There is **no
+  `context_window_text_with_labels` column and no per-record label of any kind**;
+  the gold answers come from parsing events out of transcript prose. Running the
+  partial-coverage readers on it would require reimplementing their extraction,
+  and the task is closer to lexical extraction than to latent-label aggregation,
+  so it is out of scope. Do not re-check this.
 - Critically, every row carries **`context_window_text_with_labels`**: the gold
   label of every record in the context window, one per line, formatted
   `Date: .. || User: .. || Instance: .. || Label: ..`.
