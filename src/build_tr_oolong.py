@@ -78,6 +78,10 @@ class Config:
     min_words: int = 1
     max_words: int = 400
     drop_label_leakage: bool = True       # drop rows whose text contains a label surface form
+    # Also treat each WORD of a multi-part label as a surface form. Off by
+    # default; see leak_surface_forms for why the intent axis must keep it off
+    # and why a hyphenated topic label space needs it on.
+    leak_label_words: bool = False
     min_class_support: int = 0            # drop classes with fewer than N rows (0 = keep all)
     # haystack construction
     seed: int = 42
@@ -297,19 +301,48 @@ def fold(s: str, language: str) -> str:
     return tr_casefold(s) if language == "tr" else s.casefold()
 
 
-def leak_surface_forms(label: str, language: str) -> set[str]:
+# Words too common to be a reliable finder for any label, so treating them as
+# leakage would drop most of a corpus while removing no real shortcut.
+LEAK_STOPWORDS = {
+    "tr": {"ve", "ile", "icin", "kategori", "sektoru", "ev", "saat", "arac",
+           "gerec", "hizmet", "hizmetleri", "bir", "cok"},
+    "en": {"and", "or", "for", "the", "of", "category", "service", "services"},
+}
+
+
+def leak_surface_forms(label: str, language: str, split_words: bool = False) -> set[str]:
     """Surface strings that would let a solver find a label by substring search.
     Canonical definition: shared with scripts/trivial_baseline.py so that the
-    leakage filter and the leakage baseline can never disagree."""
-    return {fold(label, language), fold(label.replace("_", " "), language)}
+    leakage filter and the leakage baseline can never disagree.
+
+    `split_words` also treats each component word of a multi-part label as a
+    surface form. It is OFF by default and must stay off for the intent axis,
+    where labels like `play_music` decompose into ordinary English words that
+    find nothing: greping "play" does not locate `play_music` records.
+
+    It matters for a label space whose parts ARE reliable finders. On the
+    Turkish complaint corpus, the label `kargo-nakliyat` never appears verbatim
+    in any record, so the default forms match nothing and the filter passes by
+    construction, while greping the single word "kargo" finds 85% of that
+    category. That is a false pass of exactly the shape gate (c) had.
+    """
+    forms = {fold(label, language), fold(label.replace("_", " "), language)}
+    if split_words:
+        stop = LEAK_STOPWORDS.get(language, set())
+        for part in re.split(r"[-_ ]+", label):
+            f = fold(part, language)
+            if len(f) > 3 and f not in stop:
+                forms.add(f)
+    return forms
 
 
-def label_leak_mask(texts: list[str], labels: list[str], language: str) -> list[bool]:
+def label_leak_mask(texts: list[str], labels: list[str], language: str,
+                    split_words: bool = False) -> list[bool]:
     """True where the text contains ANY label's surface form. Matching on the
     whole label space (not just the row's own label) is what makes the
     grep-proofness claim total: after filtering, a substring solver sees zero
     hits for every label, so its label ranking carries no information."""
-    forms = sorted({f for l in labels for f in leak_surface_forms(l, language)})
+    forms = sorted({f for l in labels for f in leak_surface_forms(l, language, split_words)})
     return [any(f in fold(t, language) for f in forms) for t in texts]
 
 
@@ -401,7 +434,7 @@ def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFr
         rendered = [render_record(t, e, cfg)
                     for t, e in zip(df["text"].to_list(), df["entity"].to_list())]
         leaking = label_leak_mask(rendered, sorted(set(df["label"].to_list())),
-                                  cfg.language)
+                                  cfg.language, cfg.leak_label_words)
         df = df.filter(~pl.Series(leaking))
     stats["rows_dropped_label_leakage"] = before - df.height
     stats["label_leakage_rate"] = round((before - df.height) / before, 6) if before else 0.0

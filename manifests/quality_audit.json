@@ -560,6 +560,110 @@
     }
   },
   {
+    "set": "sikayet_tr_out",
+    "n_questions": 300,
+    "pct_ok": 100,
+    "families": {
+      "count": {
+        "n": 78,
+        "ok": 78,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.013,
+        "chance": 0.038,
+        "p_value": 0.95308,
+        "prior_shortcut": false,
+        "prior_rel": 0.343,
+        "blind_rel": 0.342,
+        "prior_rel_by_tier": {
+          "100000": 0.389,
+          "250000": 0.221,
+          "500000": 0.374,
+          "1000000": 0.342
+        },
+        "prior_rel_watch": false
+      },
+      "count_rare": {
+        "n": 72,
+        "ok": 72,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.139,
+        "p_value": 1.0,
+        "prior_shortcut": false,
+        "prior_rel": 0.086,
+        "blind_rel": 0.085,
+        "prior_rel_by_tier": {
+          "100000": 0.206,
+          "250000": 0.0,
+          "500000": 0.0,
+          "1000000": 0.0
+        },
+        "prior_rel_watch": false
+      },
+      "label_vs_label": {
+        "n": 25,
+        "ok": 25,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.28,
+        "chance": 0.4,
+        "p_value": 0.92643,
+        "prior_shortcut": false
+      },
+      "least_common": {
+        "n": 25,
+        "ok": 25,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.08,
+        "chance": 0.2,
+        "p_value": 0.97261,
+        "prior_shortcut": false
+      },
+      "most_common": {
+        "n": 25,
+        "ok": 25,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.32,
+        "chance": 0.2,
+        "p_value": 0.10912,
+        "prior_shortcut": false
+      },
+      "proportion": {
+        "n": 50,
+        "ok": 50,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.0,
+        "chance": 0.1,
+        "p_value": 1.0,
+        "prior_shortcut": false,
+        "prior_rel": 0.277,
+        "blind_rel": 0.271,
+        "prior_rel_by_tier": {
+          "100000": 0.325,
+          "250000": 0.253,
+          "500000": 0.145,
+          "1000000": 0.334
+        },
+        "prior_rel_watch": false
+      },
+      "second_most": {
+        "n": 25,
+        "ok": 25,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.36,
+        "chance": 0.2,
+        "p_value": 0.04677,
+        "prior_shortcut": true
+      }
+    }
+  },
+  {
     "set": "tr_intent_out",
     "n_questions": 120,
     "pct_ok": 100,
