@@ -91,7 +91,12 @@ class Config:
     # (McNemar) instead of as two independent samples. Token counts then differ
     # BY LANGUAGE, and that difference is the morphology cost, measured directly.
     haystack_target_records: list[int] = dataclasses.field(default_factory=list)
-    haystacks_per_length: int = 5         # >=5 -> ~50 questions per (length x axis)
+    # int: the same count at every tier. list: one count PER TIER, positionally
+    # matched to haystack_target_tokens / _records. v0.7.0 allows the list form
+    # because statistical power comes from DOCUMENTS, not questions (README 13),
+    # and the short tiers are where more documents are cheap: a 100K haystack
+    # costs a tenth of a 1M one and overlaps its siblings far less.
+    haystacks_per_length: int | list[int] = 5   # >=5 -> ~50 questions per (length x axis)
     questions_per_haystack: int = 12
     # language-neutral by design: a Turkish word here ("KAYIT") appeared inside
     # the ENGLISH haystacks and tokenizes differently in each language, which is
@@ -164,6 +169,17 @@ class Config:
     rare_min: int = 5
     rare_max: int = 30
     rare_min_labels: int = 2              # need this many in-band labels to emit the family
+    # --- pool-fraction cap (v0.7.0) -----------------------------------------
+    # The largest fraction of the CLEANED pool one haystack may consume. Above
+    # this, the per-haystack Dirichlet prior cannot be realised: the haystack is
+    # forced to look like its source, and a reader that knows the corpus's
+    # overall proportions and never opens the document scores well. Measured on
+    # `vitamins_tr`, whose 750K tier eats 54% of a 43K-record pool and where the
+    # corpus-share oracle reaches 0.75 under `relative` (README 4e). A tier over
+    # the cap is DROPPED unless allow_pool_overrun is set, in which case it is
+    # built and must be labelled prior-exposed wherever it is reported.
+    max_pool_fraction: float = 0.35
+    allow_pool_overrun: bool = False
     min_entity_answer: int = 10           # entity_count answers below this likewise
     min_rank_margin: float = 0.10         # relative gap needed at a ranking boundary
     entity_candidates: int = 5            # named candidates for entity_argmax/top_k
@@ -1205,8 +1221,14 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k,
                         la, lb, gt = lb, la, want
                 elif gt != want:
                     continue
+                # answer_key is the LANGUAGE-NEUTRAL form of the same fact.
+                # `answer` stays the localized string and is what src/scoring.py
+                # (frozen) scores; answer_key exists so the matched twin can be
+                # compared across languages without string-matching 'daha çok'
+                # against 'more common'. v0.7.0.
                 return {"kind": kind, "label": None, "label_a": la, "label_b": lb,
                         "candidates": [la, lb], "answer": LVL_ANSWER[cfg.language][gt],
+                        "answer_key": gt,
                         "question": resolve_template(cfg, kind).format(
                             label_a=la, label_b=lb)}
         return None
@@ -1491,6 +1513,8 @@ def build(cfg: Config) -> None:
     hay_path = out / "haystacks.jsonl"
     q_path = out / "questions.jsonl"
     kind_counts: Counter = Counter()
+    dropped_tiers: list[dict] = []     # refused by the pool-fraction cap
+    overrun_tiers: list[dict] = []     # over the cap but built via allow_pool_overrun
     rare_counts: Counter = Counter()   # rare-label counts, a subset of kind "count"
     per_tier: dict[str, Counter] = {}
     hs_summary: list[dict] = []
@@ -1499,8 +1523,37 @@ def build(cfg: Config) -> None:
     with hay_path.open("w", encoding="utf-8") as hf, q_path.open("w", encoding="utf-8") as qf:
         record_mode = bool(cfg.haystack_target_records)
         targets = cfg.haystack_target_records if record_mode else cfg.haystack_target_tokens
+        if isinstance(cfg.haystacks_per_length, list):
+            if len(cfg.haystacks_per_length) != len(targets):
+                raise ValueError(
+                    f"haystacks_per_length has {len(cfg.haystacks_per_length)} entries "
+                    f"but there are {len(targets)} tiers; the list form is positional")
+            hs_per_tier = dict(zip(targets, cfg.haystacks_per_length))
+        else:
+            hs_per_tier = {t: cfg.haystacks_per_length for t in targets}
+        print(f"[tiers] haystacks per tier: {hs_per_tier}")
         for target in targets:
-            for ki in range(cfg.haystacks_per_length):
+            # Pool-fraction cap. Checked on the ESTIMATE, before any haystack at
+            # this tier is built, so an over-large tier costs nothing.
+            est_need = target if record_mode else round(target / (mean_tok + sep_tok) * 1.05)
+            pool_frac = est_need / max(1, df.height)
+            if pool_frac > cfg.max_pool_fraction:
+                where = f"{cfg.language}-{target}"
+                print(f"[POOL] {where}: one haystack would consume "
+                      f"{pool_frac:.0%} of the {df.height}-record pool, over the "
+                      f"{cfg.max_pool_fraction:.0%} cap. At this share the "
+                      f"per-haystack label prior cannot be realised and the tier "
+                      f"is answerable from corpus statistics.")
+                if not cfg.allow_pool_overrun:
+                    print(f"[POOL] {where}: TIER DROPPED. "
+                          f"Set allow_pool_overrun=true to build it anyway, and "
+                          f"label it prior-exposed wherever it is reported.")
+                    dropped_tiers.append({"tier": target, "pool_fraction": round(pool_frac, 4)})
+                    continue
+                print(f"[POOL] {where}: built anyway (allow_pool_overrun). "
+                      f"This tier is PRIOR-EXPOSED.")
+                overrun_tiers.append({"tier": target, "pool_fraction": round(pool_frac, 4)})
+            for ki in range(hs_per_tier[target]):
                 # pair_seed: a parallel corpus (MASSIVE tr/en) is row-aligned after
                 # clean(), so dropping `language` from the seed makes both locales
                 # sample the SAME records -> identical gold answers -> paired tests.
@@ -1653,6 +1706,9 @@ def build(cfg: Config) -> None:
         "cleaning": clean_stats,
         "ranking_feasibility": ceiling_info,
         "tier_overlap": tier_overlap,
+        "max_pool_fraction": cfg.max_pool_fraction,
+        "tiers_dropped_over_pool_cap": dropped_tiers,
+        "tiers_built_over_pool_cap": overrun_tiers,
         "label_space": n_label_space,
         "proportion_unit": unit,
         "top_k_k": k,

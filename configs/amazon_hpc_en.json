@@ -13,7 +13,12 @@
     500000,
     1000000
   ],
-  "haystacks_per_length": 5,
+  "haystacks_per_length": [
+    10,
+    5,
+    5,
+    5
+  ],
   "questions_per_haystack": 12,
   "proportion_unit": "auto",
   "reference_tokenizer": "Qwen/Qwen3-8B",

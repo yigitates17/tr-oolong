@@ -42,6 +42,8 @@
     "rare_min": 5,
     "rare_max": 30,
     "rare_min_labels": 2,
+    "max_pool_fraction": 0.35,
+    "allow_pool_overrun": true,
     "min_entity_answer": 10,
     "min_rank_margin": 0.1,
     "entity_candidates": 5,
@@ -87,6 +89,14 @@
       "pool_fraction_per_haystack": 0.3231
     }
   },
+  "max_pool_fraction": 0.35,
+  "tiers_dropped_over_pool_cap": [],
+  "tiers_built_over_pool_cap": [
+    {
+      "tier": 10000,
+      "pool_fraction": 0.3762
+    }
+  ],
   "label_space": 3,
   "proportion_unit": "percent",
   "top_k_k": 3,

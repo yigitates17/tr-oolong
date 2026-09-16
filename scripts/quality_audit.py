@@ -394,17 +394,34 @@ def verify_pairs(sets: list[str], cfgs: dict) -> int:
                 bad += 1
         qa = [json.loads(l) for l in Path(a, "questions.jsonl").read_text(encoding="utf-8").splitlines()]
         qb = [json.loads(l) for l in Path(b, "questions.jsonl").read_text(encoding="utf-8").splitlines()]
-        same = sum(1 for x, y in zip(qa, qb)
-                   if x["id"].split("-", 1)[1] == y["id"].split("-", 1)[1]
-                   and x["kind"] == y["kind"] and x.get("label") == y.get("label")
-                   and json.dumps(x["answer"], ensure_ascii=False)
-                   == json.dumps(y["answer"], ensure_ascii=False))
+        def _paired(x, y) -> bool:
+            return (x["id"].split("-", 1)[1] == y["id"].split("-", 1)[1]
+                    and x["kind"] == y["kind"] and x.get("label") == y.get("label"))
+
+        def _agrees(x, y) -> bool:
+            """Same fact, either verbatim or through the canonical key.
+
+            v0.7.0: questions whose answer is language-specific now carry
+            `answer_key`, the language-neutral form. Where both sides have it the
+            twin matches on THAT, so a fully paired set reports N/N instead of
+            "100/120 plus 20 mapped by design". `answer` is untouched and is
+            still what src/scoring.py scores.
+            """
+            if x.get("answer_key") is not None and y.get("answer_key") is not None:
+                return x["answer_key"] == y["answer_key"]
+            return (json.dumps(x["answer"], ensure_ascii=False)
+                    == json.dumps(y["answer"], ensure_ascii=False))
+
+        same = sum(1 for x, y in zip(qa, qb) if _paired(x, y) and _agrees(x, y))
         # `shift` and `label_vs_label` have language-mapped answers (arttı / rose,
         # "daha çok" / "more common"), so they can never match verbatim. The twin
         # still holds: both halves ask about the same records and the same label
         # pair, and the mapped answers agree -- checked below.
         LANG_MAPPED = ("shift", "label_vs_label")
-        mapped = sum(1 for x in qa if x["kind"] in LANG_MAPPED)
+        # Only those still LACKING an answer_key have to be excused as "mapped by
+        # design"; with the key present they are counted in `same` above.
+        mapped = sum(1 for x in qa
+                     if x["kind"] in LANG_MAPPED and x.get("answer_key") is None)
         # canonical key per outcome, so the check does not depend on which half
         # of the pair is `a` and which is `b`
         CANON = {"arttı": "rose", "rose": "rose", "azaldı": "fell", "fell": "fell",
