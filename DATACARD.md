@@ -601,6 +601,42 @@ prior-neutral. A margin band (reject too-wide gaps as well as too-narrow) is
 kept as a weaker third option: it helps the ranking families only and cannot
 touch `count`/`proportion`. Not applied in this release.
 
+## Why the rare band is [5, 30], and what the alternative measured
+
+`rare: true` marks a `count` whose gold answer holds **5 to 30 records in that
+haystack**. Both bounds were set by measurement, and the rejected alternative is
+reported here so the choice can be checked rather than taken on trust.
+
+**The upper bound.** A band of [5, 50] was built and measured on
+`tr_intent_paired` at both tiers:
+
+| band | read-nothing (`blind`) | random 5% | in-band labels at 3,000 / 6,000 records |
+|---|---:|---:|---|
+| **[5, 30] (shipped)** | **0.000** | **0.268** | 14.6 / 2.8 |
+| [5, 50] (rejected) | 0.114 | 0.417 | 25.0 / 5.6 |
+
+[5, 50] readmits the read-nothing guess (0.000 → 0.114) and returns roughly half
+the sampling resistance, in exchange for about twice as many in-band labels.
+
+**The lower bound is 5, not 1.** Below about 5 the question stops being
+aggregation and becomes retrieval: a reader can plausibly spot two or three
+matching records and stop, which is the behaviour `min_answer_count` (D3) exists
+to reject for the ranking families.
+
+**The cost of the shipped band, stated plainly.** It is **length-gated**. At
+6,000 records only about 3 labels fall in band, so the long tiers yield fewer
+rare counts than their quota asks for and the builder emits a starvation
+warning. Read the family as sparse at the top tiers, exactly as the entity
+families are.
+
+**The fair criticism, and the answer.** A reviewer can say the band was chosen
+to maximise the benchmark's apparent difficulty. That is true in the sense that
+the band was chosen to make the questions shortcut-resistant, which is the
+family's stated design goal, and it is why both bands are reported rather than
+only the shipped one. What would not be legitimate is choosing the band after
+seeing model results; no model has been run on this benchmark, so the band
+cannot have been fitted to one. Full rationale: `DESIGN_DECISIONS.md` D21, D21b.
+
 ## ⚠️ Label noise hits RARE-label counts hardest, and those are the hard questions
 
 **Measured 2026-09-20 by simulation on the shipped haystacks** (symmetric flips
