@@ -31,6 +31,7 @@
 - *"A model forced to truncate the document does worse."* **Not supported.** A reader spending the same budget on the two ends of a document loses almost nothing.
 - *"The benchmark requires a model to process every record."* **Withdrawn.** It requires classifying Turkish records and combining the results, which is narrower and still substantial.
 - *"Difficulty grades show the benchmark is hard."* **No.** They show which questions are hard, measured against four specific shortcut strategies. They are a disclosure and an instrument, not a difficulty claim.
+- *"Grading fixed the sampling problem."* **No, and this is the easiest one to get wrong.** Grading measured the problem; it changed no question. 71.8% are still skimmable. What reduced that share was adding rare-category questions and three new datasets, in findings 7 and 8. Grading only labels.
 - *"2,240 questions is 2,240 pieces of evidence."* **No.** 674 of them cover 337 facts, because the same document and category is asked about both as a count and as a share. Section 6.3.
 
 ---
@@ -192,6 +193,20 @@ These are the questions this work cannot settle on its own, phrased as questions
 
 The four existing checks all ask whether a question can be answered *without opening the document*. None asked whether it can be answered by reading only **part** of it. That check now exists, it was run on this benchmark and on OOLONG, and it changed both the benchmark and what it claims.
 
+### How every number in this section was produced
+
+**No model was involved in any of it.** This matters for reading the whole section, so it is stated before the results rather than in a footnote.
+
+Each "reader" below is a short computer program, not an AI. It is handed the document's records together with **the correct category of each one, taken from the dataset**, and it simply counts. It does not read Turkish, does not judge anything, and cannot make a classification mistake.
+
+That is deliberate, and it is what makes the results mean something. Because the program is handed the right answers for the records it looks at, it does **better** than any real model could do on the same amount of reading. So every score here is a **ceiling**. If this program fails at a question, no model can succeed by that route.
+
+**Where the randomness comes in, and how it is handled.** One of the four readers picks its records at random, so its result depends on which records it happened to draw. Running it once would prove nothing. So each question is run **200 times with 200 different random draws, and the average is reported**. The other three readers always pick the same records (the first ones, the two ends, evenly spaced), so they are run once, because repeating them gives an identical answer.
+
+The spread across those 200 draws is recorded too. Across all 2,240 questions, the largest uncertainty on any single average is **0.035** out of 1.00, so the numbers do not move if the whole exercise is repeated.
+
+**Everything is reproducible.** Fixed random seeds, one command, same numbers every time.
+
 ### The four readers, in plain terms
 
 Each reader is given a budget, say 5% of the records, and is told the correct category of every record it reads. They differ only in **which** records they get.
@@ -342,9 +357,7 @@ This benchmark's own sets fall on the same line at the same answer sizes.
 
 ### Does strict scoring solve it?
 
-Partly, and not usefully. Under strict exact-match a partial reader scores essentially zero on counting questions, on both benchmarks. But six of the nine remaining question types are answered with a category name rather than a number, and those are *already* scored by exact match: a reader seeing 5% answers them correctly 78 to 100 percent of the time.
-
-More decisively, strict scoring does not only defeat the partial reader, it defeats everyone. A reader that opens every one of 6,469 records and misjudges only one in a hundred scores **0.015** on counting. A near-perfect full reader and a 5% sampler become indistinguishable, because both score zero. That is why the proportional rule exists.
+**No.** It helps on the counting questions, does nothing for a third of the benchmark, and breaks the three-category datasets. This was measured properly on 20 September; the numbers are in **section 6.6** rather than repeated here.
 
 ### Finding 7: the fix is built, and it removes the read-nothing floor entirely
 
@@ -388,9 +401,19 @@ The measurements above were made per question *type*. Averaging over a type hide
 | moderate | | 232 | 10.4% |
 | **easy** | a reader seeing 5% answers it | 1,609 | **71.8%** |
 
-**Grading does not make the 71.8% smaller, and it is not meant to.** What it buys is a measuring instrument the benchmark did not have.
+### Grading measured the problem. It did not fix it. This distinction matters most.
 
-An easy question can be answered from a twentieth of the document, so what it tests is whether a model can **classify Turkish records at all**. A very hard question cannot, so what it tests is whether the model **worked through the whole document**. Those are different abilities, and until now a single score mixed them, which is exactly the problem stated in finding 3.
+**The 71.8% are still answerable from a twentieth of the document.** Grading changed nothing about the questions. Not one question became harder. The same shortcuts work exactly as well as they did before.
+
+A thermometer does not make a room cooler. What grading bought is that the benchmark now knows which questions are which, and can report them apart.
+
+**Before grading:** one score over 2,240 questions, most of them skimmable, and no way to tell a model that read everything from one that skimmed.
+
+**After grading:** two scores. One over the 1,609 easy questions, one over the 259 hardest. The gap between them says how much of the document the model actually read.
+
+An easy question can be answered from a twentieth of the document, so what it tests is whether a model can **classify Turkish records at all**. A very hard question cannot, so what it tests is whether the model **worked through the whole document**. Those are different abilities, and a single score mixed them, which is the problem stated in finding 3.
+
+**What would actually reduce the 71.8%** is different questions, not grades. That is what findings 7 and 8 did: rare-category counts and three new datasets with more categories. Those genuinely moved questions into the hard band. Grading only labelled what was already there.
 
 With graded questions they separate:
 
@@ -420,17 +443,6 @@ Each of these is true, and each is worse if it is found rather than declared.
 
 6. **"This is a property of the metric, not of the data."** True. The proportional scoring rule gives most of the credit for an approximately right answer. Under strict scoring almost every counting question becomes very hard, but so does every honest full reader: a model that opens all 6,469 records and misjudges one in a hundred scores 0.015. Strict scoring does not separate good from bad; it fails everyone.
 
-### How the position changed over the week, in order
-
-Stating this plainly, because each step was caused by a measurement rather than a change of opinion.
-
-1. A fifth check was built, asking whether a question can be answered by reading only part of the document. It could, on most question types.
-2. The check was then found to have the wrong reference point. The honest comparison is against a reader that opens nothing, which already scores about half.
-3. The check was found to model only two of the four ways to spend a reading budget. Adding the other two withdrew a published claim about document length and removed one question type entirely.
-4. The same check was run on OOLONG. Both benchmarks obey the same rule, and OOLONG is less exposed because most of its questions are restricted to a subset before being asked.
-5. Question types were added and datasets were found that make small answers possible, which is the only thing the arithmetic allows.
-6. Grading was added per question, which does not reduce the exposure but converts it into a measurement.
-
 ### What else changed in this rebuild
 
 - **A tier was removed.** The largest Turkish supplement documents used 48% of the available reviews, so their category mix could not differ much from the source's, and a reader who knew the source's proportions and never opened the document scored 0.75. That length is gone.
@@ -454,6 +466,18 @@ For the method under study this matters in one specific way. Its expected advant
 ## 6. An independent review of the published files, 20 September
 
 Every check described above was written alongside the benchmark by the same person who built it. On 20 September the published files were examined separately, starting from the data rather than from the code, specifically to find things the existing checks are structurally unable to see. Three things were found. One is a defect and has been fixed; two are disclosures that should be stated before someone else states them.
+
+**How each result below was obtained**, since the method decides how much weight each deserves:
+
+| finding | how it was produced | how much to trust it |
+|---|---|---|
+| 6.1 the repeated numbers | counted the distinct identifiers in the published files | **certain**, it is arithmetic on the shipped data |
+| 6.2 the fifth shortcut | wrote a program that searches the text for category names and counts matches, then compared its score against each question's existing grade | **certain** as a measurement of that one strategy |
+| 6.3 the repeated facts | matched every counting question against every proportion question about the same document and category, then computed one answer from the other | **certain**, arithmetic again |
+| 6.4 the ceiling | **a simulation, not a model.** A random number generator was used to corrupt one in ten of the correct categories, and the answers were recomputed | **indicative only.** It shows what would happen at that error rate. No model has been run, so the rate itself is an assumption |
+| 6.6 the scoring comparison | the existing shortcut program, scored twice under the two different rules | **certain** as a comparison of the two rules |
+
+**The one to be careful quoting is 6.4.** It is the only result here produced by a random number generator rather than by counting something real.
 
 ### 6.1 A defect: the same question number was used by several datasets
 
@@ -530,7 +554,7 @@ Stated so that the absence of a finding is not mistaken for an absence of checki
 - **All 2,240 answers.** Recomputed from the raw data by a separate route and matched exactly.
 - **Difficulty grades.** Reproduced exactly after the rebuild: 259 hardest, 140 hard, 232 moderate, 1,609 easy.
 
-### 6.7 Would OOLONG's own scoring remove the problem? Partly, and not where it matters
+### 6.6 Would OOLONG's own scoring remove the problem? Partly, and not where it matters
 
 A fair question: the benchmark this one follows scores a numeric answer by how *exactly* it matches, with almost no credit for being close. Under that rule, a reader who samples and scales up is simply wrong. So could the sampling problem be made to disappear by scoring the way OOLONG does?
 
@@ -551,11 +575,11 @@ A fair question: the benchmark this one follows scores a numeric answer by how *
 
 2. **But on the three-category datasets it destroys the honest reader too.** Scored OOLONG's way, a reader that opens every one of six thousand records and is right 99 times out of 100 scores **0.18**. It cannot be told apart from a reader that did nothing. That is why the second metric exists.
 
-3. **And on the questions whose answer is a category name rather than a number, the choice of scoring makes no difference whatsoever.** Those are already judged right or wrong with no partial credit, under either rule. The cheater scores 0.92 to 0.98 and ties the honest reader. Four of the nine question types work this way, and roughly a third of all questions.
+3. **And on the questions whose answer is a category name rather than a number, the choice of scoring makes no difference whatsoever.** Those are already judged right or wrong with no partial credit, under either rule. The cheater scores 0.92 to 0.98 and ties the honest reader. **Six of the nine question types work this way, covering 740 questions, a third of the benchmark.**
 
 **So the honest summary is:** changing the scoring rule would reduce the exposure on the counting questions, break the three-category datasets, and do nothing at all for a third of the benchmark. The exposure is a property of the questions, not only of the scoring, and reporting both rules plus the difficulty bands is the better answer than choosing one rule and claiming the problem is solved.
 
-### 6.6 The verdict on whether construction is finished
+### 6.7 The verdict on whether construction is finished
 
 **For the dataset itself: yes, with the upload outstanding.** The construction is coherent, every answer is verifiable and verified, the limitations are measured rather than asserted, and the one defect found by an outside pass has been repaired and guarded against. The remaining work is publication housekeeping rather than construction.
 
@@ -596,7 +620,7 @@ A reference table, because the reasons are spread across several documents and n
 
 | choice | value | why | where |
 |---|---|---|---|
-| two metrics reported | `partial` and `relative` | `partial` is OOLONG's own formula, kept unchanged so results are comparable with it. `relative` was added because `partial` collapses at our answer sizes: on the three-category sets a reader who opens every record and is right 99 times out of 100 scores **0.18** under `partial`. | §6.7, scoring.py |
+| two metrics reported | `partial` and `relative` | `partial` is OOLONG's own formula, kept unchanged so results are comparable with it. `relative` was added because `partial` collapses at our answer sizes: on the three-category sets a reader who opens every record and is right 99 times out of 100 scores **0.18** under `partial`. | §6.6, scoring.py |
 | scores reported as | **lift over the read-nothing floor** | A reader that opens nothing already scores about 0.5 on counting questions, so a raw score mostly measures the floor. | §5 finding 1 |
 | reported as | **two bands and the gap**, never pooled | A pooled score over a question set that is 71.8% easy mostly measures whether the model reads Turkish. | §4, decision 4 |
 
