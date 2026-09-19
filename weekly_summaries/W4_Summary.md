@@ -504,9 +504,21 @@ The benchmark's answers come from the labels the source corpora already carry. I
 
 **Why this matters more than it first appears.** The rare-category questions were added precisely because they are the ones a skimming reader cannot answer. They are the hard core of the benchmark. They are also, it turns out, the ones most sensitive to imperfect labels. The hard questions and the fragile questions are the same questions.
 
-**The gap this exposes, and it is the most important item outstanding.** The two datasets supplying most of the hard questions, the complaints set and the news set, have **never had their label accuracy measured**. Between them they supply 142 of the 259 hardest questions, which is 55%. The figure measured on the intent datasets cannot be borrowed, because those are different corpora labelled by a different process. A 200-row sample has now been prepared from each for checking by hand; until someone reads those rows, the ceiling on the hardest part of the benchmark is unknown.
+**On the two datasets that matter here, though, "a wrong label" is not really the right idea, and this is worth getting right.** In the complaints dataset the category is chosen by the person filing the complaint, not assigned afterwards by anyone. In the news dataset it is the section of the newspaper the article was printed in. Neither is somebody's opinion about what the text is about, so neither can be mistaken. They both record something that genuinely happened. What varies is how easy it is to work out that fact by reading the text, which is a different thing.
 
-The five datasets whose labels are the writer's own star rating are largely exempt, because nobody interpreted anything: the author of the review chose the rating.
+**And that quantity was already being measured.** The benchmark's own checks include a reader that opens every single record but judges each one correctly only nine times out of ten, which is roughly what a good model does. That reader is the realistic ceiling, and on the hardest family it scores:
+
+| dataset | ordinary counting question | counting question about a rare category |
+|---|---:|---:|
+| complaints | 0.82 | **0.38** |
+| news | 0.86 | **0.58** |
+| intent | 0.91 | **0.53** |
+
+**This is the number that should be quoted as the ceiling.** A model that reads everything and is right nine times out of ten scores 0.38 on the hardest family, where a perfect one would score 1.00. The rare-category questions are demanding not because the data is bad but because small answers punish small error rates, which is the same arithmetic as before applied to the model's own mistakes rather than the corpus's.
+
+**What this changes.** Results on the rare-category family should be read against that ceiling rather than against a perfect score, otherwise the family looks impossible when it is merely hard. Checking by hand how far the source labels sit from a Turkish reader's judgement is still worth doing and a 200-row sample is prepared for every dataset, but it refines the picture rather than unblocking anything.
+
+The five datasets whose labels are the writer's own star rating are the least affected, because nobody interpreted anything: the author of the review chose the rating.
 
 ### 6.5 What was checked and found clean
 
@@ -526,4 +538,4 @@ Stated so that the absence of a finding is not mistaken for an absence of checki
 
 **Two things that remain true and should not be presented as resolved by any of the above:** most questions are answerable from a sample, and two datasets contain almost no hard questions. Both are already stated in section 0 and neither is changed by this review.
 
-**And one thing that is genuinely open:** the label accuracy of the two datasets carrying most of the hard questions, described in 6.4. This does not block publication, because the benchmark is honest about deriving its answers from source labels, and it is stated in the documentation. It does bound what can be claimed about the hardest questions until it is measured.
+**And one thing to report rather than fix:** the ceiling on the hardest family, described in 6.4. A model that reads everything and classifies well scores around 0.4 to 0.6 there, not 1.0. That is a property of asking for small numbers, it is already measured, and it should be quoted alongside any result on that family.

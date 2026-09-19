@@ -634,15 +634,42 @@ they are the only family a partial reader cannot estimate (D21). They are
 therefore also the family a mislabelled corpus damages most. The very-hard
 subset carries a noise ceiling that the easy subset does not.
 
-**The open gap, and it is the most important one left.** `sikayet_tr` (`crowd`)
-supplies **76** very-hard questions and **72** rare counts; `interpress_tr`
-supplies **66** and **59**. Together that is **142 of 259 very-hard questions
-(55%) from sets whose label noise has never been measured.** A 200-row
-self-annotation slice is now generated for both
-(`<set>/label_noise_slice.csv`); until it is annotated, the very-hard band's
-ceiling is unknown and no ε should be quoted for those sets. The intent axis's
-measured 7.3–9.3% is **not** transferable: it is a different corpus with a
-different labelling process.
+### The ceiling is already measured, and "label noise" is the wrong name for it
+
+**On these two sets, a "wrong" label is not well defined, and that is the point.**
+`sikayet_tr`'s category is **chosen by the complainant when filing**, and
+`interpress_tr`'s is the **publisher's own editorial desk**. Neither is an
+annotator's judgement about content, so neither can be "wrong": both record a
+real fact. What varies is how well that fact is **recoverable from the text**.
+
+**So the quantity that bounds the benchmark is label PREDICTABILITY, not label
+error, and `sampling_solver.py` already reports it** as `fullread@acc`: a reader
+that opens **every** record but classifies each one correctly only with
+probability `a`.
+
+| set | family | full read @ 70% | full read @ 90% | blind |
+|---|---|---:|---:|---:|
+| `sikayet_tr` | `count` | 0.642 | 0.817 | 0.351 |
+| `sikayet_tr` | **`count_rare`** | **0.155** | **0.381** | 0.044 |
+| `interpress_tr` | `count` | 0.700 | 0.863 | 0.436 |
+| `interpress_tr` | **`count_rare`** | **0.368** | **0.576** | 0.183 |
+| `tr_intent` | **`count_rare`** | **0.182** | **0.528** | 0.000 |
+
+**Read the `count_rare` rows carefully: they are the benchmark's real ceiling.**
+A model that reads every single record and is right 90% of the time scores
+**0.381** on `sikayet_tr`'s rare counts, barely above the 0.35 `very hard`
+boundary. This is not a defect of the corpus and no amount of relabelling
+removes it: it is the 1/C amplification above, applied to a model's own errors
+instead of the corpus's.
+
+**Consequences.** (1) Report `count_rare` results against `fullread@0.9`, not
+against 1.0, or the family looks impossible when it is merely demanding. (2) An
+independent measurement of how far the source labels themselves sit from a
+Turkish reader's judgement is still worth having, and a 200-row slice is
+generated for every set (`<set>/label_noise_slice.csv`). It refines the story;
+it does not gate publication, because the ceiling above already bounds what can
+be claimed. (3) The intent axis's measured 7.3–9.3% is **not** transferable to
+these corpora: different sources, different labelling processes.
 
 `sinema_tr`, `vitamins_tr`, `musteri_tr`, `marc_en` and `amazon_hpc_en` are
 `author_stars` (the writer's own rating), so they have no annotation step and
