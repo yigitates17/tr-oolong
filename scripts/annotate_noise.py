@@ -6,11 +6,17 @@ and a mis-scrolled row that shifts every answer by one. This walks the rows one
 at a time, writes the answer straight back into the CSV, and is resumable, so
 neither can happen and the work can be done in any number of sittings.
 
-  python scripts/annotate_noise.py            # start / resume
-  python scripts/annotate_noise.py --stats    # report epsilon, annotate nothing
+  python scripts/annotate_noise.py                                  # the intent slice
+  python scripts/annotate_noise.py --csv noise_slices/sikayet_tr.csv
+  python scripts/annotate_noise.py --csv noise_slices/sikayet_tr.csv --stats
+  python scripts/annotate_noise.py --all-stats                      # every slice, one table
+
+Reads any slice written by make_noise_slice.py. Long records (complaints, news
+articles) are wrapped and clipped to --chars so one row stays on one screen;
+press `m` to see the full text of the row you are on.
 
 Keys per row:  e = label correct   h = label wrong   s = skip / unsure
-               b = back one row    q = save and quit
+               b = back one row    m = show full text   q = save and quit
 
 The question is NOT "is this the best possible label". It is "would a careful
 annotator have rejected this label as wrong". Anything defensible counts as
@@ -20,6 +26,7 @@ import argparse
 import csv
 import math
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,11 +83,65 @@ def report(body: list) -> None:
         print("\n  Record this in DATACARD.md under the intent axis, with n and the CI.")
 
 
+def show(text: str, width: int, limit: int | None) -> str:
+    """Wrap to the terminal and clip, so one record is one screenful. The full
+    text stays one keypress away -- clipping silently would change what is being
+    judged."""
+    t = " ".join(str(text).split())
+    clipped = limit is not None and len(t) > limit
+    if clipped:
+        t = t[:limit] + " ..."
+    body = textwrap.fill(t, width=width, initial_indent="  ", subsequent_indent="  ")
+    return body + ("\n  [clipped -- press m for the full text]" if clipped else "")
+
+
+def label_menu(body: list, width: int) -> str:
+    """The label space, so the reader can see what the alternatives were. On a
+    29-class corpus 'is this label right' is unanswerable without them."""
+    labs = sorted({r[4] for r in body if r[4]})
+    if len(labs) > 40:
+        return ""
+    return textwrap.fill("labels: " + ", ".join(labs), width=width,
+                         initial_indent="  ", subsequent_indent="          ")
+
+
+def all_stats() -> None:
+    """Every slice at once. Prints the table that goes into DATACARD."""
+    paths = sorted((ROOT / "noise_slices").glob("*.csv"))
+    legacy = ROOT / "label_noise_massive.csv"
+    if legacy.exists():
+        paths = [legacy] + paths
+    if not paths:
+        sys.exit("no slices found -- run: python scripts/make_noise_slice.py --dataset all")
+    print(f"{'slice':22}{'judged':>8}{'wrong':>7}{'eps':>8}{'95% CI':>18}")
+    print("-" * 63)
+    for p in paths:
+        _, b = load(p)
+        ok, bad, total = stats(b)
+        judged = ok + bad
+        if judged == 0:
+            print(f"{p.stem[:21]:22}{'0':>8}{'-':>7}{'-':>8}{'not started':>18}")
+            continue
+        eps = bad / judged
+        lo, hi = wilson(bad, judged)
+        flag = "" if judged == total else f"  ({total-judged} left)"
+        print(f"{p.stem[:21]:22}{judged:>8}{bad:>7}{eps:>7.1%}"
+              f"{f'[{lo*100:.1f}%, {hi*100:.1f}%]':>18}{flag}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default=str(ROOT / "label_noise_massive.csv"))
     ap.add_argument("--stats", action="store_true", help="report only")
+    ap.add_argument("--all-stats", action="store_true",
+                    help="epsilon for every slice in noise_slices/, one table")
+    ap.add_argument("--chars", type=int, default=700,
+                    help="clip each record to this many characters (0 = never clip)")
+    ap.add_argument("--width", type=int, default=92)
     a = ap.parse_args()
+    if a.all_stats:
+        all_stats()
+        return
     path = Path(a.csv)
     if not path.exists():
         sys.exit(f"{path} not found -- run: python scripts/make_noise_slice.py")
@@ -100,11 +161,17 @@ def main() -> None:
         print("\n" + "=" * 72)
         print(f"  row {r[0]} of {len(body)}      answered so far: {done}")
         print("=" * 72)
-        print(f"  TR    {r[2]}")
-        print(f"  EN    {r[3]}")
-        print(f"\n  LABEL {r[4]}")
+        limit = a.chars if a.chars > 0 else None
+        print(show(r[2], a.width, limit))
+        if r[3].strip():                   # bilingual slices only
+            print(f"\n  EN:")
+            print(show(r[3], a.width, limit))
+        print(f"\n  LABEL >>> {r[4]} <<<")
+        menu = label_menu(body, a.width)
+        if menu:
+            print(menu)
         try:
-            k = input("\n  correct? [e]vet  [h]ayır  [s]kip  [b]ack  [q]uit > ").strip().lower()
+            k = input("\n  correct? [e]vet  [h]ayır  [s]kip  [b]ack  [m]ore  [q]uit > ").strip().lower()
         except (EOFError, KeyboardInterrupt):
             save(path, header, body)
             print("\nsaved.")
@@ -118,11 +185,18 @@ def main() -> None:
             i = max(0, i - 1)
             body[i][ANS] = ""              # clear it so the loop re-asks
             continue
+        if k == "m":
+            print("\n  FULL TEXT:")
+            print(show(r[2], a.width, None))
+            if r[3].strip():
+                print("\n  FULL TEXT (EN):")
+                print(show(r[3], a.width, None))
+            continue
         if k == "s":
             i += 1
             continue
         if k not in ("e", "h"):
-            print("  -- press e, h, s, b or q")
+            print("  -- press e, h, s, b, m or q")
             continue
         r[ANS] = k
         if k == "h":
