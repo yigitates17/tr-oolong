@@ -530,6 +530,31 @@ Stated so that the absence of a finding is not mistaken for an absence of checki
 - **All 2,240 answers.** Recomputed from the raw data by a separate route and matched exactly.
 - **Difficulty grades.** Reproduced exactly after the rebuild: 259 hardest, 140 hard, 232 moderate, 1,609 easy.
 
+### 6.7 Would OOLONG's own scoring remove the problem? Partly, and not where it matters
+
+A fair question: the benchmark this one follows scores a numeric answer by how *exactly* it matches, with almost no credit for being close. Under that rule, a reader who samples and scales up is simply wrong. So could the sampling problem be made to disappear by scoring the way OOLONG does?
+
+**Measured on the real questions.** The same 5% cheater, scored both ways, next to an honest reader that opens every record and is right 99 times out of 100:
+
+| question type | OOLONG's scoring: cheater | OOLONG's scoring: honest | our scoring: cheater | our scoring: honest |
+|---|---:|---:|---:|---:|
+| ordinary counting | 0.17 | 0.61 | 0.80 | 0.98 |
+| rare-category counting | 0.22 | 0.78 | 0.36 | 0.90 |
+| proportion | 0.45 | 0.87 | 0.70 | 0.94 |
+| **which is most common** | **0.96** | **1.00** | **0.96** | **1.00** |
+| **which is least common** | **0.98** | **0.99** | **0.98** | **0.99** |
+| **comparing two categories** | **0.92** | **0.91** | **0.92** | **0.91** |
+
+**Three conclusions, and the third is the one that decides it.**
+
+1. **On the counting questions, OOLONG's scoring genuinely does separate the cheater from the honest reader**, and by a wider margin than ours does. That is a real point in its favour and it should be conceded rather than argued around.
+
+2. **But on the three-category datasets it destroys the honest reader too.** Scored OOLONG's way, a reader that opens every one of six thousand records and is right 99 times out of 100 scores **0.18**. It cannot be told apart from a reader that did nothing. That is why the second metric exists.
+
+3. **And on the questions whose answer is a category name rather than a number, the choice of scoring makes no difference whatsoever.** Those are already judged right or wrong with no partial credit, under either rule. The cheater scores 0.92 to 0.98 and ties the honest reader. Four of the nine question types work this way, and roughly a third of all questions.
+
+**So the honest summary is:** changing the scoring rule would reduce the exposure on the counting questions, break the three-category datasets, and do nothing at all for a third of the benchmark. The exposure is a property of the questions, not only of the scoring, and reporting both rules plus the difficulty bands is the better answer than choosing one rule and claiming the problem is solved.
+
 ### 6.6 The verdict on whether construction is finished
 
 **For the dataset itself: yes, with the upload outstanding.** The construction is coherent, every answer is verifiable and verified, the limitations are measured rather than asserted, and the one defect found by an outside pass has been repaired and guarded against. The remaining work is publication housekeeping rather than construction.
@@ -539,3 +564,46 @@ Stated so that the absence of a finding is not mistaken for an absence of checki
 **Two things that remain true and should not be presented as resolved by any of the above:** most questions are answerable from a sample, and two datasets contain almost no hard questions. Both are already stated in section 0 and neither is changed by this review.
 
 **And one thing to report rather than fix:** the ceiling on the hardest family, described in 6.4. A model that reads everything and classifies well scores around 0.4 to 0.6 there, not 1.0. That is a property of asking for small numbers, it is already measured, and it should be quoted alongside any result on that family.
+
+---
+
+## 7. Every number we chose, and the one-line reason
+
+A reference table, because the reasons are spread across several documents and none of them is memorable on its own. Each row is a choice that could have gone differently. The last column says where the full argument lives.
+
+### Choices about what makes a question hard
+
+| choice | value | why this and not something else | where |
+|---|---|---|---|
+| rare-category band | answers of **5 to 30** | [5,50] was built and measured. It lets a reader who opens nothing score 0.11 instead of 0.00, and returns half the resistance. Below 5 the question becomes "find two records", which is searching, not counting. | datacard, D21b |
+| the cheater's budget | **5%** of records | Roughly what a model with a code tool samples by itself. Graded at six budgets to show nothing was tuned: 1% would let us claim 771 hard questions instead of 259. | §5, PAPER_NOTES 9a |
+| difficulty bands | very hard <0.35, hard <0.60, moderate <0.80 | Cut points on the cheater's score. 0.35 is where a cheater is clearly failing and 0.80 where it clearly wins. The middle two bands are unstable (half the "hard" questions could move) and should not be quoted separately. | §5 finding 9 |
+| how a grade is computed | best of **four** cheaters, 200 random draws | A shortcut only has to work once, so the best result counts, not the average. 200 draws because a single draw on a small answer swings between 0 and 1. | §5 |
+| smallest countable answer | **10** | Below this a count is retrieval rather than aggregation. Rare-category counts are the deliberate exception, for the reason in row 1. | D3, D21 |
+| smallest ranking margin | **0.15** | Two categories within 15% of each other make "which is more common" a coin flip that no amount of reading settles. | D3 |
+
+### Choices about the documents
+
+| choice | value | why | where |
+|---|---|---|---|
+| separator between records | a **symbol**, not a word | A Turkish word like "KAYIT" appeared inside English documents and tokenizes differently per language, which corrupts a matched comparison. Symbols tokenize the same in both. | README §2.5 |
+| brand marker | printed as **[[Brand]]** | Before v0.6.0 the brand existed only in a column the model never saw, so brand questions asked about something absent from the document. | D17 |
+| category never printed | enforced by **dropping** records | Any record containing a category name is removed at build time. Verified: 0 of 856,798 shipped records contain one. | D1 |
+| smallest category kept | **1,000 rows** | A category too small to sample is automatically the rarest in every document, so "which is least common" becomes answerable without reading. | D3 |
+| length measured with | **Qwen3-8B** tokenizer | One tokenizer for every set, so lengths are comparable. Turkish costs more tokens than English for the same content, and that difference is a measurement, not an error. | README §13 |
+
+### Choices about scoring
+
+| choice | value | why | where |
+|---|---|---|---|
+| two metrics reported | `partial` and `relative` | `partial` is OOLONG's own formula, kept unchanged so results are comparable with it. `relative` was added because `partial` collapses at our answer sizes: on the three-category sets a reader who opens every record and is right 99 times out of 100 scores **0.18** under `partial`. | §6.7, scoring.py |
+| scores reported as | **lift over the read-nothing floor** | A reader that opens nothing already scores about 0.5 on counting questions, so a raw score mostly measures the floor. | §5 finding 1 |
+| reported as | **two bands and the gap**, never pooled | A pooled score over a question set that is 71.8% easy mostly measures whether the model reads Turkish. | §4, decision 4 |
+
+### The three things that are open, and their status
+
+| item | status |
+|---|---|
+| Most questions answerable from a sample | Measured, disclosed, and the reason the bands exist. Not fixable by wording. |
+| Label accuracy on the complaints and news sets | Not measured. Bounded by the ceiling in §6.4, so it refines rather than blocks. Tool and samples ready. |
+| No model has been run yet | Every cheater is a simulation and an upper bound. Whether a real model takes these shortcuts is the next experiment. |
