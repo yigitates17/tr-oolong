@@ -489,7 +489,26 @@ For 337 combinations of a document and a category, the benchmark asks both "how 
 
 **Recommendation:** keep both forms, because they are differently worded and a model can fail one and pass the other, but state the overlap in the documentation and never present the question count as a measure of evidence. This is consistent with the position already taken in section 0 that the headline count is a count and not a difficulty claim.
 
-### 6.4 What was checked and found clean
+### 6.4 A measurement worth having: wrong labels hurt the hard questions most
+
+The benchmark's answers come from the labels the source corpora already carry. If a label is wrong, the answer derived from it is wrong, and a model that judges the record correctly is marked down for it. This is a known limitation and the rate has been measured on the intent datasets: somewhere between 3% and 9% of those labels are arguable.
+
+**What had not been asked is how much a wrong label actually moves an answer.** It is a different question, because the questions ask for totals, and in a total the mistakes partly cancel: a category that should hold 800 records loses a few to mislabelling and gains a few back from other categories. Simulating that on the real documents:
+
+| how many labels are wrong | ordinary counting question | counting question about a rare category |
+|---|---:|---:|
+| 7.3% | 0.93 | **0.65** |
+| 9.3% | 0.91 | **0.53** |
+
+**The ordinary questions barely notice. The rare-category questions are damaged badly.** The reason is arithmetic. A category holding six records out of two and a half thousand loses almost nothing to mislabelling, but it *receives* around eight records wrongly assigned to it from everywhere else. Its count roughly triples. Small categories get flooded.
+
+**Why this matters more than it first appears.** The rare-category questions were added precisely because they are the ones a skimming reader cannot answer. They are the hard core of the benchmark. They are also, it turns out, the ones most sensitive to imperfect labels. The hard questions and the fragile questions are the same questions.
+
+**The gap this exposes, and it is the most important item outstanding.** The two datasets supplying most of the hard questions, the complaints set and the news set, have **never had their label accuracy measured**. Between them they supply 142 of the 259 hardest questions, which is 55%. The figure measured on the intent datasets cannot be borrowed, because those are different corpora labelled by a different process. A 200-row sample has now been prepared from each for checking by hand; until someone reads those rows, the ceiling on the hardest part of the benchmark is unknown.
+
+The five datasets whose labels are the writer's own star rating are largely exempt, because nobody interpreted anything: the author of the review chose the rating.
+
+### 6.5 What was checked and found clean
 
 Stated so that the absence of a finding is not mistaken for an absence of checking.
 
@@ -499,10 +518,12 @@ Stated so that the absence of a finding is not mistaken for an absence of checki
 - **All 2,240 answers.** Recomputed from the raw data by a separate route and matched exactly.
 - **Difficulty grades.** Reproduced exactly after the rebuild: 259 hardest, 140 hard, 232 moderate, 1,609 easy.
 
-### 6.5 The verdict on whether construction is finished
+### 6.6 The verdict on whether construction is finished
 
 **For the dataset itself: yes, with the upload outstanding.** The construction is coherent, every answer is verifiable and verified, the limitations are measured rather than asserted, and the one defect found by an outside pass has been repaired and guarded against. The remaining work is publication housekeeping rather than construction.
 
 **The one thing that must happen before it is announced anywhere:** upload the corrected files. Announcing the benchmark while the version being downloaded still has colliding question numbers would invite exactly the silent data loss described in 6.1.
 
 **Two things that remain true and should not be presented as resolved by any of the above:** most questions are answerable from a sample, and two datasets contain almost no hard questions. Both are already stated in section 0 and neither is changed by this review.
+
+**And one thing that is genuinely open:** the label accuracy of the two datasets carrying most of the hard questions, described in 6.4. This does not block publication, because the benchmark is honest about deriving its answers from source labels, and it is stated in the documentation. It does bound what can be claimed about the hardest questions until it is measured.

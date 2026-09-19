@@ -601,6 +601,44 @@ prior-neutral. A margin band (reject too-wide gaps as well as too-narrow) is
 kept as a weaker third option: it helps the ranking families only and cannot
 touch `count`/`proportion`. Not applied in this release.
 
+## ⚠️ Label noise hits RARE-label counts hardest, and those are the hard questions
+
+**Measured 2026-09-20 by simulation on the shipped haystacks** (symmetric flips
+at rate ε, `relative` metric, gold recomputed from the flipped labels):
+
+| set | ε | ordinary `count` | **rare `count`** |
+|---|---:|---:|---:|
+| `tr_intent` | 7.3% | 0.930 | **0.651** |
+| `tr_intent` | 9.3% | 0.905 | **0.534** |
+| `sikayet_tr` | 7.3% | 0.858 | **0.463** |
+| `sikayet_tr` | 9.3% | 0.832 | **0.390** |
+| `interpress_tr` | 9.3% | 0.889 | **0.571** |
+
+**Why the gap.** A count is a sum, so per-record errors largely cancel: a class
+holding 800 of 2,449 records loses ~ε·800 and gains ~ε·1,649/(K−1), and with
+balanced classes those nearly offset. A class holding **6** records loses almost
+nothing but *gains* ε·2,443/(K−1) ≈ 8 spurious members, so the observed count
+roughly triples. **Noise floods small classes.**
+
+**The tension this creates, stated plainly.** Rare-label counts exist because
+they are the only family a partial reader cannot estimate (D21). They are
+therefore also the family a mislabelled corpus damages most. The very-hard
+subset carries a noise ceiling that the easy subset does not.
+
+**The open gap, and it is the most important one left.** `sikayet_tr` (`crowd`)
+supplies **76** very-hard questions and **72** rare counts; `interpress_tr`
+supplies **66** and **59**. Together that is **142 of 259 very-hard questions
+(55%) from sets whose label noise has never been measured.** A 200-row
+self-annotation slice is now generated for both
+(`<set>/label_noise_slice.csv`); until it is annotated, the very-hard band's
+ceiling is unknown and no ε should be quoted for those sets. The intent axis's
+measured 7.3–9.3% is **not** transferable: it is a different corpus with a
+different labelling process.
+
+`sinema_tr`, `vitamins_tr`, `musteri_tr`, `marc_en` and `amazon_hpc_en` are
+`author_stars` (the writer's own rating), so they have no annotation step and
+this concern is structurally much smaller for them.
+
 ## Label noise is a per-family ceiling, not a global one
 
 Ground truth is the source label, so a wrong label does not make an answer wrong
