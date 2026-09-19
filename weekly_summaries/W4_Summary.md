@@ -1,6 +1,6 @@
 # TR-OOLONG: Week 4
 
-*Updated 2026-09-16. Carries over the items the week 3 meeting ran out of time for. Section 5 reports a shortcut check built on the 16th and the rebuild that followed it.*
+*Updated 2026-09-20. Carries over the items the week 3 meeting ran out of time for. Section 5 reports a shortcut check built on the 16th and the rebuild that followed it. Sections 0, 5 and 6 were revised on the 20th after an independent review of the published files, which found one defect worth correcting before the meeting.*
 
 ---
 
@@ -8,16 +8,20 @@
 
 **Rebuilt and extended on 16 September.** The benchmark is now **11 datasets · 195 documents · 2,240 questions · 9 question types · 2 languages**, documents from 3,000 records to one million tokens. Three Turkish datasets were added this week specifically to fix a weakness described in section 5, and every question now carries a measured difficulty grade.
 
-**What is published is still the previous version.** Hugging Face and the GitHub tag serve the 15 September release: 8 datasets, 110 documents, 1,254 questions, 10 question types. Nothing has been uploaded since. The published version contains one question type that has since been withdrawn.
+**The current version is published.** All eleven datasets went to Hugging Face on 16 September, and the files served there are byte-for-byte the ones described here. An earlier draft of this summary said the upload had not happened; that was wrong, and it is corrected here.
 
-| | published (15 Sep) | current build (16 Sep) |
-|---|---|---|
-| datasets | 8 | **11** |
-| documents | 110 | **195** |
-| questions | 1,254 | **2,240** |
-| question types | 10 | **9** |
-| largest label space | 48 | 48 |
-| difficulty grades | none | **per question** |
+| | previous (15 Sep) | published (16 Sep) | corrected (20 Sep) |
+|---|---|---|---|
+| datasets | 8 | **11** | 11 |
+| documents | 110 | **195** | 195 |
+| questions | 1,254 | **2,240** | 2,240 |
+| question types | 10 | **9** | 9 |
+| largest label space | 48 | 48 | 48 |
+| difficulty grades | none | **per question** | per question |
+
+**One defect was found on 20 September and has been repaired.** Each dataset numbered its own questions from scratch, so the same question number was used by several datasets at once. Across the whole benchmark the 2,240 questions carried only 955 distinct numbers. A person who loaded all eleven datasets into one table and used those numbers would have lost well over half the benchmark without any warning or error message. Every question and every document now also carries a name that includes its dataset, which cannot collide, and an automatic check refuses any future release that repeats the mistake. Nothing else changed: every question, every answer and every difficulty grade is identical to what was published on the 16th. Section 6 gives the detail.
+
+**This correction needs to be uploaded.** The repaired files are ready and verified locally. Until they are uploaded, anyone downloading the benchmark gets the version with the colliding numbers.
 
 **Figures that are easy to quote wrongly, and the correct framing:**
 
@@ -27,6 +31,7 @@
 - *"A model forced to truncate the document does worse."* **Not supported.** A reader spending the same budget on the two ends of a document loses almost nothing.
 - *"The benchmark requires a model to process every record."* **Withdrawn.** It requires classifying Turkish records and combining the results, which is narrower and still substantial.
 - *"Difficulty grades show the benchmark is hard."* **No.** They show which questions are hard, measured against four specific shortcut strategies. They are a disclosure and an instrument, not a difficulty claim.
+- *"2,240 questions is 2,240 pieces of evidence."* **No.** 674 of them cover 337 facts, because the same document and category is asked about both as a count and as a share. Section 6.3.
 
 ---
 
@@ -135,8 +140,8 @@ For the Turkish-label variant, the 0.14% figure is the *cost* of the filter, not
 
 These are the questions this work cannot settle on its own, phrased as questions rather than as recommendations. A recommendation is given under each, with what it costs.
 
-**1. Should the benchmark be published in its current form now, or wait?** The public version is from 15 September and still contains a question type that has since been withdrawn as unsound, so anyone downloading it today gets questions that should not be scored. Republishing fixes that but also publishes three datasets whose licences are unresolved (see question 3), even though their text is not redistributed.
-*Recommendation: republish now.* Shipping a known-unsound question type is the worse of the two risks, and the licence handling for the three new datasets is the same arrangement one existing dataset has used since the first release.
+**1. When should the corrected files be uploaded?** This has replaced the question that stood here before. The earlier question was whether to publish at all; that was answered by publishing on 16 September, and the question no longer applies. What is now outstanding is narrower: the published version numbers its questions in a way that makes the eleven datasets unsafe to combine, the repair is built and verified, and it has not been uploaded. Section 6.1.
+*Recommendation: upload before the benchmark is mentioned publicly anywhere.* It is a replacement of the same files, it changes no question and no answer, and the cost of delay is that anyone who downloads in the meantime gets the version that silently loses data when its datasets are combined.
 
 **2. Should one matched Turkish/English pair be replaced?** The two three-category pairs exist to support the cross-lingual comparison, and they do that well. They contribute almost nothing else: of 259 questions graded very hard, those two pairs supply twenty-one, and one of the four datasets supplies none at all. A replacement partner has been found for the new Turkish complaints dataset: the US consumer-complaints corpus, which is public-domain, has the same register, carries a comparable category space, and additionally has company and date fields.
 *Recommendation: build it and compare before deciding.* This is the largest change on the table, because the matched pair is the centre of the cross-lingual claim, and it should not be swapped on the strength of a table alone.
@@ -153,7 +158,7 @@ These are the questions this work cannot settle on its own, phrased as questions
 ### Previously open
 
 
-- ✅ Published on 15 September; corrected description published on the 16th.
+- ✅ Published on 15 September; corrected description published on the 16th, when all eleven datasets went up. A correction to how questions are numbered is built and waiting to be uploaded (section 6.1).
 - Whether the Turkish dictionary-form label variant replaces the current Turkish intent dataset or remains a side experiment.
 - **Decision required before the first model run: how counting questions are scored and reported.** Section 6 explains why. The position this work takes: keep the scoring rule as it is, but report every counting score as improvement over the guess-without-reading floor, draw the reference readers (guess only, first 1,000 records, random 5%) as lines on every chart, and record separately how well the model classifies single records, so that reading coverage and classification quality can be told apart. This changes nothing that is frozen.
 
@@ -237,6 +242,48 @@ The last row is the honest weak point. Three categories over several thousand re
 ### The rule that explains every number below
 
 One quantity decides how well a partial reader does: **how large the true answer is**. Not the document's length, not how balanced the categories are, not the order the records are in. The arithmetic is a poll's margin of error. To estimate "how many are negative" within a few percent, a reader needs to see a few hundred negative examples. If the true answer is 2,000 it will see plenty in any sample. If the true answer is 20 it will see one, and the estimate is worthless.
+
+### Why a twentieth, and how the number is actually produced
+
+This is the question most likely to be asked, so it is answered in full.
+
+**First, what "reads 5%" means in practice.** The reader is given a budget of records, not of words. In a document of 2,449 complaint records, a 5% budget is 122 records. It is told the correct category of each of those 122, counts how many match the question, and multiplies by twenty. It never sees the other 2,327.
+
+**How the number is computed: many draws, then the average.** For the reader that samples at random, the answer depends on which 122 records it happened to draw, so a single run says nothing. Each question is therefore run **200 times with 200 different random draws**, and the reported figure is the average of the 200 scores. The other three readers (first records, both ends, evenly spaced) are not random at all, so they are run once, because repeating them would give the identical answer every time. The grade a question receives is the **best** result any of the four achieved, on the principle that a shortcut only has to work once.
+
+The spread of those 200 draws is also recorded, and it is published with the grade. Across all 2,240 questions the largest uncertainty on any single average is **0.035** on a scale of 0 to 1, which is small enough that the grades do not move if the exercise is repeated. The 10.7% of questions sitting close enough to a band boundary that they could still flip are individually flagged rather than presented as settled.
+
+**Second, a worked example on two real questions from the same document.** Both are asked about the same 2,449 complaint records, so document length is held fixed and only the answer changes.
+
+| | "how many are `sağlık`?" | "how many are `enerji`?" |
+|---|---:|---:|
+| true answer | 833 | 6 |
+| reader that opens nothing | 0.13 | **0.00** |
+| reader that sees 5% (122 records) | **0.94** | **0.00** |
+| grade | easy | **very hard** |
+
+The first question is easy because 122 records contain about 42 `sağlık` ones, and 42 times twenty is 840 against a true 833. The second is very hard because 122 records contain either zero `enerji` records or one. Zero times twenty is 0, and one times twenty is 20 against a true 6. Both are badly wrong, and no amount of extra cleverness repairs it, because the information is simply not in the sample.
+
+**This is why the answer's size, not the document's length, decides difficulty.** It is the arithmetic of an opinion poll: asking a thousand people predicts a national vote just as well in a small country as a large one, but no sample of any size will tell you how many people in the country are named something rare.
+
+**Third, and most important: 5% is a reporting choice, not a tuned one.** Nothing was optimised to make the benchmark look good at that figure. It was picked because it is roughly what a model that can run code would sample on its own, and because it is a round number that stays comparable across documents of very different lengths. To show that the conclusion does not depend on it, every question was graded again at five other budgets:
+
+| budget the reader gets | very hard | hard | moderate | easy |
+|---|---:|---:|---:|---:|
+| 1% | 771 (34.4%) | 117 | 133 | 1,219 |
+| 2% | 584 (26.1%) | 122 | 166 | 1,368 |
+| **5% (reported)** | **259 (11.6%)** | **140** | **232** | **1,609** |
+| 10% | 105 (4.7%) | 103 | 222 | 1,810 |
+| 25% | 38 (1.7%) | 34 | 142 | 2,026 |
+| 50% | 28 (1.2%) | 2 | 38 | 2,172 |
+
+**What that table says, in three points.**
+
+1. **The choice is honest rather than flattering.** A smaller budget would let the benchmark advertise far more hard questions: at 1% it could claim 771 instead of 259. The reported figure is the conservative end of the plausible range, not the favourable one.
+2. **Difficulty is really a curve, and 5% is one labelled point on it.** The right way to describe the benchmark is that a question's difficulty depends on how much a reader is allowed to see, and the whole curve is now measured and published rather than a single number.
+3. **28 questions resist even a reader that sees half the document.** These are the genuinely hard core, and they survive every budget tested.
+
+The one thing the table does not show is any threshold effect. There is no budget at which the benchmark suddenly becomes hard or easy; the decline is smooth. That is the expected result and it is worth stating plainly, because it means no one has chosen a number to make a point.
 
 ### Finding 1: a reader that opens nothing already scores about half
 
@@ -401,3 +448,61 @@ For the method under study this matters in one specific way. Its expected advant
 
 - **One document length is flagged and kept.** On the English intent set at 100,000 tokens, a reader who knows the source corpus scores 0.73 on proportion questions. Its Turkish counterpart, built the same way, scores 0.45 at the same length. The gap between two halves of the same construction indicates sampling noise on ten questions rather than a real exposure, so the length is kept and labelled rather than removed; removing it would halve that dataset and break the pairing.
 - **No suitable additional corpus was found.** A search for a Turkish corpus with many categories and per-record dates returned nothing usable. Dates would be valuable twice over: they allow questions restricted to a time period, which is what makes OOLONG's answers small, and they support the single most sampling-resistant question type observed in either benchmark, which scores 0.005. The one strong Turkish candidate, a 169,000-row news set with 16 categories, declares no licence and was therefore not adopted. A licence answer from its uploader would unblock it.
+
+---
+
+## 6. An independent review of the published files, 20 September
+
+Every check described above was written alongside the benchmark by the same person who built it. On 20 September the published files were examined separately, starting from the data rather than from the code, specifically to find things the existing checks are structurally unable to see. Three things were found. One is a defect and has been fixed; two are disclosures that should be stated before someone else states them.
+
+### 6.1 A defect: the same question number was used by several datasets
+
+**What was wrong.** Each dataset numbered its questions from scratch, in the form `tr-100000-0-q0`. Because every dataset starts at the same place, the same number was handed out many times over. The name `tr-100000-0` referred to six different documents, and `tr-100000-0-q0` to three different questions with three different answers:
+
+| dataset | question | answer |
+|---|---|---:|
+| news articles | how many are tagged `aktuel`? | 13 |
+| film reviews | how many are tagged `8 yıldız`? | 31 |
+| complaints | how many are tagged `kişisel bakım ve kozmetik`? | 14 |
+
+Across the benchmark, 2,240 questions carried only 955 distinct numbers, and 195 documents only 80.
+
+**Why it mattered.** Within one dataset nothing was wrong, and every existing check looked within one dataset, which is why this survived every gate. The damage appears the moment someone combines the eleven datasets, which is the ordinary way to use a benchmark with subsets. A results table keyed on the question number keeps one row per number and silently discards the rest, losing 57% of the benchmark with no error message. This is not hypothetical: it happened during this review, to a script that was analysing the benchmark, and it was noticed only because a total came out too small.
+
+**What was done.** Every question and every document now carries an additional name that includes its dataset, for example `sinema_tr:tr-100000-0-q0`, which cannot collide. The original numbers are left untouched, so nothing that referred to them has broken. The release check now verifies uniqueness across the whole benchmark rather than within each dataset, and that check was confirmed to actually catch a deliberately planted collision rather than passing by default.
+
+**What was not changed.** Every question, every answer, every document and every difficulty grade is identical. The entire benchmark was rebuilt from scratch and compared field by field against the previous version: the only difference anywhere is the added names. All 2,240 answers were then independently recomputed from the raw data and matched, and every other gate was re-run and passed.
+
+### 6.2 A disclosure: a fifth reader moves 28 questions out of the hardest band
+
+The difficulty grades are measured against four specific shortcut strategies, and this summary already warned that a fifth strategy could crack questions currently graded hardest. That warning has now been tested rather than left as a caveat.
+
+The fifth reader searches the document for the category name and its component words, ignoring Turkish spelling marks, and counts the matches. It never classifies anything; it only looks for words. Of the 215 hardest questions it is able to attempt, **28 move out of the hardest band**, mostly on the news and complaints datasets where a category name such as `iletişim` genuinely does appear in some of the articles filed under it.
+
+**How this should be presented.** Not as a problem discovered late, but as the predicted behaviour of a grading scheme whose limits were declared in advance. The honest sentence is: *the grades are measured against a stated set of strategies, adding a further strategy moves about one hardest question in eight, and the measurement is published so that anyone can repeat it with a strategy of their own.* The four datasets that ship their text unmodified are unaffected; the effect is concentrated where category names are ordinary Turkish words.
+
+### 6.3 A disclosure: 337 questions ask the same fact twice
+
+For 337 combinations of a document and a category, the benchmark asks both "how many records are in this category?" and "what share of the records are in this category?" These are the same fact in two forms: knowing the share and the number of records gives the count. Working one answer out from the other succeeds with an average accuracy of **0.97**, and for 16 questions currently graded among the hardest, the answer can be obtained this way from an easier question in the same dataset.
+
+**Why this is worth saying out loud.** It does not affect a model answering one question at a time, which is the normal way a benchmark is run. It matters in two narrower ways. First, if all of a document's questions are put in front of a model at once, which some evaluation harnesses do, then the redundant pair is a genuine shortcut. Second, and more generally, 2,240 questions do not represent 2,240 independent pieces of evidence; 674 of them cover 337 facts. Any claim about statistical strength should be made on the smaller figure.
+
+**Recommendation:** keep both forms, because they are differently worded and a model can fail one and pass the other, but state the overlap in the documentation and never present the question count as a measure of evidence. This is consistent with the position already taken in section 0 that the headline count is a count and not a difficulty claim.
+
+### 6.4 What was checked and found clean
+
+Stated so that the absence of a finding is not mistaken for an absence of checking.
+
+- **Word-search leakage in what ships.** The concern was that Turkish spelling marks might hide leaks, since one dataset stores its categories without them while the articles use them. Measured directly on the shipped documents: no dataset is answerable this way beyond what guessing achieves, and the four review and intent datasets score essentially zero.
+- **Repeated records inside a document.** None. No document contains the same record twice.
+- **Agreement between the published files and the local ones.** Byte for byte identical before the repair, on every file checked.
+- **All 2,240 answers.** Recomputed from the raw data by a separate route and matched exactly.
+- **Difficulty grades.** Reproduced exactly after the rebuild: 259 hardest, 140 hard, 232 moderate, 1,609 easy.
+
+### 6.5 The verdict on whether construction is finished
+
+**For the dataset itself: yes, with the upload outstanding.** The construction is coherent, every answer is verifiable and verified, the limitations are measured rather than asserted, and the one defect found by an outside pass has been repaired and guarded against. The remaining work is publication housekeeping rather than construction.
+
+**The one thing that must happen before it is announced anywhere:** upload the corrected files. Announcing the benchmark while the version being downloaded still has colliding question numbers would invite exactly the silent data loss described in 6.1.
+
+**Two things that remain true and should not be presented as resolved by any of the above:** most questions are answerable from a sample, and two datasets contain almost no hard questions. Both are already stated in section 0 and neither is changed by this review.

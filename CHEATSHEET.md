@@ -463,7 +463,9 @@ build it, against the §11 criteria, with a COMPATIBLE / WITH CAVEATS /
 INCOMPATIBLE verdict. Requires `licence` and `label_provenance` declared in each
 config.
 
-**Headline, v0.7.0, built and published 2026-09-16:** **11 sets** ·
+**Headline, v0.7.1 (2026-09-20). v0.7.0 was built and published 2026-09-16;
+v0.7.1 adds `uid`/`dataset`/`haystack_uid` to every row and changes nothing
+else (D22), and is NOT yet uploaded:** **11 sets** ·
 **195 haystacks** · **2,240 questions** · **50.7M tokens** · **9 families** ·
 1,515 tr / 725 en · 36,250–999,625 tokens. **265** of the counts are rare-label
 counts, and every question carries a measured difficulty grade (259 very hard).

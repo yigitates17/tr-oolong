@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +233,11 @@ class Config:
     chars_per_token: float = 3.4
     # output
     out_dir: str = "benchmark_out"
+    # The subset's published name, and the namespace its shipped uids live in.
+    # Declared rather than derived from out_dir so a uid does not depend on
+    # where the build happened to write -- the golden fixture builds to a temp
+    # directory, and a path-derived uid made the byte-comparison machine-local.
+    dataset: str = ""
 
     @staticmethod
     def load(path: str) -> "Config":
@@ -334,6 +339,23 @@ def leak_surface_forms(label: str, language: str, split_words: bool = False) -> 
             if len(f) > 3 and f not in stop:
                 forms.add(f)
     return forms
+
+
+def dataset_name(cfg: "Config") -> str:
+    """The subset's name, and the namespace every shipped id lives in.
+
+    `id` and `haystack_id` are only unique WITHIN one subset: `tr-100000-0-q0`
+    names a different question, with a different answer, in each of the six
+    Turkish sets built at that tier. Anything that pools subsets -- a
+    concatenated dataframe, a predictions dict keyed by id, an eval harness --
+    silently collapses them. Every shipped row therefore also carries `dataset`
+    and a namespaced `uid`, and `scripts/verify_release.py` checks that the
+    uids are unique across the whole benchmark, not just within a subset.
+
+    Matches the directory name `scripts/publish_hf.py` publishes under, so a
+    uid can be read straight off a Hub path.
+    """
+    return cfg.dataset or Path(cfg.out_dir).name.removesuffix("_out")
 
 
 def label_leak_mask(texts: list[str], labels: list[str], language: str,
@@ -1536,6 +1558,7 @@ def build(cfg: Config) -> None:
     ).hexdigest()[:16]
 
     out = Path(cfg.out_dir)
+    ds_name = dataset_name(cfg)
     out.mkdir(parents=True, exist_ok=True)
     # a tier removed from the config used to leave its meta_*.parquet behind and
     # ship with the release; clear generated artifacts before every build
@@ -1682,6 +1705,7 @@ def build(cfg: Config) -> None:
                     tier_counter[_q["kind"]] += 1
                 meta.write_parquet(out / f"meta_{hs_id}.parquet")
                 hf.write(json.dumps({
+                    "uid": f"{ds_name}:{hs_id}", "dataset": ds_name,
                     "haystack_id": hs_id, "language": cfg.language,
                     "target_tokens": target if not record_mode else count_tokens(hay),
                     "target_records": target if record_mode else None,
@@ -1699,7 +1723,9 @@ def build(cfg: Config) -> None:
                         # says how many of the counts are rare-label ones
                         rare_counts["count"] += 1
                     qf.write(json.dumps({
-                        "id": f"{hs_id}-q{qi}", "haystack_id": hs_id,
+                        "uid": f"{ds_name}:{hs_id}-q{qi}", "dataset": ds_name,
+                        "id": f"{hs_id}-q{qi}",
+                        "haystack_uid": f"{ds_name}:{hs_id}", "haystack_id": hs_id,
                         "language": cfg.language,
                         "target_tokens": target if not record_mode else None,
                         "target_records": target if record_mode else None,

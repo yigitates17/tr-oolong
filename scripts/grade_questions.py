@@ -120,6 +120,9 @@ def grade_set(d: Path, fractions: list[float], trials: int, seed: int) -> list[d
         b = blind_prediction(q, n, k_lab)
         bl = score(q, b)["relative"] if b is not None else None
         out.append({
+            # `id` is unique only WITHIN a subset; `uid` is what a pooled
+            # predictions table must key on (see build_tr_oolong.dataset_name).
+            "uid": q.get("uid"), "dataset": q.get("dataset"),
             "id": q["id"], "haystack_id": q["haystack_id"],
             "kind": q["kind"], "rare": bool(q.get("rare")),
             "family": "count_rare" if q.get("rare") else q["kind"],

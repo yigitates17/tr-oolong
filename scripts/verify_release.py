@@ -201,6 +201,42 @@ def verify(name: str) -> list[str]:
     return problems + [f"{name}: __checked__ {checked} answers, {len(hays)} haystacks"]
 
 
+def verify_global_uids(sets: list[str]) -> list[str]:
+    """Cross-subset uniqueness. `verify()` checks ids within ONE subset, which
+    is how the collision below shipped in v0.7.0: `id` is minted per subset as
+    `<tier>-<i>-q<n>`, so `tr-100000-0-q0` names a DIFFERENT question, with a
+    different answer, in each of the six Turkish sets built at that tier. 2,240
+    questions carried only 955 distinct ids. Anything that pools subsets -- a
+    concatenated dataframe, a predictions dict keyed by id -- silently dropped
+    57% of the benchmark without raising.
+
+    Every row now also carries `dataset` and a namespaced `uid`, and this is the
+    check that keeps them honest.
+    """
+    problems: list[str] = []
+    seen_q: dict[str, str] = {}
+    seen_h: dict[str, str] = {}
+    for name in sets:
+        d = Path(name)
+        for fn, seen, key, what in (("questions.jsonl", seen_q, "uid", "question"),
+                                    ("haystacks.jsonl", seen_h, "uid", "haystack")):
+            f = d / fn
+            if not f.exists():
+                continue
+            for line in f.read_text(encoding="utf-8").splitlines():
+                row = json.loads(line)
+                uid = row.get(key)
+                if not uid:
+                    problems.append(f"{name}/{fn}: row {row.get('id')!r} has no {key}")
+                    continue
+                if not uid.startswith(f"{Path(name).name.removesuffix('_out')}:"):
+                    problems.append(f"{name}/{fn}: {what} uid {uid!r} is not namespaced to its subset")
+                if uid in seen:
+                    problems.append(f"duplicate {what} uid {uid!r}: {seen[uid]} and {name}")
+                seen[uid] = name
+    return problems
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sets", nargs="+", default=None)
@@ -218,7 +254,9 @@ def main() -> None:
     if not sets:
         sys.exit("no built sets found")
 
-    all_problems = []
+    all_problems = list(verify_global_uids(sets))
+    for p in all_problems:
+        print(f"   GLOBAL  - {p}")
     for s in sets:
         res = verify(s)
         note = [r for r in res if "__checked__" in r][0]

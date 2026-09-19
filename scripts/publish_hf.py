@@ -293,8 +293,11 @@ python src/build_tr_oolong.py --config configs/<set>.json --build
 
 | field | meaning |
 |---|---|
-| `id` | unique question id |
-| `haystack_id` | which haystack it refers to |
+| `uid` | **globally unique id, `<dataset>:<id>`. Key on this.** |
+| `dataset` | which subset the row belongs to |
+| `id` | question id, unique only *within* this subset |
+| `haystack_uid` | globally unique haystack id, `<dataset>:<haystack_id>` |
+| `haystack_id` | haystack id, unique only *within* this subset |
 | `language` | `tr` or `en` |
 | `target_tokens` | length tier of the haystack |
 | `kind` | question family |
@@ -304,7 +307,16 @@ python src/build_tr_oolong.py --config configs/<set>.json --build
 | `rare` | present and true on a rare-label `count`: the gold answer is 5-30 records |
 | `question` | the prompt text, self-contained |
 
-`difficulty.jsonl` -- one row per question, joined on `id`:
+> **Pool subsets on `uid`, never on `id`.** `id` is minted per subset as
+> `<tier>-<n>-q<i>`, so `tr-100000-0-q0` names a different question, with a
+> different answer, in each of the six Turkish subsets built at that tier.
+> Across the whole benchmark the 2,240 questions carry only 955 distinct `id`
+> values. Concatenating the subsets and keying on `id` silently collapses 57%
+> of them. `uid`, `dataset` and `haystack_uid` were added in v0.7.1 for this
+> reason; `id` is kept unchanged so older references still resolve within their
+> subset.
+
+`difficulty.jsonl` -- one row per question, joined on `uid`:
 
 | field | meaning |
 |---|---|
@@ -315,7 +327,7 @@ python src/build_tr_oolong.py --config configs/<set>.json --build
 | `grade_se` | standard error of the grade over 200 samples |
 | `borderline` | true when the grade is within two standard errors of a band boundary and could flip |
 
-`haystacks.jsonl` -- one haystack per line: `haystack_id`, `n_examples`,
+`haystacks.jsonl` -- one haystack per line: `uid`, `dataset`, `haystack_id`, `n_examples`,
 `drift_target`, and `haystack` (the concatenated text). **Only `haystack` and
 the question go to the model.** `n_examples` and `drift_target` are build
 metadata for auditing; `drift_target` names the label the `shift` question

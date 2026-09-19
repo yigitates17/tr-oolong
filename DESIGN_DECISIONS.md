@@ -986,3 +986,57 @@ exactly what the intent axis already is and what the review axis lacks. Until
 such a Turkish corpus exists, the review sets' `count` and `proportion` families
 should be reported as partially readable, with `entity_count` (5% score 0.24 to
 0.34) as the small-answer family those sets do have.
+
+---
+
+## D22. Shipped ids are namespaced by subset (`uid`), and `id` is kept (v0.7.1)
+
+**The defect.** `id` and `haystack_id` are minted per subset, inside `build()`,
+as `<tier>-<index>` and `<tier>-<index>-q<n>`. Nothing in that scheme mentions
+the subset, and every subset starts counting at zero, so the same string names
+different objects in different subsets. Measured on the v0.7.0 release:
+
+| | rows shipped | distinct ids |
+|---|---:|---:|
+| questions | 2,240 | **955** |
+| haystacks | 195 | **80** |
+
+`tr-100000-0-q0` is a `count` question with answer 13 in `interpress_tr`, 31 in
+`sinema_tr`, and 14 in `sikayet_tr`. `tr-100000-0` names six different documents.
+
+**Why every gate passed.** `verify_release.verify()` checks
+`len(set(ids)) != len(ids)` *within one out_dir*, which is true and useless: the
+ids are unique there. Nothing compared across subsets, because nothing else in
+the pipeline ever holds two subsets at once. The failure is invisible until a
+consumer pools them, which is the ordinary way to use a multi-subset benchmark,
+and it fails **silently**: `df.set_index("id")` or `results[qid] = pred` keeps
+one row per id and drops the rest with no error. 57% of the benchmark
+disappears. This is not hypothetical; it happened to an analysis script during
+the 2026-09-20 review and was caught only because a total looked too small.
+
+**The fix, and why it is additive.** Every question and haystack row now also
+carries `dataset` and a namespaced `uid` (`sinema_tr:tr-100000-0-q0`), plus
+`haystack_uid` on questions. `id` and `haystack_id` are **unchanged**, so
+anything that already referenced them inside its own subset still resolves, and
+the diff against v0.7.0 is three added keys and nothing else: the full rebuild
+was compared field by field and every pre-existing value is byte-identical, meta
+parquets included.
+
+**Why the subset name is declared, not derived.** `dataset_name()` prefers the
+new `Config.dataset` field and falls back to `Path(out_dir).name` minus `_out`.
+Deriving it from `out_dir` alone was tried first and broke `tests/test_golden.py`:
+the fixture builds to a temp directory, so the uid embedded the temp path and the
+byte-comparison became machine-local. A published id must not depend on where
+the build happened to write. `tests/fixture_config.json` therefore pins
+`"dataset": "fixture"`.
+
+**The guard.** `verify_release.verify_global_uids()` runs before the per-set
+checks and fails on (a) any row without a `uid`, (b) any `uid` not namespaced to
+its own subset, (c) any `uid` used by two subsets. It was validated against a
+planted collision rather than trusted to pass, because a uniqueness check that
+silently matches nothing is exactly the failure mode being fixed here.
+
+**The rule this generalises to.** A check that is scoped to one unit cannot see
+a defect that only exists between units. Four of the five acceptance gates run
+per-set; this was the first cross-set invariant in the repo, and it is worth
+asking, for each remaining gate, whether its per-set scoping hides something.

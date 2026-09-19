@@ -1,6 +1,6 @@
 {
-  "version": "0.7.0",
-  "date": "2026-09-16",
+  "version": "0.7.1",
+  "date": "2026-09-20",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -60,7 +60,8 @@
     "question_templates": {},
     "reference_tokenizer": "",
     "chars_per_token": 3.4,
-    "out_dir": "/Users/yigitates/tr-oolong/tests/golden"
+    "out_dir": "/Users/yigitates/tr-oolong/tests/golden",
+    "dataset": "fixture"
   },
   "source_hash_first1000": "7e25adc6f1d56a61",
   "rows_after_cleaning": 800,

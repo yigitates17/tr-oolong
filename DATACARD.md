@@ -4,8 +4,11 @@ Per-axis provenance, licensing, and construction. Ground truth for every questio
 is derived from source labels by two independent code paths (see README §5); there
 is no manual answer annotation.
 
-**Covers v0.7.0, published to Hugging Face 2026-09-16: 11 subsets · 195
-haystacks · 2,240 questions · 9 families · 2 languages (1,515 tr / 725 en).**
+**Covers v0.7.1: 11 subsets · 195 haystacks · 2,240 questions · 9 families ·
+2 languages (1,515 tr / 725 en).** v0.7.0 was published to Hugging Face
+2026-09-16. v0.7.1 is that release plus namespaced row ids (`uid`, `dataset`,
+`haystack_uid`) and changes nothing else: every question, answer, haystack and
+difficulty grade is byte-identical. See D22 and the id warning below.
 
 | axis | sets | questions | very hard |
 |---|---|---:|---:|
@@ -313,6 +316,21 @@ marker and the metadata column, never free-text mentions.
   detectable signal. `shift` is withdrawn in v0.7.0 but the drift is kept,
   because it is what stops the document being fully exchangeable.
 - Reproducibility: single string seed; byte-identical rebuilds; full manifest.
+- Row identity: `uid` (`<dataset>:<id>`) is globally unique; `id` is unique only
+  *within* a subset. **Pool on `uid`.** See the warning below.
+
+### ⚠️ `id` is not unique across subsets. Key on `uid`.
+
+`id` is minted per subset as `<tier>-<n>-q<i>`, so `tr-100000-0-q0` is a
+different question with a different answer in each of the six Turkish subsets
+built at that tier: answer 13 in `interpress_tr`, 31 in `sinema_tr`, 14 in
+`sikayet_tr`. Across the benchmark the 2,240 questions carry only **955**
+distinct `id` values and the 195 haystacks only **80**.
+
+Concatenating the subsets and keying on `id` therefore drops **57%** of the
+benchmark silently, with no error. v0.7.1 adds `uid`, `dataset` and
+`haystack_uid` for this reason and keeps `id` unchanged.
+`scripts/verify_release.py` now enforces global uniqueness.
 
 ## The measured intent-axis noise, and what it is actually made of
 
@@ -465,6 +483,43 @@ achieved on that question alone.
 | hard (0.35–0.60) | 140 | 6.2% | |
 | moderate (0.60–0.80) | 232 | 10.4% | |
 | **easy** (≥ 0.80) | 1,609 | **71.8%** | whether the model can classify Turkish records at all |
+
+**The 5% budget is a reporting choice, not a tuned one, and the whole curve is
+measured.** Every question was regraded at six budgets (200 random draws each,
+deterministic readers once):
+
+| budget | very hard | hard | moderate | easy |
+|---|---:|---:|---:|---:|
+| 1% | 771 (34.4%) | 117 | 133 | 1,219 |
+| 2% | 584 (26.1%) | 122 | 166 | 1,368 |
+| **5% (shipped)** | **259 (11.6%)** | **140** | **232** | **1,609** |
+| 10% | 105 (4.7%) | 103 | 222 | 1,810 |
+| 25% | 38 (1.7%) | 34 | 142 | 2,026 |
+| 50% | 28 (1.2%) | 2 | 38 | 2,172 |
+
+The decline is smooth: there is no threshold at which the benchmark becomes hard
+or easy, so no budget was chosen to make a point. 5% is the **conservative** end
+of the plausible range (1% would let the benchmark claim 771 very-hard questions
+instead of 259), and **28 questions resist even a reader that sees half the
+document**.
+
+**A fifth reader moves 28 of the hardest questions, as predicted.** A solver that
+greps the category name and its component words, ASCII-folded, was run as a fifth
+strategy. Of the 215 very-hard questions it can attempt, **28 leave the band**,
+concentrated in `interpress_tr` and `sikayet_tr` where a category name
+(`iletişim`, `sağlık`) is an ordinary Turkish word that appears in articles filed
+under it. The four sets that ship text unmodified are unaffected. This is the
+declared limitation of grading against a fixed reader set, now measured rather
+than asserted.
+
+**337 questions ask the same fact twice.** For 337 (haystack, label) pairs the
+benchmark asks both `count` and `proportion`. Deriving the count from its
+proportion twin (`count = proportion × N / unit`) scores **0.972** mean
+`relative`, and succeeds at ≥0.80 for **16 questions graded very hard**. This is
+harmless for one-question-at-a-time evaluation, but (a) a harness that puts all
+of a haystack's questions in one prompt hands the model a shortcut, and (b)
+**2,240 questions are not 2,240 independent observations**: 674 of them cover 337
+facts. Use the smaller figure in any power calculation.
 
 **Report the two bands separately and report the gap. Never pool all 2,240 into
 one number.** The gap between a model's `easy` score and its `very hard` score is

@@ -35,13 +35,16 @@
 > 100K tokens as at 1M. Report scores as lift over that floor, and do not read
 > the length axis as a difficulty axis under this metric. See §4e.
 >
-> **Numbers (v0.7.0):** 11 sets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types
-> · 1,515 tr / 725 en · **every question carries a measured difficulty grade** (§4f)
+> **Numbers (v0.7.1):** 11 sets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types
+> · 1,515 tr / 725 en · 2 languages · **every question carries a measured difficulty grade** (§4f)
 > (superseded: v0.6.3 was 8 sets · 110 documents · 1,254 questions · 28.3M tokens · 10 types, and served on the Hub until 16 September)
-> · 2 languages.
+>
+> **Pool subsets on `uid`, never on `id`** (§5). `id` repeats across subsets;
+> keying a combined table on it silently drops 57% of the benchmark.
 >
 > **Released:** <https://huggingface.co/datasets/yigitates17/tr-oolong>
-> (v0.7.0, 16 September 2026). **Eight subsets ship their text; three do not** --
+> (v0.7.0, 16 September 2026; v0.7.1 adds `uid`/`dataset` and changes no
+> question, answer or grade). **Eight subsets ship their text; three do not** --
 > `amazon_hpc_en`, `sikayet_tr` and `interpress_tr` ship questions and answers
 > only and are rebuilt locally, because no upstream licence grants
 > redistribution. A licence enquiry is open on the latter two. Full position:
@@ -617,6 +620,22 @@ with a declared licence.
 Every answer below is computed from the source labels by two independent code
 paths and asserted equal (see §6).
 
+**A shipped row, verbatim**, from `vitamins_tr_out/questions.jsonl`:
+
+```json
+{"uid": "vitamins_tr:tr-100000-0-q0", "dataset": "vitamins_tr",
+ "id": "tr-100000-0-q0",
+ "haystack_uid": "vitamins_tr:tr-100000-0", "haystack_id": "tr-100000-0",
+ "language": "tr", "target_tokens": 100000, "target_records": null,
+ "kind": "count", "label": "olumlu", "answer": "1600",
+ "question": "Bu yorumlardan kaç tanesi 'olumlu' etiketli? Sadece sayıyı yaz."}
+```
+
+`uid` is the key to join on; `id` alone is ambiguous across subsets (§5). The
+matching row in `difficulty.jsonl` carries the same `uid` plus
+`shortcut_score`, `shortcut_reader`, `difficulty`, `blind_score`, `grade_se`
+and `borderline`.
+
 **Review axis** (orthogonal brand entity), from `vitamins_tr_out/questions.jsonl`:
 
 - `entity_argmax` — *"Şu markalardan hangisi en çok 'olumlu' yorum aldı: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? Sadece marka adını yaz."* → **general mobile**
@@ -664,7 +683,25 @@ records* and their answers do not correspond. That pair answers "at equal cost";
 the paired sets answer "at equal content". Both are shipped because they are
 different questions — only the paired one supports a paired test.
 
-A real sample question set is committed at `examples/sample_questions_review.jsonl`.
+**Large-label-space axis** (v0.7.0, Turkish only). These three sets exist
+because three classes over thousands of records cannot produce a small answer
+(D21b), and a small answer is the only thing a partial reader cannot estimate:
+
+- `sikayet_tr`, `count` on a rare class (29 categories) -- *"Bu kayıtlarda kaç tane 'elektronik' etiketli kayıt var? Sadece sayıyı yaz."* -> **6**. Graded **very hard**: a reader seeing 5% of the document sees either zero such records or one.
+- `sikayet_tr`, `label_vs_label` -- *"'otomotiv' etiketli kayıtlar 'temizlik' etiketli kayıtlardan daha mı çok, daha mı az, yoksa eşit sayıda mı? …"* -> **daha çok**. Graded easy: a comparison between two large classes survives sampling.
+- `interpress_tr`, `proportion` (16 categories, per-mille) -- *"Kayıtların binde kaçı 'bilisim' etiketli? …"* -> **8**. Graded **very hard**.
+- `sinema_tr`, `count` on a 10-point rating scale -- *"Bu kayıtlarda kaç tane '3 yıldız' etiketli kayıt var? Sadece sayıyı yaz."* -> **23**. Graded easy at this document length, which is why grades are per question and not per family.
+
+Note `interpress_tr`'s category names (`bilisim`, `yasam`, `saglik`) are stored
+de-accented by the upstream corpus and are reproduced verbatim rather than
+repaired, so the question string shows the corpus's own spelling. This costs
+nothing at scoring time: those sets never require a category name *as an answer*
+(their ranking families are disabled), and the scorer's ASCII-folding fallback
+accepts either spelling where a name is the answer.
+
+A real sample question set, one row per family per set with its difficulty grade
+attached, is committed at `examples/sample_questions_review.jsonl` (38 rows,
+regenerated from the v0.7.1 build).
 
 ## 4. Construct validity
 
@@ -1215,20 +1252,40 @@ utterances give 2.16× (GPT-2), 1.53× (Qwen3-8B), 1.29× (mBERT) and **0.57×**
 
 ## 5. What ships
 
-| set | lang | classes | tiers | haystacks | questions | longest |
-|---|---|---|---|---|---|---|
-| `tr_intent` | tr | 48 | 50K / 100K | 10 | 120 | 99,998 |
-| `en_intent` | en | 48 | 50K / 100K | 10 | 120 | 99,871 |
-| `tr_intent_paired` | tr | 48 | 3K rec / 6K rec | 10 | 120 | 99,057 |
-| `en_intent_paired` | en | 48 | 3K rec / 6K rec | 10 | 120 | 75,187 |
-| `vitamins_tr` | tr | 3 | 100K / 250K / 500K / 750K | 20 | 237 | 744,785 |
-| `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 20 | 236 | 987,623 |
-| `musteri_tr` | tr | 3 | 100K / 250K / 500K | 15 | 153 | 496,238 |
-| `marc_en` | en | 3 | 100K / 250K / 500K | 15 | 148 | 491,821 |
+All figures below are the realized build, regenerated from the manifests.
+
+| set | lang | classes | tiers | haystacks | questions | very hard | longest |
+|---|---|---|---|---|---|---|---|
+| `tr_intent` | tr | 48 | 50K / 100K | 10 | 120 | 17 | 99,998 |
+| `en_intent` | en | 48 | 50K / 100K | 10 | 120 | 9 | 99,871 |
+| `tr_intent_paired` | tr | 48 | 3K rec / 6K rec | 10 | 120 | 9 | 99,057 |
+| `en_intent_paired` | en | 48 | 3K rec / 6K rec | 10 | 120 | 10 | 75,187 |
+| `vitamins_tr` | tr | 3 | 100K / 250K / 500K | 20 | 236 | 21 | 496,526 |
+| `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 25 | 292 | 24 | 987,623 |
+| `musteri_tr` | tr | 3 | 100K / 250K / 500K | 20 | 199 | **0** | 496,238 |
+| `marc_en` | en | 3 | 100K / 250K / 500K | 20 | 193 | **1** | 491,821 |
+| `sikayet_tr` | tr | **29** | 100K / 250K / 500K / 1M | 25 | 300 | **76** | 999,625 |
+| `interpress_tr` | tr | 16 | 100K / 250K / 500K / 1M | 25 | 300 | **66** | 998,392 |
+| `sinema_tr` | tr | 10 | 100K / 250K / 500K | 20 | 240 | 26 | 497,150 |
+| **total** | | | | **195** | **2,240** | **259** | |
 
 **2,240 questions over 195 haystacks**, eleven instance sets (v0.6.3 shipped 1,254 over 110 from eight). Realized
 haystack lengths are within 0.97–1.00 of target on every set (D14); each
 manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
+
+The `very hard` column is the reason the last three sets exist: they supply 168
+of the 259 sampling-resistant questions. `musteri_tr` supplies none and
+`marc_en` one, which is expected and documented (D21b) rather than a defect:
+three classes over several thousand records cannot produce a small answer. Those
+two are the matched-pair comparison and the classification control.
+
+**Row identity.** Every question and haystack carries `uid` (`<dataset>:<id>`),
+`dataset`, and on questions `haystack_uid`. **Pool subsets on `uid`, never on
+`id`**: `id` is minted per subset, so the 2,240 questions carry only 955 distinct
+`id` values and `tr-100000-0-q0` names three different questions with three
+different answers. Keying a pooled table on `id` drops 57% of the benchmark
+silently. `id` is retained unchanged for within-subset references.
+`scripts/verify_release.py` enforces global `uid` uniqueness (D22).
 
 `tr_intent_paired` / `en_intent_paired` are sized in **records**, not tokens —
 that is what makes them record-identical across languages (§1). Their token
@@ -1640,6 +1697,17 @@ item is narrower than before: measure ε per corpus (n = 400 gives ±3 pts at
 ε ≈ 0.10) and record it in `DATACARD.md`. Headline results are reported on
 ranking and `proportion`.
 
+**The difficulty grades are relative to five readers, and a sixth could move
+more.** A fifth reader was added after the grades shipped: it greps the category
+name and its component words, ASCII-folded, and never classifies anything. Of
+the 215 very-hard questions it can attempt, **28 leave the band** (13%),
+concentrated in `interpress_tr` and `sikayet_tr` where a category name
+(`iletişim`, `sağlık`) is an ordinary Turkish word appearing in records filed
+under it. The eight sets that ship text unmodified are unaffected. This is the
+declared behaviour of grading against a fixed reader set, measured rather than
+asserted; a further reader could move more, and the grades should always be
+quoted with the reader set they were measured against.
+
 **`shift` was the weakest family and is withdrawn in v0.7.0.** It is a binary
 rose/fell over positional halves, so its floor is the highest in the suite (mean
 majority baseline 0.61), and it is the only family the surface-format solver
@@ -1696,8 +1764,19 @@ adds one bit. Twelve questions per haystack therefore carry about two
 continuous degrees of freedom and one bit. The headline question total is a question
 count, not an evidence count: for any statistical claim on the review sets the
 unit is the haystack (15–20 per set), further reduced by the tier overlap
-above. The intent sets are not affected (one duplicate in 69), because 48
-labels give the sampler room.
+above. The intent sets are least affected (2 to 4 duplicate pairs per 120
+questions), because 48 labels give the sampler room.
+
+Measured across the whole benchmark: **337 (haystack, label) pairs are asked
+both as `count` and as `proportion`**, so 674 of the 2,240 questions cover 337
+facts. Deriving the count from its proportion twin (`count = proportion × N /
+unit`) scores **0.972** mean `relative` and succeeds at ≥0.80 on **16 questions
+graded very hard**. Per set: `amazon_hpc_en` 61, `marc_en` 59, `musteri_tr` 58,
+`sinema_tr` 57, `interpress_tr` 41, `vitamins_tr` 38, `sikayet_tr` 13, the four
+intent sets 2–4 each. Two consequences. (1) For evaluation: a harness that puts
+**all** of a haystack's questions in one prompt hands the model this shortcut;
+asking one question at a time does not. (2) For statistics: use 337, not 674, as
+the count of independent numeric facts.
 
 **A score is only interpretable with its reading protocol.** Under `relative`,
 a perfect classifier reading 5% of a document outscores an honest 90%
