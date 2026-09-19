@@ -500,7 +500,7 @@ The benchmark's answers come from the labels the source corpora already carry. I
 | 7.3% | 0.93 | **0.65** |
 | 9.3% | 0.91 | **0.53** |
 
-**The ordinary questions barely notice. The rare-category questions are damaged badly.** The reason is arithmetic. A category holding six records out of two and a half thousand loses almost nothing to mislabelling, but it *receives* around eight records wrongly assigned to it from everywhere else. Its count roughly triples. Small categories get flooded.
+**The ordinary questions barely notice. The rare-category questions are damaged badly.** The reason is arithmetic, and it is worth stating exactly because it is easy to get wrong. Mistakes move records *out* of a category in proportion to how big that category is, but they move records *into* a category at a rate that is roughly the same for every category, big or small. In a document of 2,449 records sorted into 29 categories, with 9% of labels wrong, every category receives about eight records that do not belong to it. For a category that should hold 800, eight strays is nothing. For a category that should hold six, eight strays is more than the category itself, and the count more than doubles.
 
 **Why this matters more than it first appears.** The rare-category questions were added precisely because they are the ones a skimming reader cannot answer. They are the hard core of the benchmark. They are also, it turns out, the ones most sensitive to imperfect labels. The hard questions and the fragile questions are the same questions.
 

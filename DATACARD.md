@@ -614,11 +614,20 @@ at rate ε, `relative` metric, gold recomputed from the flipped labels):
 | `sikayet_tr` | 9.3% | 0.832 | **0.390** |
 | `interpress_tr` | 9.3% | 0.889 | **0.571** |
 
-**Why the gap.** A count is a sum, so per-record errors largely cancel: a class
-holding 800 of 2,449 records loses ~ε·800 and gains ~ε·1,649/(K−1), and with
-balanced classes those nearly offset. A class holding **6** records loses almost
-nothing but *gains* ε·2,443/(K−1) ≈ 8 spurious members, so the observed count
-roughly triples. **Noise floods small classes.**
+**Why the gap: strays flow IN at a rate that does not depend on class size.**
+For a class of size C in a document of N records over K classes, symmetric noise
+takes **ε·C out** (proportional to C) and brings **ε·(N−C)/(K−1) in** (roughly
+constant across classes). Simulated at ε=9%, N=2,449, K=29, 300 trials:
+
+| class | true | observed | error |
+|---|---:|---:|---:|
+| large (`otomotiv`) | 800 | 733 | **−8%** |
+| small (`elektronik`) | 6 | 13.1 | **+119%** |
+
+Every class receives about **7.9** strays, large or small. For a class of 800
+that is negligible against the 72 it loses. For a class of 6 it is larger than
+the class itself, and the count more than doubles. **Relative damage scales as
+1/C**, so the smaller the true answer, the worse the corruption.
 
 **The tension this creates, stated plainly.** Rare-label counts exist because
 they are the only family a partial reader cannot estimate (D21). They are

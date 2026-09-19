@@ -561,6 +561,52 @@ pair that sat at 0.108 was withdrawn in v0.5.0.
 
 ---
 
+## 9a. The difficulty grade is a CURVE, not a threshold — publish the whole sweep
+
+**Write this table into the paper.** It is the answer to the first question any
+reviewer asks about the grades: *why 5%, and did you pick the number that
+flattered you?*
+
+Every one of the 2,240 questions was regraded at six reading budgets. Stochastic
+reader averaged over 200 draws per question per budget; the three deterministic
+readers run once; grade = best score any reader achieved.
+
+| reader's budget | very hard | hard | moderate | easy | mean shortcut score |
+|---|---:|---:|---:|---:|---:|
+| 1% | 771 (34.4%) | 117 | 133 | 1,219 | 0.605 |
+| 2% | 584 (26.1%) | 122 | 166 | 1,368 | 0.680 |
+| **5% (shipped)** | **259 (11.6%)** | **140** | **232** | **1,609** | **0.807** |
+| 10% | 105 (4.7%) | 103 | 222 | 1,810 | 0.879 |
+| 25% | 38 (1.7%) | 34 | 142 | 2,026 | 0.927 |
+| 50% | 28 (1.2%) | 2 | 38 | 2,172 | 0.959 |
+
+**Three claims this table licenses, and they are the defensible framing:**
+
+1. **The operating point was not tuned.** 5% is the *conservative* end of the
+   plausible range. A 1% budget would license "34% of our questions are very
+   hard" instead of 11.6%. Choosing the number that makes the benchmark look
+   weakest is the thing to say out loud.
+2. **There is no threshold effect.** The decline is smooth and monotone across
+   two orders of magnitude of budget. No budget is a cliff, so no budget can have
+   been selected to sit just past one.
+3. **28 questions survive a reader that sees HALF the document.** That is the
+   hard core and it is the strongest single number in the benchmark. It exists
+   only because the whole curve was measured.
+
+**How to phrase the construct.** Difficulty is not a property of a question
+alone; it is a property of a question *and* the reading budget a shortcut is
+allowed. The shipped grade is one labelled point on a published curve, not a
+verdict. Reproduce with `scripts/grade_questions.py --fractions <f>`.
+
+⚠️ **Do not pair this table with a claim that longer documents are harder.** The
+budget is a *fraction*, so it is scale-free by construction; §13 and the W4
+finding on absolute budgets are the relevant caveats.
+
+⚠️ **Do not quote the very-hard counts at small budgets as a difficulty result.**
+At 1% the 771 figure is real but it measures a reader crippled beyond what any
+model would do to itself. The 5% row is the one with an operational story
+(roughly what a model with code execution samples on its own).
+
 ## 9b. The entity bug, and what it means for the construct-validity claim (v0.6.0)
 
 **Report it, do not hide it.** Until v0.6.0 all 118 entity questions were
