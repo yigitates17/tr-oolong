@@ -245,6 +245,20 @@ literature behind them.
 **Verdict: trivially fixable.** Either justify `relative` against the standard
 alternatives in one paragraph, or report MAPE alongside. Do it before freezing.
 
+**Update 2026-09-20 — half of the justification is now measured.** `relative` is
+exactly `1 - MAPE` bounded below at 0, so the "bespoke metric" objection is
+weaker than it looks: it is the standard relative absolute error, complemented
+and clipped. What was missing was evidence that it earns its place, and that now
+exists (COMPARISON §6, W4 6.6): under `partial` a full reader at 99% per-record
+accuracy scores **0.175–0.208** on the 3-class sets, indistinguishable from
+reading nothing, which is the degeneracy `relative` was added to avoid.
+
+The honest counterweight, also measured, belongs in the same paragraph: on the
+numeric families `partial` separates a 5% cheater from an honest reader by a
+*wider* margin than `relative` does (0.17 vs 0.61, against 0.80 vs 0.98 on
+`count`). So the argument for `relative` is that it keeps the 3-class sets
+usable, not that it is harder to cheat. State it that way.
+
 ---
 
 ## What is genuinely strong, and should be foregrounded

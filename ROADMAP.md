@@ -315,6 +315,12 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       against a majority baseline of 0.50–0.70. Takes effect at the v0.7
       rebuild; shipped v0.6.3 data unchanged.
 - [x] **VERSION 0.6.2 → 0.7.0** and `tests/golden/` regenerated together.
+- [x] **VERSION 0.7.0 → 0.7.1** (2026-09-20): namespaced row ids. `uid`,
+      `dataset` and `haystack_uid` added to every shipped row because `id` was
+      unique only within a subset (2,240 questions carried 955 distinct ids).
+      Purely additive, every pre-existing field byte-identical, golden
+      regenerated, and `verify_release.py` gained the repo's first cross-set
+      invariant. D22.
 
 ## v0.7 (planned) — changes that need a rebuild
 
@@ -330,16 +336,25 @@ median `tr_oolong` `pairwise` question was decided by **8 records out of 3,919**
       Needs a `count`-specific depth rule: every record is
       judged for a count, so answer magnitude is not depth. On the 3-class sets
       the equivalent is `entity_count`, which already ships.
-- [ ] **Cap the pool fraction one haystack may consume** (~0.35) so the top
-      tier stays prior-neutral; costs `vitamins_tr` its 750K tier unless the
-      pool grows. Alternative: keep the tier and report it as prior-exposed
-      (current state).
-- [ ] **Canonical `answer_key` field** (`more`/`less`/`same`, `rose`/`fell`)
-      beside the language-specific `answer`, so the twin is 120/120 identical
-      at the byte level. Non-breaking addition; needs a golden regeneration.
-- [ ] **De-duplicate `count`/`proportion` on the 3-class sets**: ask each
-      label as one or the other per haystack, and spend the freed quota on
-      `entity_count`. Raises the evidence per question without adding questions.
+- [x] **Cap the pool fraction one haystack may consume** (~0.35). Implemented as
+      `max_pool_fraction` with `allow_pool_overrun`, then measured and **not
+      adopted as an automatic rule**: it removed six document lengths including
+      the longest, and the measurements show why it is the wrong rule, since one
+      set uses 53% of its source and passes the corpus-knowledge check while
+      another uses 48% and fails it. The share is now reported as a warning and
+      the corpus-knowledge check remains the actual test. `vitamins_tr` lost its
+      750K tier for the separate reason in W4.
+- [x] **Canonical `answer_key` field** (`more`/`less`/`same`) beside the
+      language-specific `answer`. Shipped in v0.7.0; the matched pair now agrees
+      on 120/120 questions rather than 100. `rose`/`fell` is moot, since `shift`
+      was withdrawn.
+- [ ] **De-duplicate `count`/`proportion`**: ask each label as one or the other
+      per haystack, and spend the freed quota on `entity_count`. Now quantified
+      benchmark-wide (W4 6.3): **337 (haystack, label) pairs are asked both
+      ways**, so 674 of 2,240 questions cover 337 facts, and the count is
+      derivable from its proportion twin at **0.972** mean `relative`. Worst on
+      `amazon_hpc_en` (61), `marc_en` (59), `musteri_tr` (58), `sinema_tr` (57).
+      Raises evidence per question without adding questions.
 - [ ] **Tolerance-band scoring for numeric families** as a fourth metric,
       calibrated so full-read classifier error passes and 5–10% sampling error
       does not. Must be frozen before the first model run, so decide first.

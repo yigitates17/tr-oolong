@@ -245,6 +245,34 @@ So we report **both**:
 |---|---|---|
 | `partial` | `0.75^\|y-ŷ\|` | **comparability with OOLONG.** Frozen, never changed |
 | `relative` | `max(0, 1 - \|y-ŷ\|/max(y,1))` | **information.** Scale-free, so 2% off scores 0.98 |
+
+**Measured 2026-09-20: which metric actually separates a cheater from an honest
+reader?** The same 5% partial reader, scored both ways, against a full reader
+that is 99% accurate per record:
+
+| family | OOLONG cheat | OOLONG honest | `relative` cheat | `relative` honest |
+|---|---:|---:|---:|---:|
+| `count` | 0.17 | 0.61 | 0.80 | 0.98 |
+| `count_rare` | 0.22 | 0.78 | 0.36 | 0.90 |
+| `proportion` | 0.45 | 0.87 | 0.70 | 0.94 |
+| `most_common` | **0.96** | **1.00** | **0.96** | **1.00** |
+| `label_vs_label` | **0.92** | **0.91** | **0.92** | **0.91** |
+
+Three results, and the second is why `relative` exists.
+
+1. **On the numeric families OOLONG's metric separates cheat from honest by a
+   wider margin than ours does.** Concede this; it is a real point in its favour.
+2. **On the 3-class sets it destroys the honest reader too.** A full reader at
+   99% per-record accuracy scores **0.175** (`musteri_tr`), **0.182**
+   (`marc_en`), **0.181** (`amazon_hpc_en`) under `partial`. Indistinguishable
+   from reading nothing.
+3. **On the six categorical families the metric is irrelevant**, because they
+   are exact-match under both rules. That is **740 questions, a third of the
+   benchmark**, where the cheater ties the honest reader at 0.92–0.98.
+
+So the sampling exposure is a property of the questions, not only of the metric.
+Reporting both metrics plus the difficulty bands is the defensible position;
+adopting one rule and declaring the problem solved is not.
 | `exact` | 1 if equal | the strict reading |
 
 ---
