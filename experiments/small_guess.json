@@ -1,0 +1,32 @@
+{
+  "8": {
+    "very_hard_numeric": 226,
+    "leave_band": 198,
+    "reach_moderate_or_easy": 130,
+    "mean_score": 0.595
+  },
+  "10": {
+    "very_hard_numeric": 226,
+    "leave_band": 163,
+    "reach_moderate_or_easy": 121,
+    "mean_score": 0.556
+  },
+  "12": {
+    "very_hard_numeric": 226,
+    "leave_band": 145,
+    "reach_moderate_or_easy": 116,
+    "mean_score": 0.475
+  },
+  "15": {
+    "very_hard_numeric": 226,
+    "leave_band": 106,
+    "reach_moderate_or_easy": 58,
+    "mean_score": 0.33
+  },
+  "20": {
+    "very_hard_numeric": 226,
+    "leave_band": 39,
+    "reach_moderate_or_easy": 12,
+    "mean_score": 0.141
+  }
+}

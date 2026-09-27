@@ -2,7 +2,7 @@
 leakage (no classification, no model). A record 'has' label L if the label
 string (underscores as spaces) appears in its text. Reported per-family scores
 are the floor a real solver must beat; the TR-vs-EN gap in this floor is the
-label-leakage asymmetry claimed in README section 4.
+label-leakage asymmetry claimed in the README before 2026-09-28 (git history), section 4.
 
 Implementation note: per-record label and entity hits are precomputed once per
 haystack as int bitmasks, so entity ranking over thousands of brands is a

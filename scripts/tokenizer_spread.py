@@ -1,5 +1,5 @@
 """How many tokens does the SAME Turkish/English content cost under different
-tokenizers? Reproduces the comparison in PAPER_NOTES.md / README section 4.3,
+tokenizers? Reproduces the comparison in PAPER_NOTES.md section 1,
 this time as a saved, seeded script rather than a one-off REPL command --
 the previous table's sampling seed was never recorded anywhere in the repo,
 which meant nobody could re-draw the same 3,000 rows to add a new tokenizer

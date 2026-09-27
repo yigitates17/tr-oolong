@@ -8,7 +8,7 @@ individually trivial questions, and a family whose mean is poor still contains
 questions no partial reader can touch. This grades every question on its own.
 
 THE TIER IS THE DISCLOSURE. The benchmark's central limitation is that most of
-its questions can be answered from a sample (README 4e). Publishing a measured
+its questions can be answered from a sample (DATACARD, Known issues). Publishing a measured
 per-question resistance grade does not make that smaller. What it buys is an
 INSTRUMENT, and it is the one the benchmark was missing:
 

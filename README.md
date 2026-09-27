@@ -1,1830 +1,327 @@
 # TR-OOLONG
 
-> ### In one minute, without the jargon
->
-> **What this is.** A test that is deliberately hard for AI models. We glue
-> thousands of real Turkish product reviews into one enormous document — up to
-> ~2,000 pages — and ask questions about the *whole pile*:
->
-> > *"How many of these reviews are negative?"* → **1,046**
-> > *"Which brand received the most positive reviews?"* → **Smartcaps**
->
-> **Why it is hard.** The answer is not written anywhere, so searching does not
-> help. A model has to judge what each review *means* and add the judgements up.
-> **Measured caveat:** because the answers are large numbers, judging a random
-> sample and scaling up gets close — so this tests classifying Turkish at scale,
-> not reading every word. See §4e.
->
-> **Why Turkish.** Nobody had built one. The nearest multilingual benchmark covers
-> 26 languages and Turkish is not among them.
->
-> **The trick that makes it work.** Every review already carries a label — the
-> star rating its own author gave it. So the correct answer is just a count over
-> labels we already have. **No human ever writes an answer key**, which is the
-> only reason this can scale to a million tokens.
->
-> **The matched twin.** Every Turkish set has an English partner built by the
-> identical pipeline, and on one pair the *same question has the same correct
-> answer in both languages*. So a score gap between the two cannot come from the
-> questions. It can still come from the language, from the translation, or from
-> the Turkish text costing more tokens, and §1 says how to separate those.
->
-> **A second measured caveat.** The informative metric gives partial credit, so
-> a model that reads nothing but counts the records already scores about 0.5 on
-> the counting questions, and reading a fixed 1,000 records scores the same at
-> 100K tokens as at 1M. Report scores as lift over that floor, and do not read
-> the length axis as a difficulty axis under this metric. See §4e.
->
-> **Numbers (v0.7.1):** 11 sets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types
-> · 1,515 tr / 725 en · 2 languages · **every question carries a measured difficulty grade** (§4f)
-> (superseded: v0.6.3 was 8 sets · 110 documents · 1,254 questions · 28.3M tokens · 10 types, and served on the Hub until 16 September)
->
-> **Pool subsets on `uid`, never on `id`** (§5). `id` repeats across subsets;
-> keying a combined table on it silently drops 57% of the benchmark.
->
-> **Released:** <https://huggingface.co/datasets/yigitates17/tr-oolong>
-> (v0.7.0, 16 September 2026; v0.7.1 adds `uid`/`dataset` and changes no
-> question, answer or grade). **Eight subsets ship their text; three do not** --
-> `amazon_hpc_en`, `sikayet_tr` and `interpress_tr` ship questions and answers
-> only and are rebuilt locally, because no upstream licence grants
-> redistribution. A licence enquiry is open on the latter two. Full position:
-> [`DATACARD.md`](DATACARD.md).
->
-> A fuller plain-language walkthrough, including what we got wrong and fixed, is
-> in [`weekly_summaries/W2_Summary.md`](weekly_summaries/W2_Summary.md).
-> Everything below this box assumes you want the technical detail.
+A long-context **aggregation** benchmark for Turkish, with English counterparts
+built by the same pipeline.
 
----
+Each document is thousands of real records (reviews, complaints, news
+articles, voice-assistant commands) joined into one long text, from 36K to 1M
+tokens. Each question asks about the whole collection:
 
-The first Turkish long-context **aggregation** benchmark, with a matched English
-twin built by the identical pipeline. Developed at the **Institute for Data
-Science & Artificial Intelligence (DSAI), Boğaziçi University**, as MSc thesis
-work. The nearest multilingual long-context
-benchmark, ONERULER (arXiv:2503.01996), covers 26 languages and **Turkish is not
-one of them**; its two aggregation tasks are also lexical (most-frequent-word
-extraction), answerable by counting strings rather than by classifying each
-record. The claim here is therefore two gaps wide: the language, and
-latent-label aggregation rather than word counting. It follows the OOLONG-synth construction
-principle (Bertsch et al., 2025): concatenate examples from an existing *labeled*
-dataset into a 36K–1M-token haystack, then auto-generate distributional
-questions whose ground truth is computed exactly from the source labels — no
-manual annotation.
+> *Bu kayıtlarda kaç tane 'ulaşım' etiketli kayıt var?* → **166**
+> *Which label is the least common in these records?* → **play_audiobook**
 
-> ### ⚠️ Before writing anything about Turkish morphology
->
-> The "Turkish costs 1.30–1.34x the tokens of English" figure below is measured
-> under **one tokenizer**. It is not a property of the language. On the same
-> 3,000 pair-aligned utterances the ratio is **2.16x** under GPT-2, **1.53x**
-> under Qwen3-8B, **1.29x** under mBERT and **0.57x** under BERTurk — where
-> Turkish is *cheaper* than English. It measures how much Turkish a tokenizer
-> saw, not agglutination.
->
-> **Measured 2026-09-07, and this is the cleaner form of the claim:** across three
-> generations of *the same vendor's* tokenizer the penalty halves — **2.16x**
-> (`p50k_base`, GPT-3), **1.73x** (`cl100k_base`, GPT-4), **1.35x** (`o200k_base`,
-> GPT-4o/5). Same language pair, same sentences, only the training diet changed.
->
-> **On the built haystacks it moves the headline directly.** On the
-> record-matched pair — the *same 3,000 utterances* in both languages — Turkish
-> costs **1.34x** English under Qwen3-8B and **1.22x** under `o200k_base`. The
-> same Turkish text counts **10% fewer** tokens under OpenAI's tokenizer, against
-> **2% fewer** for English, so a "100K" Turkish haystack re-measures at ~89K.
-> Rebuilding to the same target under `o200k_base` would pack in ~10% more
-> Turkish records. `n_chars` is recorded per haystack so any reader can re-derive
-> lengths without a rebuild.
->
-> See [`PAPER_NOTES.md`](PAPER_NOTES.md) §1 for how to state it correctly.
+The label of a record is never written in the text, so a model has to decide
+what each record is about and then count. Every answer is computed from the
+source dataset's own labels, so no one writes an answer key by hand.
 
-**Where to start.** [`PAPER_NOTES.md`](PAPER_NOTES.md) lists every claim worth
-carrying into a write-up, and what must not be claimed yet.
-[`REVIEW.md`](REVIEW.md) reads the project adversarially.
-[`COMPARISON.md`](COMPARISON.md) explains OOLONG and
-TR-OOLONG side by side with real questions from both, for a reader without the
-code. §3 below shows every data source with real rows and how its labels are
-derived. [`DATASET_REVIEW.md`](DATASET_REVIEW.md) records every Turkish source
-considered and why each was kept or rejected.
+The construction follows OOLONG (Bertsch et al., 2025, arXiv:2511.02817), whose
+build code was not released; this is an independent implementation.
 
-> TR-OOLONG adopts the OOLONG-synth construction principle — distributional
-> questions computed exactly from source labels — and extends it cross-lingually
-> with a matched-twin design, a broader question typology, and a
-> verified-by-construction ground-truth pipeline.
+- **Data:** <https://huggingface.co/datasets/yigitates17/tr-oolong> (v0.7.1)
+- **Datacard:** [`DATACARD.md`](DATACARD.md), sources, licences, known issues
+- **Why each choice was made:** [`DESIGN_DECISIONS.md`](DESIGN_DECISIONS.md)
 
-## 1. What it measures
+Developed at the Institute for Data Science & Artificial Intelligence (DSAI),
+Boğaziçi University, as MSc thesis work.
 
-Most long-context benchmarks test **retrieval** ("find the needle"). TR-OOLONG
-tests **aggregation**: to answer *"how many records have intent X?"* a model must
-classify records by their latent label and combine the results. The label never
-appears verbatim in the text, so nothing is grep-solvable — every question forces
-latent classification plus counting, not string matching. This makes it a probe
-for whether a model actually *ingests* a long context rather than skimming it.
+## At a glance
 
-The review axis rests on **two independent corpora per language**, so aggregation
-results can be shown to hold across datasets rather than being an artifact of a
-single source. The supplement pair (Turkish Vitaminler.com ↔ English Amazon
-Health & Personal Care) carries the entity axis; the e-commerce pair
-(Hepsiburada/Trendyol ↔ Multilingual Amazon Reviews) is the cleanest on every
-balance and shortcut measurement.
+**11 subsets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types**
+(1,515 Turkish, 725 English questions). Lengths are counted with the
+`Qwen/Qwen3-8B` tokenizer.
 
-Two axes:
+| subset | lang | records are | labels | docs | questions | longest doc | text shipped |
+|---|---|---|---:|---:|---:|---:|:---:|
+| `sikayet_tr` | tr | consumer complaints | 29 | 25 | 300 | 1.0M | no |
+| `interpress_tr` | tr | news articles | 16 | 25 | 300 | 1.0M | no |
+| `sinema_tr` | tr | film reviews (1-10 stars) | 10 | 20 | 240 | 497K | yes |
+| `vitamins_tr` | tr | supplement reviews (sentiment) | 3 | 20 | 236 | 497K | yes |
+| `musteri_tr` | tr | shopping reviews (sentiment) | 3 | 20 | 199 | 496K | yes |
+| `tr_intent` | tr | voice commands (intent) | 48 | 10 | 120 | 100K | yes |
+| `tr_intent_paired` | tr | voice commands (intent) | 48 | 10 | 120 | 99K | yes |
+| `amazon_hpc_en` | en | health product reviews (sentiment) | 3 | 25 | 292 | 988K | no |
+| `marc_en` | en | shopping reviews (sentiment) | 3 | 20 | 193 | 492K | yes |
+| `en_intent` | en | voice commands (intent) | 48 | 10 | 120 | 100K | yes |
+| `en_intent_paired` | en | voice commands (intent) | 48 | 10 | 120 | 75K | yes |
 
-| Axis | Source | Label (classes) | Entity axis | Purpose |
-|---|---|---|---|---|
-| **Review / sentiment** | Two TR–EN corpus pairs: (a) Turkish vitamin/supplement reviews + EN Amazon Health & Personal Care; (b) Turkish e-commerce reviews + EN Multilingual Amazon Reviews | sentiment (3) | brand / airline — *orthogonal* | length scaling to 1M tokens; entity-relational reasoning; cross-corpus robustness |
-| **Intent** | Amazon MASSIVE (tr-TR / en-US, parallel corpus) | intent (48) | scenario (18) — *nested* | label-space difficulty; by-construction cross-lingual control |
+Three subsets ship questions and answers only, because their sources grant no
+right to redistribute the text. The build is deterministic, so the text can be
+rebuilt locally byte for byte (see [Building](#building-and-adding-a-dataset)).
 
-The intent axis is built **twice**, in two matching regimes, because they answer
-different questions:
+### Turkish/English pairs
 
-- **token-matched** (`tr_intent` / `en_intent`) — equal token budget. Turkish
-  therefore holds ~25% fewer utterances. Asks *"at equal cost, which language
-  degrades faster?"*
-- **record-matched** (`tr_intent_paired` / `en_intent_paired`) — equal *record*
-  count, same records, same order, same drift target. **100 of 120 questions have
-  a byte-identical gold answer in both languages**; the other 20 (10 `shift`,
-  10 `label_vs_label`) state the same fact in language-specific strings
-  (`arttı` / `rose`, `eşit` / `the same`), so all 120 are paired. Asks *"at equal content,
-  which language degrades faster?"* — and admits **paired** tests (McNemar)
-  rather than comparing two independent samples.
-
-The difference between the two regimes is itself a measurement: at identical
-record counts Turkish costs **1.30–1.34× the tokens of English** under Qwen3-8B,
-stable across every haystack. **Name the tokenizer whenever quoting this.** The
-ratio is that model's tokenization penalty on Turkish, not a morphology constant:
-on the same aligned utterances it runs from **0.57×** (BERTurk, where Turkish is
-cheaper) to **2.16×** (GPT-2). The record-matched regime carries no token-budget
-confound at all and is the right anchor for a cross-lingual claim.
-
-MASSIVE ships 60 intents, but 12 of them have too few examples to ever be
-sampled competitively — with 6 rows in a 16.5K-row corpus, `cooking_query` was
-the rarest label in *every* haystack, which made `least_common` answerable from
-corpus priors without reading the context at all. Classes below a support floor
-(`min_class_support`, 100 rows) are dropped from the pool, and the cut is taken
-over the *union* of both locales so the twin keeps an identical label space.
-See §4 and `DESIGN_DECISIONS.md` (D3, D4).
-
-## 2. Question families and where they apply
-
-The entity axis behaves differently on the two sources, and this determines which
-families are meaningful:
-
-- On the **review axis**, `brand` is *orthogonal* to `sentiment` (every brand
-  receives all three sentiments), so entity-relational questions carry real
-  signal.
-- On the **intent axis**, `scenario` is *nested* inside `intent` (each MASSIVE
-  intent belongs to exactly one scenario), so entity-relational questions are
-  trivial or impossible. The builder detects nesting automatically and emits only
-  the applicable families.
-
-| Family | Question shape | Review axis | Intent axis |
-|---|---|:---:|:---:|
-| `count` | how many records have label X | ✓ | ✓ |
-| `count` with `rare` | the same question, about a label holding 5 to 30 records (v0.7.0) | — no rare labels | ✓ |
-| `proportion` | what share have label X (percent, or per-mille if >10 classes) | ✓ | ✓ (per-mille) |
-| ~~`shift`~~ | *(withdrawn in v0.7.0, see §4e-i)* | — | — |
-| `most_common` | which label is most frequent | ✓ | ✓ |
-| `least_common` | which label is least frequent | ✓ | ✓ |
-| `second_most` | which label is second most frequent | ✓ | ✓ |
-| `label_vs_label` | is label A more, less, or equally common than label B | ✓ | ✓ |
-| `entity_count` | how many X-labelled records in group G | ✓ | — nested |
-| `entity_argmax` | which **named candidate** group has the most X | ✓ | — nested |
-| ~~`top_k`~~ | *(withdrawn in v0.5.0 — see below)* | — | — |
-| `pairwise` | which of A or B has more X | ✓ | — nested |
-
-**Every ranking question names its candidates.** `entity_argmax`, `top_k` and the
-three label-ranking families list the options they range over. This is not a
-convenience: it is what makes them (a) *well posed* — no model can be asked to
-produce `iot_hue_lightoff` without being told such a label space exists — and
-(b) *unanswerable from the corpus*, because the candidates are chosen to have
-near-identical corpus-level counts, so only this haystack can rank them. See §4
-and `DESIGN_DECISIONS.md` (D9, D10).
-
-**`top_k` no longer ships, and the reason is worth keeping.** Exact ordering was
-always the hardest family to make prior-neutral: flipping one position is easy to
-randomize, permuting three independently is not. It stayed prior-correlated on
-`vitamins_tr` and `amazon_hpc_en` (z = +5.5 and +3.7 under `--certify`) and
-survived on one corpus only — the brand-review set, which was **withdrawn in
-v0.5.0 over undocumented label provenance** (§3.5). Rather than ship a family
-resting on a single source we no longer trust, `top_k` is withdrawn with it.
-Restoring it needs a corpus with a clean licence, documented labels, and an
-entity axis orthogonal to the label; none of the candidates surveyed in
-`DATASET_REVIEW.md` has all three.
-
-**`label_vs_label` (added v0.6.0) closes the last gap in OOLONG's counting
-group.** It mirrors their "is A more common, less common, or the same frequency
-as B", needs no entity column, and therefore ships on all eleven sets. Two
-properties are worth stating because they are not obvious:
-
-- **The asked order is chosen, not inherited.** "A vs B → more" and "B vs A →
-  less" state the same fact, so the builder picks the direction that realises a
-  target outcome drawn uniformly. Without this the answers skewed to whichever
-  way the label ranking happened to fall (majority baseline 0.71 on `marc_en`);
-  with it the baseline sits at 0.50–0.60, in line with `shift`.
-- **"Equal" is reachable only when the label space is large.** At 48 classes many
-  labels carry similar counts and `the same` is the gold answer about half the
-  time; at 3 classes with per-haystack Dirichlet priors the classes are far
-  apart, no pair falls inside the 2% band, and the family is effectively binary.
-  This is reported rather than forced — widening the band to manufacture ties
-  would make the gold answer an artifact of the threshold.
-
-A pair whose relative gap falls between the 2% "equal" band and the 10% margin
-floor is **rejected**, not bucketed, so no gold answer here is a judgement call.
-
-The `most_common` / `least_common` family mirrors the OOLONG-synth counting
-typology; their actual task identifiers are `MOST_FREQ`, `LEAST_FREQ`,
-`RELATIVE_FREQ`, `NUMERIC_ONE_CLASS` and `REPRESENTED_N_TIMES`. `second_most` is
-an **extension, not a mirror** — OOLONG has second-most *user* and second-most
-*date*, but no second-most *label*. Each is a
-single-question-per-haystack family (like `shift`): asking twice adds nothing.
-
-## 2.5 The pipeline, end to end
-
-How a pair of raw corpora becomes a set of scored questions. Every gate is a
-place where a candidate can be rejected, and most of them have rejected
-something — the rejections are recorded in
-[`DATASET_REVIEW.md`](DATASET_REVIEW.md).
-
-```
-┌─ STEP 1 ── FIND A TURKISH CORPUS ──────────────────────────────────┐
-│  Must be LABELLED. A raw text corpus is unusable no matter how      │
-│  large, because the label IS the answer key.                        │
-│  Record where the label came from:                                  │
-│     writer's own star rating  > professional annotation             │
-│     > crowd annotation        > undocumented   ← reject             │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              ▼
-┌─ STEP 2 ── SCREEN IT, BEFORE BUILDING ANYTHING  (`--audit`) ────────┐
-│  • class balance          imbalance ratio, normalised entropy       │
-│  • length ceiling         R_max = smallest_class × K records        │
-│                           if it cannot reach 500K, it cannot carry  │
-│                           the length gradient                       │
-│  • surface shape          mean words / period rate / !? rate per    │
-│                           class. Spread ≥ 2.0x is flagged           │
-│  • licence                redistributable? share-alike? unknown?    │
-│                           "unknown" means no grant, not no problem  │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              ▼
-┌─ STEP 3 ── FIND ITS ENGLISH TWIN ───────────────────────────────────┐
-│  Turkish is the scarce side, so never start from English.           │
-│  Match on, in order of how often each binds:                        │
-│     1. same label provenance   (stars↔stars, humans↔humans)         │
-│     2. comparable record length                                     │
-│     3. comparable surface shape — the GAP, not either level         │
-│     4. both halves reach the same length tiers                      │
-│     + licence veto: a closer match is not worth an unusable corpus  │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              ▼
-┌─ STEP 4 ── BUILD BOTH HALVES ───────────────────────────────────────┐
-│  drop records leaking any label's surface form  (enforced, not      │
-│     assumed — 0.84% leakage once gave a solver 73% vs 33% chance)   │
-│  drop classes below min_class_support                               │
-│  sample with a Dirichlet-randomised prior, per haystack             │
-│  inject drift into the second half so `shift` has signal            │
-│  concatenate to the token target, measured with a real tokenizer    │
-│  generate questions; compute every answer TWICE, by two             │
-│     independent code paths, and assert they agree                   │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              ▼
-┌─ STEP 5 ── FOUR ACCEPTANCE GATES ── all must FAIL to solve it ──────┐
-│  (a) leakage solver     can substring search answer it?             │
-│  (b) majority baseline  is one answer always right?                 │
-│  (c) prior oracle       answerable from corpus stats, no context?   │
-│  (d) format solver      answerable from length + punctuation alone? │
-│  + golden test          is the rebuild byte-identical?              │
-│                                                                     │
-│  A family that fails on a given source is switched OFF for that     │
-│  source and the omission is recorded, not hidden.                   │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              ▼
-┌─ STEP 6 ── COMPARE CANDIDATE PAIRS, KEEP THE BEST ──────────────────┐
-│  twin asymmetry = |mean style lift TR − mean style lift EN|         │
-│  lower is cleaner. Shipping pairs: 0.010, 0.015, 0.017, 0.033.      │
-│  A pair withdrawn in v0.5.0 sat at 0.108.                           │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              ▼
-                    SHIPS AS A MATCHED TWIN
-```
-
-**The one rule that is easy to get wrong.** Steps 2 and 5 measure different
-things and step 5 is the one that decides. A corpus can look disqualifying at the
-source level and be perfectly fine once built, because the Dirichlet
-prior-randomisation in step 4 absorbs source-level bias. This was learned the
-expensive way: a replacement pair was built and gate-tested on a source-level
-number, and the question-level number did not move (§4d). **Never accept or
-reject a pairing on step-2 numbers alone.**
-
-## 3. The data sources, one by one
-
-Nine corpora feed eleven sets. This section shows what each one actually looks
-like, and exactly how its raw fields become the label the benchmark counts.
-Read it before anything else; every design decision downstream follows from
-these tables.
-
-**The rule that applies to all of them:** the label is never invented here. It is
-either already in the source, or derived from a rating the *writer of the text*
-supplied. Nothing is annotated by hand, and no model assigns any label.
-
----
-
-### 3.1 `vitamins_tr` — Turkish supplement reviews
-
-Source: `turkish-nlp-suite/vitamins-supplements-reviews` (Vitaminler.com),
-CC-BY-SA-4.0, fetched by `scripts/vitamins.py`.
-
-**Raw rows as they arrive** (4 columns):
-
-| product_name | brand | star | text |
-|---|---|---|---|
-| Vitamin C 500 Mg Takviye Edici Gıda | Venatura | 5 | *güvenilir marka* |
-| Plus Efervesan 3'lü Paket | Sambucol | 5 | *Hızlı kargo. Güzel paketlenmiş. Orijinal ürünler.* |
-| Damla 30 ml | Sidefer | 5 | *Hızlı gönderi kaliteli paketleme* |
-
-**Raw star distribution** — heavily skewed, which is why we stratify:
-
-| star | 1 | 2 | 3 | 4 | 5 |
-|---|---|---|---|---|---|
-| rows | 10,359 | 3,950 | 8,734 | 19,321 | **156,226** |
-
-**How stars become labels.** A fixed map, applied identically to the English
-twin so the two halves stay comparable:
-
-| star | label |
-|---|---|
-| 1, 2 | `olumsuz` (negative) |
-| 3 | `nötr` (neutral) |
-| 4, 5 | `olumlu` (positive) |
-
-Then each class is capped at 20,000 rows, because 5-star reviews would otherwise
-be 73% of the pool. Final: 43,043 rows — `olumlu` 20,000, `olumsuz` 14,309,
-`nötr` 8,734.
-
-**After the fetch script** (3 columns — `entity` is the brand):
-
-| text | label | entity |
+| pair | what is matched | use it for |
 |---|---|---|
-| *Indirim zamani buradan alinabilir gayet guzel paketlemesi de* | `olumlu` | Solgar |
-| *Başkası İçin aldım ama sürekli kullanıyor 🙏🏻* | `nötr` | Tab İlaç |
-| *kargo ve hizmet iyiydi. nutraxin ürünlerinden genel de memnun kaldık.* | `olumlu` | Nutraxin |
-
-**Why the 3-star → neutral mapping is the weak point.** A 3-star review is the
-most genuinely ambiguous case, and it is the whole `nötr` class. This is stated
-rather than hidden; it is also why the label-noise ceiling (§13) matters most for
-this class.
-
----
-
-### 3.2 `amazon_hpc_en` — English twin of the above
-
-Source: `McAuley-Lab/Amazon-Reviews-2023`, `Health_and_Personal_Care` subset,
-fetched by `scripts/health.py`. Brand comes from joining the review shard to the
-metadata shard on `parent_asin` (the `store` field).
-
-**Same star map**, English names:
-
-| rating | label |
-|---|---|
-| 1, 2 | `negative` |
-| 3 | `neutral` |
-| 4, 5 | `positive` |
-
-Capped at 20,000 per class, so the pool is perfectly balanced at 60,000 rows.
-
-| text | label | entity |
-|---|---|---|
-| *This review is more to clarify someone else's review bc they didn't un…* | `positive` | Life Nutrition |
-| *Love these easy multitasking bleach tablets. Beats carrying home a big…* | `positive` | Evolve |
-| *I have been suffering a couple months with heel pain from plantar fasc…* | `positive` | Dr.Foot |
-
-**This is the primary cross-lingual pair.** Same domain (health/supplements),
-same label origin (the reviewer's own star), and an orthogonal brand axis on the
-Turkish half. Its one weakness is length: Amazon reviews average 44.8 words
-against the Turkish set's 12.1.
-
-**Licence.** The repository packaging is MIT-style but the review text remains
-under Amazon's Conditions of Use, so **the text is withheld from release** and
-rebuilt locally by the script. Questions and answers ship.
-
----
-
-### 3.3 `tr_intent` / `en_intent` — Amazon MASSIVE, the parallel corpus
-
-Source: `AmazonScience/massive`, locales `tr-TR` and `en-US`, CC-BY-4.0,
-fetched by `scripts/massive.py`. **No mapping is needed** — the intent label is
-already in the data.
-
-**Raw rows, and the reason this axis is the strongest one here.** The same
-`pair_id` gives the same utterance in both languages with the same label:
-
-| pair_id | Turkish `utt` | English `utt` | intent | scenario |
-|---|---|---|---|---|
-| train:1 | *beni cuma günü sabah dokuzda uyandır* | *wake me up at nine am on friday* | `alarm_set` | alarm |
-| train:2 | *iki saat sonrasına alarm kur* | *set an alarm for two hours from now* | `alarm_set` | alarm |
-| train:4 | *olly sessiz ol* | *olly quiet* | `audio_volume_mute` | audio |
-
-**48 of 60 intents are kept.** Twelve have fewer than 100 rows and are dropped,
-because a class too small to be sampled competitively is the rarest one in every
-haystack, which makes `least_common` answerable without reading anything. The
-motivating case: `cooking_query` has 6 rows in 16.5K and was the gold answer in
-10 of 10 haystacks in **both** languages.
-
-**The entity column is unusable here** and this is detected automatically:
-`scenario` is *nested* inside `intent` (each intent belongs to exactly one
-scenario), so entity questions are either trivial or impossible. The intent axis
-therefore ships six families, not ten.
-
-**Two regimes, because they answer different questions:**
-
-| | matched on | asks |
-|---|---|---|
-| `tr_intent` / `en_intent` | equal **token** budget | at equal cost, which language degrades faster? |
-| `tr_intent_paired` / `en_intent_paired` | equal **record** count, same records, same order | at equal content, which language degrades faster? |
-
-The paired regime is what makes 100 of 120 questions share a byte-identical gold
-answer across languages, and what permits paired statistical tests.
-
----
-
-### 3.4 `musteri_tr` / `marc_en` — the cleanest pair
-
-Added 2026-08-25. Turkish: `turkish-nlp-suite/MusteriYorumlari`, product reviews
-scraped from Hepsiburada.com and Trendyol.com, CC-BY-SA-4.0. English:
-`SetFit/amazon_reviews_multi_en` (the Multilingual Amazon Reviews Corpus),
-Apache-2.0.
-
-**Raw rows as they arrive.** Both sources ship two columns, `text` and a
-zero-indexed star `label`:
-
-| | raw label | text |
-|---|---|---|
-| MüşteriYorumları | `1` | *Ürünleri 2025 olarak göndereceğiz dedikleri halde öyle gönderilmemiş* |
-| MüşteriYorumları | `2` | *Ürün görseldeki gibi. kalitelisini beğenmeedim. yumuşak ama çok ince…* |
-| MARC en | `0` | *Arrived broken. Manufacturer defect. Two of the legs of the ba…* |
-| MARC en | `0` | *the cabinet dot were all detached from backing... got me* |
-
-**Raw label distributions.** MARC ships exactly balanced; MüşteriYorumları does
-not, which is why it is capped:
-
-| star (0-indexed) | 0 | 1 | 2 | 3 | 4 |
-|---|---|---|---|---|---|
-| MüşteriYorumları | 9,053 | 8,099 | 12,883 | 22,142 | 21,743 |
-| MARC en | 40,000 | 40,000 | 40,000 | 40,000 | 40,000 |
-
-**Both labels are the customer's own 1–5 star rating**, mapped by the same rule
-used for `vitamins_tr`:
-
-| stars | Turkish label | English label |
-|---|---|---|
-| 1, 2 | `olumsuz` | `negative` |
-| 3 | `nötr` | `neutral` |
-| 4, 5 | `olumlu` | `positive` |
-
-Each class is capped to the smallest, so **both pools are perfectly balanced**
-(normalised entropy 1.000): 12,883 per class in Turkish, 40,000 in English.
-
-**After the fetch scripts** (2 columns each — no entity, deliberately):
-
-| set | label | text |
-|---|---|---|
-| `musteri_tr` | `olumsuz` | *Ürün aşırı dandik. Görselde fırın ve bulaşık makinesinin orada ışıklı…* |
-| `musteri_tr` | `nötr` | *Ürün görseldeki gibi. kalitelisini beğenmeedim…* |
-| `marc_en` | `negative` | *Followed directions, did not work as advertised.* |
-| `marc_en` | `negative` | *Ordered 2 they shipped 1 promised by certain day, then the next day…* |
-
-**Neither half has a product or brand column**, so both emit the same six
-families. That symmetry is deliberate: a twin whose halves support different
-question families is not a twin.
-
-**Why this pair matters.** On the measurements that decide whether a
-cross-lingual comparison is trustworthy, it is the best in the benchmark:
-
-| | `musteri_tr` ↔ `marc_en` | `vitamins_tr` ↔ `amazon_hpc_en` | *withdrawn brand-review pair* |
-|---|---|---|---|
-| twin asymmetry (§4d) | **0.010** | 0.015 | 0.108 |
-| class balance | **1.0x / 1.0x** | 2.3x / 1.0x | 4.1x / 3.9x |
-| length spread within set | **1.2x / 1.1x** | 1.5x / 1.1x | 3.6x / 1.4x |
-| tokens per record | **32.6 vs 41.3** | 22 vs 82 | 45 vs 30 |
-| label provenance | writer's own stars, both | writer's own stars, both | undocumented vs CrowdFlower |
-| text redistributable | **both** | Turkish only | Turkish only |
-
-Its cost is six families instead of nine. It is therefore the **cleanest** pair,
-not the richest — `vitamins_tr` ↔ `amazon_hpc_en` remains the primary pair
-because it carries the entity axis.
-
-### 3.4b `sikayet_tr` / `interpress_tr` / `sinema_tr` — the large-label-space sets
-
-Added 2026-09-16, Turkish only, and added for one reason: **three classes cannot
-host a small gold answer.** A reader classifying a random 5% of a 3-class
-document and scaling up scores 0.88–0.91 on its counts, and that is arithmetic
-rather than a design flaw — relative error goes as `sqrt((1-f)/(f*m))` in the
-gold magnitude `m`, and with N records over K classes the average count is `N/K`.
-Resistance needs a large K. These three supply it (`DESIGN_DECISIONS.md` D21b),
-and they now carry
-**168 of the benchmark's 259 very-hard questions**.
-
-**None of them has an English twin**, so none bears on the cross-lingual claim.
-They are difficulty evidence, not comparison evidence.
-
-**Raw shape, and what survives each stage.** The fetch script applies length and
-class filters; the builder then drops records containing any label's surface
-form:
-
-| set | source rows | after fetch script | after the builder's leak filter | classes |
-|---|---:|---:|---:|---:|
-| `sikayet_tr` | 431,306 | 375,902 | 280,193 (**−24.6%**) | 32 → **29** |
-| `interpress_tr` | 218,839 | 192,369 | 97,835 (**−35.1%**) | 17 → **16** |
-| `sinema_tr` | 67,328 | 56,439 | 51,171 (−0.3%) | **10** |
-
-**Label mapping, per source.**
-
-- `sikayet_tr` — the product category the complainant chose when filing on a
-  consumer-complaints site. Slugs are rewritten into natural Turkish
-  (`beyaz-esya` → *beyaz eşya*, `mutfak-arac-gerec` → *mutfak araç gereç*), both
-  because the templates put them in front of a Turkish reader (`DESIGN_DECISIONS.md` D12) and because
-  the word-level leak filter needs real words to match. Near-balanced as it
-  arrives: 10,856 to 13,609 rows per class.
-- `interpress_tr` — the publisher's own editorial section (*ticaret* 17,266 down
-  to *savunma* 3,202). `savunma` falls below the 1,000-row support floor after
-  filtering, leaving 16 classes in the shipped label space.
-- `sinema_tr` — the reviewer's own 10-point score, stored zero-indexed and
-  rendered as *"1 yıldız"* … *"10 yıldız"* rather than collapsed to sentiment
-  words. Collapsing a 10-point scale to 3 classes is precisely what makes the
-  existing review sets partially readable. Naturally uneven, 2.4% at *3 yıldız*
-  to 24.4% at *8 yıldız*, which usefully puts some counts in the rare band
-  without any construction trick.
-
-**Three findings from building them that are worth carrying.**
-
-1. **`sikayet_tr`'s file is not what its header says.** The header is
-   `category,text`, but `text` is really `"<TITLE>,<BODY>"` — a complaint
-   headline joined to the narrative by a comma, splitting cleanly on the first
-   comma in 100% of rows. The title is the part that names the company, so it is
-   kept **out** of the record text. A native reader spotted this before the code
-   did.
-2. **Two artifacts in `sikayet_tr` would have shipped unnoticed.** 89.7% of
-   bodies end in *"Devamını oku"* ("read more"), a scraping truncation marker,
-   and the 10.3% without it are systematically the shorter complaints — a
-   surface feature correlated with length and so possibly with category.
-   Stripped. And category-name leakage is severe for a few classes, body-only:
-   `kargo-nakliyat` **84.7%**, `cep-telefon-kategori` **73.4%**, `anne-bebek`
-   **36.9%**, all others at or under 30%. Those three classes are dropped.
-   ⚠️ The residual is caught **only because the leak filter was hardened for this
-   source**: it used to match the whole label string, and no Turkish complaint
-   contains the literal `"kargo-nakliyat"`, so it would have reported zero
-   leakage and passed by construction. The config sets `leak_label_words: true`.
-   Never ship this source with that flag off.
-3. **`interpress_tr` is the only set with a real length gradient.** Its records
-   are full news articles (median 1,650 characters), so a 100K-token document
-   holds ~206 of them rather than ~1,500, and the predicted 5%-sample score
-   climbs 0.00 → 0.33 → 0.52 → 0.66 across the tiers instead of sitting flat at
-   0.88–0.91. Using its `Title` column instead was measured and is much worse:
-   28-character records give ~12,000 per document and a 5% score of 0.86.
-
-**Two of the three cannot ship their text.** `sikayet_tr` and `interpress_tr`
-have no upstream licence, so they are released as questions, answers and a
-manifest only, rebuildable locally from the seed. `sinema_tr` is CC-BY-SA-4.0 and
-ships in full, which is why it matters out of proportion to its size. **No
-verbatim record from the two unlicensed sources is quoted in this README**, which
-is why this section shows distributions rather than example rows. Full licence
-position: `DATACARD.md`.
-
-**`interpress_tr` also carries per-record dates** — 2,457 distinct days from
-2010-11-02 to 2017-11-01 — and the builder deliberately ignores them. It is the
-one source here that could support a dated timeline family, and that family is
-not built.
-
-### 3.5 Summary — what each source contributes
-
-| set | source | label origin | classes | entity | text ships? | very-hard questions |
-|---|---|---|---|---|---|---:|
-| `sikayet_tr` | TC32 complaints (Kaggle) | complainant's own product category | **29** | none | no, licence unstated | **76** |
-| `interpress_tr` | Interpress news, dated | publisher's section | **16** (17 in source) | none | no, licence unstated | **66** |
-| `sinema_tr` | BuyukSinema | **writer's own 10-point rating** | **10** | none | yes, cc-by-sa-4.0 | 26 |
-| `tr_intent`, `en_intent` (+paired) | MASSIVE | professional annotation | 48 | nested, unusable | yes | 10–17 each |
-| `vitamins_tr` | Vitaminler.com | **writer's own star rating** | 3 | brand, orthogonal | yes | 21 |
-| `amazon_hpc_en` | Amazon H&PC | **writer's own star rating** | 3 | brand | no, licence unstated | 24 |
-| `musteri_tr` | Hepsiburada / Trendyol | **writer's own star rating** | 3 | none | yes | **0** |
-| `marc_en` | MARC English | **writer's own star rating** | 3 | none | yes | **1** |
-
-**Read the last two columns together.** The three v0.7.0 additions exist because
-a 3-class label space over thousands of records cannot host a small answer
-(`DESIGN_DECISIONS.md` D21b), and they supply 168 of the 259 very-hard questions
-in the benchmark. `musteri_tr` and `marc_en` supply **one between them**: they are
-the matched Turkish/English comparison and the classification control, and must
-never be cited as evidence of aggregation difficulty. Two of the three additions
-cannot redistribute their text, which is why `sinema_tr` matters out of
-proportion to its size: it is the only large-label-space Turkish source found
-with a declared licence.
-
-
-### 3.6 Example questions (produced by the actual builder)
-
-Every answer below is computed from the source labels by two independent code
-paths and asserted equal (see §6).
-
-**A shipped row, verbatim**, from `vitamins_tr_out/questions.jsonl`:
-
-```json
-{"uid": "vitamins_tr:tr-100000-0-q0", "dataset": "vitamins_tr",
- "id": "tr-100000-0-q0",
- "haystack_uid": "vitamins_tr:tr-100000-0", "haystack_id": "tr-100000-0",
- "language": "tr", "target_tokens": 100000, "target_records": null,
- "kind": "count", "label": "olumlu", "answer": "1600",
- "question": "Bu yorumlardan kaç tanesi 'olumlu' etiketli? Sadece sayıyı yaz."}
-```
-
-`uid` is the key to join on; `id` alone is ambiguous across subsets (§5). The
-matching row in `difficulty.jsonl` carries the same `uid` plus
-`shortcut_score`, `shortcut_reader`, `difficulty`, `blind_score`, `grade_se`
-and `borderline`.
-
-**Review axis** (orthogonal brand entity), from `vitamins_tr_out/questions.jsonl`:
-
-- `entity_argmax` — *"Şu markalardan hangisi en çok 'olumlu' yorum aldı: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? Sadece marka adını yaz."* → **general mobile**
-- ~~`top_k`~~ *(withdrawn in v0.5.0 with the corpus it shipped on; not in the release)* — *"Şu markalar arasında en çok 'olumlu' yorum alan ilk 3 marka hangileri: 'arzum', 'carrefoursa', 'general mobile', 'vestel', 'ziraat bankası'? …"* → **general mobile > carrefoursa > vestel**
-- `pairwise` — *"'olumlu' yorumu hangisinde daha çok: 'arzum' mu yoksa 'derimod' mu? Sadece marka adını yaz."* → **arzum**
-- `entity_count` — *"'kahve dünyası' markası hakkındaki yorumlardan kaç tanesi 'nötr'? Sadece sayıyı yaz."* → **10**
-
-Note the question particle: *arzum **mu*** but *derimod **mu*** and *ebebek **mi***.
-It is derived per brand by Turkish vowel harmony (`soru_eki`), not hardcoded.
-
-**Intent axis, Turkish**, from `tr_intent_out/questions.jsonl`:
-
-- `count` — *"Bu kayıtlarda kaç tane 'recommendation_locations' etiketli kayıt var? Sadece sayıyı yaz."* → **15**
-- `proportion` — *"Kayıtların binde kaçı 'alarm_remove' etiketli? …"* → **17** (per-mille)
-- ~~`shift`~~ — *"Kayıtların ikinci yarısında 'qa_currency' etiketli kayıtların oranı ilk yarıya göre arttı mı azaldı mı? 'arttı' veya 'azaldı' yaz."* → **arttı**. **Withdrawn in v0.7.0 and not in the release** (§4e-i); kept here only to show what the family looked like.
-- `least_common` — *"Bu kayıtlarda en az görülen etiket hangisi? Etiketler: 'alarm_query', 'iot_coffee', 'iot_hue_lightoff', 'play_game', 'social_query'. …"* → **social_query**
-
-**The record-matched twin.** The two sets contain **different text** — Turkish
-utterances and their English counterparts. What is identical is *which* records
-are present, in *what order*, with *what labels*. Because every answer is derived
-from the labels, the gold answer is therefore the same in both languages:
-
-```
-row 13050  [iot_coffee]   TR: "biraz kahve yapar mısın"
-                          EN: "can you make some coffee"
-row  9651  [social_query] TR: "facebook bilgisi"
-                          EN: "facebook info"
-```
-
-That is what makes the comparison paired: a model sees a genuinely Turkish
-haystack and a genuinely English one, is asked the same question, and the correct
-answer is the same number. Any difference in score is a difference in language,
-not in what was being counted:
-
-| | Turkish (`tr_intent_paired`) | English (`en_intent_paired`) |
-|---|---|---|
-| `most_common` | *"…en sık görülen etiket hangisi? Etiketler: 'alarm_query', 'iot_coffee', 'iot_hue_lightoff', 'music_likeness', 'play_game'."* | *"Which label is the most common…? Labels: 'alarm_query', 'iot_coffee', 'iot_hue_lightoff', 'music_likeness', 'play_game'."* |
-| answer | **iot_hue_lightoff** | **iot_hue_lightoff** |
-| `count` | *"…kaç tane 'transport_taxi' etiketli kayıt var?"* | *"How many utterances have the intent 'transport_taxi'?"* |
-| answer | **18** | **18** |
-
-By contrast the **token-matched** pair (`tr_intent` / `en_intent`) gives each
-language an equal token budget, so they hold *different numbers of different
-records* and their answers do not correspond. That pair answers "at equal cost";
-the paired sets answer "at equal content". Both are shipped because they are
-different questions — only the paired one supports a paired test.
-
-**Large-label-space axis** (v0.7.0, Turkish only). These three sets exist
-because three classes over thousands of records cannot produce a small answer
-(D21b), and a small answer is the only thing a partial reader cannot estimate:
-
-- `sikayet_tr`, `count` on a rare class (29 categories) -- *"Bu kayıtlarda kaç tane 'elektronik' etiketli kayıt var? Sadece sayıyı yaz."* -> **6**. Graded **very hard**: a reader seeing 5% of the document sees either zero such records or one.
-- `sikayet_tr`, `label_vs_label` -- *"'otomotiv' etiketli kayıtlar 'temizlik' etiketli kayıtlardan daha mı çok, daha mı az, yoksa eşit sayıda mı? …"* -> **daha çok**. Graded easy: a comparison between two large classes survives sampling.
-- `interpress_tr`, `proportion` (16 categories, per-mille) -- *"Kayıtların binde kaçı 'bilisim' etiketli? …"* -> **8**. Graded **very hard**.
-- `sinema_tr`, `count` on a 10-point rating scale -- *"Bu kayıtlarda kaç tane '3 yıldız' etiketli kayıt var? Sadece sayıyı yaz."* -> **23**. Graded easy at this document length, which is why grades are per question and not per family.
-
-Note `interpress_tr`'s category names (`bilisim`, `yasam`, `saglik`) are stored
-de-accented by the upstream corpus and are reproduced verbatim rather than
-repaired, so the question string shows the corpus's own spelling. This costs
-nothing at scoring time: those sets never require a category name *as an answer*
-(their ranking families are disabled), and the scorer's ASCII-folding fallback
-accepts either spelling where a name is the answer.
-
-A real sample question set, one row per family per set with its difficulty grade
-attached, is committed at `examples/sample_questions_review.jsonl` (38 rows,
-regenerated from the v0.7.1 build).
-
-## 4. Construct validity
-
-Three independent shortcut solvers must fail before a set ships. Each exists
-because a *previous* version of the benchmark was solvable by it.
-
-> **On the set names in this section.** Several measurements below were taken on
-> `tr_oolong` (Turkish brand reviews) and `en_twin` (airline tweets), a pair
-> **withdrawn in v0.5.0** over undocumented label provenance. The measurements are
-> kept because they are the evidence for why each solver exists — a defect found
-> on a set that was later dropped is still a defect the pipeline now catches. No
-> shipped set depends on them.
-
-**(a) Grep-proofness — the leakage solver.** The question asks about a latent
-*label*, and no record contains any label's surface form; records that do are
-dropped at build time (`drop_label_leakage`), over the whole label space, not
-just the record's own label. This is enforcement, not assumption, because the
-assumption was false: a solver doing nothing but substring search for three
-Turkish words recovered `most_common` on `tr_oolong` **73%** of the time
-(chance 33%). After filtering it scores at chance.
-
-Only **0.84%** of records leaked, and that was enough to determine the argmax
-over three classes, because the leaks correlate with the gold label. *Leakage
-rate is not a proxy for exploitability.*
-
-**(b) Answer skew — the majority baseline.** The score of always emitting the
-most frequent gold answer. A leakage solver whose masks are all zero degenerates
-to a constant predictor, so it is structurally blind to prior-driven degeneracy —
-which is how a `least_common` family with a majority baseline of **1.00**
-(`cooking_query` in 10/10 haystacks) survived undetected. Read `leak` against
-`max(majority, chance)`: on a family with many distinct answers the majority
-baseline is near zero and is the wrong reference.
-
-**(c) Corpus priors — the context-free oracle** (`scripts/quality_audit.py`).
-Answers every question from source-corpus statistics alone, never reading the
-haystack. Both earlier solvers were blind to it, and it found the worst defect in
-the benchmark:
-
-| set | `pairwise` | `entity_argmax` | `top_k` |
-|---|---|---|---|
-| `tr_oolong` | 0.733 | 0.867 | 0.077 |
-| `en_twin` | 0.900 | 0.700 | 0.300 |
-| `vitamins_tr` | **1.000** | 0.800 | 0.900 |
-| `amazon_hpc_en` | 0.850 | 0.550 | 0.188 |
-
-Every `vitamins_tr` `pairwise` question was answerable with no context at all,
-because the entity axis inherited the corpus's brand ranking while only the
-*label* axis was prior-randomized — and it got **worse with length**, since a
-longer haystack converges on corpus proportions. Fixed by per-haystack entity
-jitter plus prior-matched candidate sets (D9); all entity families now pass. One
-flag remains in the committed record and is stated rather than buried:
-`en_intent` `most_common` scores a prior of 0.50 against a chance of 0.20
-(p = 0.033, n = 10). ✅ **Resolved 2026-09-05 by `--certify 250`:** at **152
-distinct draws** the same family measures a prior of **0.263 against a chance of
-0.200, z = +1.9 — `ok`.** The flag was small-sample noise, exactly as this
-section's own rule predicts. Every family on every set now passes at scale; the
-label-ranking families are singleton (one distinct question per haystack), so
-their power comes from more haystacks rather than more draws. By that rule —
-per-family samples of 10–20 cannot certify a family — the original was a
-small-sample flag, not a demonstrated
-shortcut, and the `--certify` run at n in the hundreds is the governing test.
-`manifests/quality_audit.json` is the committed record.
-
-**(d) Surface style — the format solver** *(added 2026-08-25)*. A classifier using
-**only** text length, whether the record ends in a period, and whether it contains
-`!`/`?` — no words, no comprehension. It exists because the corpus, not the
-builder, can encode the label in formatting:
-
-| corpus | style-solver lift over majority |
-|---|---|
-| Turkish brand reviews (We-Bears) | **+12.0 pts** |
-| Airline tweets (en twin) | +1.7 pts |
-| `vitamins_tr` | +4.8 pts |
-| `amazon_hpc_en` | +6.8 pts |
-
-In We-Bears, `olumlu` records end in a period 99.2% of the time and average 9.2
-words; `olumsuz` records 45.2% and 33.1 words. Note also that **0 of 262
-duplicate-text groups carry conflicting labels**, against 17.1% for the
-human-annotated airline twin — the signature of programmatic rather than human
-labelling.
-
-This does not make the benchmark grep-solvable: aggregation is still required.
-What it breaks is the **cross-lingual** comparison, because the shortcut is
-7× stronger on the Turkish half than on its English twin, so a model could score
-well on Turkish by measuring sentence lengths instead of reading Turkish.
-**Consequence:** the supplement pair (`vitamins_tr` ↔ `amazon_hpc_en`) is the
-primary cross-lingual review pair — same domain, author-assigned star labels,
-style-matched (+4.8 vs +6.8). The We-Bears pair ships as a secondary robustness
-check with this caveat attached.
-
-**(d) Surface format — the style solver** (`scripts/style_solver.py`). Classifies
-every record using **only** length, whether it ends in a period, and whether it
-contains `!`/`?` — no words at all — then aggregates and answers the real
-questions with the frozen scorer. It exists because none of (a)–(c) can see a
-corpus that encodes its labels in *formatting*: the leakage solver looks for
-label words, the majority baseline at answer skew, the prior oracle at corpus
-statistics.
-
-The classic case is "long review = negative". It is present, mildly, in most
-review corpora, and severely in one:
-
-| source | longest class | shortest class | spread |
-|---|---|---|---|
-| `vitamins_tr` | olumsuz 15.0 w | olumlu 9.8 w | 1.5x |
-| `musteri_tr` | olumsuz | olumlu | 1.2x |
-| `marc_en` | negative | positive | 1.1x |
-| `amazon_hpc_en` | **positive** 46.9 w | negative 41.8 w | 1.1x |
-
-For scale, the brand-review corpus withdrawn in v0.5.0 had a **3.6x** spread —
-`olumsuz` averaged 33.1 words and ended in a period 48% of the time, `olumlu`
-averaged 9.1 words and ended in a period 99% of the time.
-
-A format-solvable corpus still yields a valid aggregation task — the model must
-classify every record and add up the results either way. What it stops being is a
-test of reading the *language*. So the number to watch is not either half's lift
-but **the gap between the twin's halves**, because an asymmetric bias means a
-model can score on the Turkish half by measuring sentence lengths:
-
-| pair | asymmetry (v0.6.0 build) |
-|---|---|
-| intent, record-matched | **0.014** |
-| `vitamins_tr` ↔ `amazon_hpc_en` | 0.020 |
-| intent, token-matched | 0.028 |
-| `musteri_tr` ↔ `marc_en` | 0.030 |
-
-Every shipping pair is now at or under 0.030. The one pair that sat at **0.108**
-was the brand-reviews/airline pair, withdrawn in v0.5.0. **All eleven sets pass
-the gate** (no set exceeds +0.15 mean lift over majority; every set is in fact
-negative, so the format solver does worse than guessing the majority answer) and
-`manifests/style_audit.json` is the committed record:
-
-| | mean lift |
+| `tr_intent_paired` / `en_intent_paired` | **the same 3,000 utterances** (MASSIVE is a human translation), same order, same labels. All 120 questions have the same answer in both languages. | a paired test: any score gap is not caused by the questions |
+| `tr_intent` / `en_intent` | same corpus, same **token budget** | comparing languages at equal cost |
+| `musteri_tr` / `marc_en` | different corpora, same task (star-rating sentiment), similar record length | comparing languages on natural text |
+| `vitamins_tr` / `amazon_hpc_en` | different corpora, same task, both carry a brand per record | brand questions in both languages |
+
+`sikayet_tr`, `interpress_tr` and `sinema_tr` have no English partner. They were
+added because 3-label sets cannot produce questions with small answers, and
+small answers are what resist skimming (see [What is measured](#what-is-measured-about-difficulty)).
+
+## Question types
+
+| type | example | answer | count |
+|---|---|---|---:|
+| `count` | how many records have label X? | a number | 921 |
+| `proportion` | what percent (or per mille) have label X? | a number | 492 |
+| `label_vs_label` | is X more common, less common, or as common as Y? | a word | 292 |
+| `most_common` / `least_common` / `second_most` | which label is most / least / second most common? | a label | 398 |
+| `entity_count` | how many reviews of brand B have label X? | a number | 87 |
+| `entity_argmax` / `pairwise` | which brand has the most X? which of two brands? | a brand | 50 |
+
+265 of the `count` questions are **rare-label counts** (`"rare": true`): the true
+answer is between 5 and 30. They are worded exactly like any other count.
+
+A tenth type, `shift` ("did X rise or fall in the second half?"), was removed
+in v0.7.0 because reading 50 records at each end answers it.
+
+### Why the Turkish intent questions use English label names
+
+In `tr_intent` and `tr_intent_paired` the question is in Turkish but the label
+is MASSIVE's English identifier (`transport_taxi`, `play_music`). This is
+deliberate: **translating the labels puts the answer back into the text.**
+Turkish is verb-final, so a label like `alarm_kur` appears word for word inside
+utterances such as *"iki saat sonrasına alarm kur"*. Measured on all 15,075
+utterances:
+
+| labels used | records containing their own label |
 |---|---:|
-| `en_intent` / `en_intent_paired` | −0.175 / −0.146 |
-| `tr_intent` / `tr_intent_paired` | −0.142 / −0.146 |
-| `vitamins_tr` / `amazon_hpc_en` | −0.115 / −0.077 |
-| `musteri_tr` / `marc_en` | −0.143 / −0.108 |
-| `sikayet_tr` / `interpress_tr` / `sinema_tr` | −0.094 / −0.124 / −0.164 |
+| English identifiers (**shipped**) | 0.00% |
+| Turkish, imperative (`müzik_çal`) | 3.13% (472 records) |
+| Turkish, dictionary form (`müzik_çalmak`) | 0.14% (21 records) |
 
-⚠️ **The three v0.7.0 sets were unmeasured here until 2026-09-16, and the way
-that happened is worth keeping.** `style_solver.py` reads its majority baselines
-from `manifests/baseline_report.json`; the new sets' baselines had been written
-to the repo-root `baseline_report.json` instead, so the solver recorded
-`majority_baseline: null` for them and propagated a null lift into the audit,
-while the summary line still printed a pass over the sets it *could* score. A
-null lift reads as "nothing to report" when it means the check did not run. The
-baseline files have been merged, the solver re-run over all eleven configs, and
-the table above is that run. **This is the same empty-cell failure that let
-`shift` survive four gates (§4e-i), caught a second time by a different route.**
+Nothing Turkish is lost: the Turkish is in the text being classified, and the
+label is only the name of the bucket. The translated variants are kept in
+`configs/experimental/` and are not part of the release.
 
-**One family fails this solver everywhere.** `shift` is the only family with a
-positive lift on any set: **+0.400** (`amazon_hpc_en`), **+0.300** (`en_twin`,
-`vitamins_tr`), +0.100 (`en_intent`). Its majority baseline is already the
-highest in the suite (mean 0.61). A binary rose/fell over
-positional halves is simply too coarse. See §10.
+## Relation to OOLONG
 
-**`shift` is withdrawn as of v0.7.0** for a second and stronger reason, measured
-after this paragraph was written: a reader that classifies fifty records at each
-end of the document answers it perfectly. See §4e-i.
-
-**(e) Reading only part of it — the partial-coverage solvers**
-(`scripts/sampling_solver.py`, added 2026-09-15, extended 2026-09-16). Solvers
-(a)–(d) all ask whether a question can be answered *without* reading the
-haystack. This one asks whether it can be answered by reading **part** of it,
-and models the four ways a real system does that, all spending the **same**
-budget of k records and differing only in where those records come from: a
-**random** reader (a uniformly random fraction, scaled up: what an agent with
-code execution can do deliberately), a **prefix** reader (the first k records:
-what a context-limited model does by default once the document exceeds its
-window), a **headtail** reader (k/2 at the start and k/2 at the end), and a
-**stride** reader (k records evenly spaced end to end: what a chunking harness
-produces without intending to sample).
-
-**`headtail` and `stride` were added on 2026-09-16 and they changed the
-conclusion of this section.** Until then only `random` and `prefix` were
-modelled, and `prefix` is the single dumbest way to spend a reading budget. The
-haystack is assembled as two internally-shuffled blocks split at `n//2`, so
-every label except the drift target is exchangeable across the whole document
-and the drift target is exchangeable within each half. `prefix` is therefore the
-*only* cheap reader that document order biases, and it is biased for a reason
-that has nothing to do with length. Any reader that touches both halves recovers
-the document.
-
-**It works, and unlike the other four this one is reported as a limitation
-rather than as a gate that passes.** Scores are `relative`; every partial reader
-is handed the true label of each record it reads, so these are upper bounds.
-
-| set | family | ref | rnd 5% | rnd 25% | pfx 5% | pfx 25% | **ht 5%** | **ht 25%** | str 5% | str 25% |
-|---|---|---|---|---|---|---|---|---|---|---|
-| `vitamins_tr` | `count` | 0.62 | 0.92 | 0.97 | 0.65 | 0.69 | **0.91** | **0.98** | 0.91 | 0.97 |
-| `musteri_tr` | `count` | 0.55 | 0.89 | 0.96 | 0.66 | 0.70 | **0.91** | **0.97** | 0.93 | 0.96 |
-| `amazon_hpc_en` | `count` | 0.43 | 0.89 | 0.96 | 0.70 | 0.71 | **0.90** | **0.95** | 0.90 | 0.96 |
-| `musteri_tr` | `most_common` | 0.55 | 0.98 | 0.99 | 0.82 | 0.82 | **1.00** | **1.00** | 1.00 | 1.00 |
-| `tr_intent` | `most_common` | 0.10 | 0.45 | 0.80 | 0.50 | 0.70 | 0.30 | **0.90** | 0.40 | 0.80 |
-| `tr_intent_paired` | `count` | 0.47 | 0.54 | 0.81 | 0.55 | 0.81 | 0.56 | 0.79 | 0.60 | 0.80 |
-| `tr_intent_paired` | `label_vs_label` | 0.50 | 0.49 | 0.55 | 0.60 | 0.50 | 0.60 | 0.50 | 0.50 | 0.60 |
-| `vitamins_tr` | `entity_count` | 0.20 | 0.38 | 0.74 | 0.42 | 0.51 | 0.48 | 0.74 | 0.41 | 0.76 |
-| `amazon_hpc_en` | `entity_count` | 0.16 | 0.28 | 0.66 | 0.17 | 0.69 | 0.17 | 0.69 | 0.31 | 0.56 |
-
-`ref` is `blind` where a blind estimate exists and the majority baseline
-otherwise. **Read the `ht` columns, not the `pfx` ones**, whenever the question
-is how much a cheap reader can get: `headtail` costs exactly what `prefix` costs
-and beats it on every numeric row.
-
-**Coverage is now reported next to every score**, because a reader that *cannot*
-answer a family is not the same as one that answers it badly, and the difference
-was invisible. `prefix` produces no answer for `shift` (every record it reads is
-in the first half), so `shift` carried an *empty* prefix cell in every manifest
-shipped before v0.7.0 rather than an honest zero-coverage one, and the family
-was never tested against a partial reader at all. See §4e-i.
-
-**The reference column is `blind`, not the majority baseline, and this corrects
-an earlier revision of this section.** The majority baseline is the exact-match
-frequency of the most common gold answer (0.02–0.05 on `count`). Under
-`relative`, the metric that actually carries the signal, a reader that opens
-nothing but counts the separators and answers N/3 (or 33%) already scores
-0.43–0.63 on `count` and `proportion`. That is the floor a numeric score must be
-read against, and `quality_audit.py` now reports it as `blind` for every numeric
-family, next to the corpus-prior guess scored the same way (`p.rel`). Gate (c)
-had scored the numeric families under `exact`, where a context-free guess can
-never hit the integer, and so passed them by construction.
-
-**Under `relative`, the length axis does not bite.** A fixed budget of 1,000
-records scores the same on `count` at every tier, for every reader except the
-contiguous prefix. Each cell is `random` / `prefix` / **`headtail`**:
-
-| set | 100K | 250K | 500K | 750K / 1M |
-|---|---|---|---|---|
-| `vitamins_tr` | 0.96 / 0.72 / **0.98** | 0.97 / 0.67 / **0.97** | 0.97 / 0.66 / **0.95** | 0.96 / 0.71 / **0.97** |
-| `amazon_hpc_en` | 0.97 / 0.88 / **0.97** | 0.96 / 0.72 / **0.95** | 0.95 / 0.74 / **0.95** | 0.95 / 0.53 / **0.92** |
-| `musteri_tr` | 0.96 / 0.77 / **0.96** | 0.94 / 0.71 / **0.96** | 0.96 / 0.60 / **0.96** | |
-| `marc_en` | 0.96 / 0.80 / **0.98** | 0.95 / 0.63 / **0.93** | 0.94 / 0.73 / **0.93** | |
-
-The standard error of a proportion depends on the number of records read, not
-on the number that exist, so a sampler's score is flat in length by arithmetic.
-
-**An earlier revision of this section read the prefix column as a length effect,
-and that was wrong.** It said a 1,000-record prefix reader "degrades only mildly"
-and that the degradation came from the injected drift rather than from length.
-The first half is right and the second half was untested: a `headtail` reader on
-the same 1,000-record budget is flat across tiers (`amazon_hpc_en`: 0.97 at 100K,
-0.92 at 1M) while the prefix reader falls from 0.88 to 0.53 over the same range.
-The prefix decay is not length and it is not drift resistance. It is the single
-reader whose window sits entirely inside one of the two blocks, and splitting the
-identical budget between the two ends removes it. **No claim that truncation is
-costly should be made from the prefix column without the headtail column beside
-it.**
-
-**Consequence, unchanged and now better supported: on the numeric families, 64%
-of the questions, a `relative` score cannot distinguish a model that reads 1,000
-records from one that reads 16,000.** What the length axis still tests under this
-metric is whether a model survives ingestion at all (context overflow, format
-collapse, refusal), which is a real but different property. The ranking families
-are no better: 500 records settle their gaps, and `headtail` settles most of them
-at 100.
-
-**A single score cannot attribute credit between reading and classifying.** On
-`count`, a perfect classifier reading a random 5% (0.89–0.92) outscores a
-classifier that reads every record and is right 90% of the time (0.74–0.90) and
-one that is right 70% of the time (0.57–0.79; symmetric confusion, the most
-benign noise model there is). The ranking families are immune to classifier
-noise (1.00 at 70% accuracy on every 3-class set) *and* sampling-solvable, so on
-their own they measure little beyond whether the task was attempted. The full
-grid is `fullread_by_accuracy` in `manifests/sampling_audit.json`.
-
-**Corpus priors leak back in at the longest Turkish tier.** Scored under
-`relative`, the corpus-share oracle on `vitamins_tr` `count` climbs from 0.54 at
-100K to **0.75 at 750K**, because a 750K haystack consumes 54% of a 43K-record
-pool and the per-haystack Dirichlet prior cannot be realised there (mean
-|realised share − pool share| falls from 0.17 to 0.085). `quality_audit.py`
-flags it as `PRIOR-REL 0.75 @ 750000`; every other set stays at or below 0.60 at
-every tier. Treat the 750K tier of `vitamins_tr` as prior-exposed on `count` and
-`proportion`.
-
-**Where resistance comes from, measured: answer magnitude, not margin width.**
-`entity_count` is the most sampling-resistant family that ships (0.35 at 5% on
-`vitamins_tr`, 0.24 on `amazon_hpc_en`) because its answers are small. On the
-intent sets, `count` questions about labels holding 5–30 records, which the
-`min_answer_count` floor currently rejects, score **0.29** at a 5% sample and
-0.64 at 25%, against 0.55 and 0.80 for the counts that ship. Every record still
-has to be judged to answer them (each one is either X or not), so they are
-aggregation, not retrieval; the depth rule that rejects them was written for the
-ranking families. See ROADMAP v0.7.
-
-Three qualifications travel with every number here: the solvers are handed the
-true label of every record they read, so they bound a *perfect classifier
-reading part of the document* rather than any real model; they bite `relative`,
-while `exact` is immune; and they are a consequence of **scale**, since a
-benchmark with single-digit answers cannot be sampled at all.
-
-**What this bounds.** Ground truth is unaffected. The supported claim is that
-this benchmark requires **classifying latent Turkish labels and aggregating
-them** — it does *not* establish that a model processed the whole document, and
-under `relative` it does not establish that a longer document was harder. Any
-reported score must state its reading protocol and be given as lift over
-`blind`; see §13.
-
-**This is a property of the task family, not of this benchmark, and that is now
-measured rather than argued.** Any label-derived aggregation benchmark whose gold
-answers are large inherits it. OOLONG's *construction code* is unreleased, but its
-*built data* is public and ships `context_window_text_with_labels`, the gold label
-of every record in every context window, so these solvers run on it with nothing
-reimplemented. `scripts/oolong_crosscheck.py` does exactly that, pinned to their
-revision `f0d59eaf`; all 41 test shards, 8 source corpora, K = 2/3/4/10, contexts
-1K to 4M. A question is reported only where a perfect full reader re-derives their
-published gold exactly: **3,553 verified, 197 dropped.**
-
-One quantity governs both benchmarks, the **magnitude of the gold answer** m,
-through `error ≈ sqrt((1-f)/(f·m))` for a reader that classifies a fraction f and
-scales up. Document length, class balance and record ordering do not enter it.
-OOLONG's 817 verified counting questions trace the whole curve, and TR-OOLONG's
-sets land on the same line at matching magnitudes:
-
-| gold answer m | OOLONG n | OOLONG rnd@5% | TR-OOLONG sets at this m |
-|---|---:|---:|---|
-| 1–9 | 284 | **0.00** | none |
-| 10–29 | 72 | 0.21 | none |
-| 30–99 | 76 | 0.60 | `tr_intent` 0.59, `tr_intent_paired` 0.54 |
-| 100–299 | 80 | 0.76 | none |
-| 300–999 | 108 | 0.88 | none |
-| 1,000+ | 197 | 0.96 | `marc_en` 0.89, `musteri_tr` 0.89, `vitamins_tr` 0.92 |
-
-**OOLONG is LESS exposed than TR-OOLONG, and the reason is the fix.** Most of its
-questions are scoped to a subset before being asked ("among instances associated
-with user 22012", "among instances occurring in April"), which makes answers
-small: 284 of its counting questions have m < 10 and score 0.000 for every partial
-reader. TR-OOLONG has none in that range. Its most resistant family,
-`REPRESENTED_N_TIMES` (m = 5, score 0.005), depends on a real date axis.
-
-**What we claim is narrow and checkable: nobody in this family had tested for
-this, and we did, on both benchmarks.** Neither the `blind` floor nor any
-partial-reading measurement appears in OOLONG's documentation, so results reported
-on it, including RLM's, do not separate reading coverage from classification
-accuracy. On their largest family (`RELATIVE_FREQ`, 1,097 verified questions) a
-random 5% reader scores **0.78 under exact match**, their own convention. Do not
-state this as "OOLONG has the same problem so ours is acceptable"; state it as the
-task-family property it is, with the mitigation OOLONG uses and v0.7 adopts.
-Numbers: `manifests/oolong_crosscheck.json`.
-
-**The fix is staged in ROADMAP v0.7, and two of the three are now built.**
-The withdrawal of `shift` (§4e-i) and a **rare-label `count` family** whose
-answers are small enough to resist sampling are done; a cap on the fraction of
-the pool one haystack may consume is not yet.
-
-The rare-label family is phrased identically to an ordinary count and carries
-`kind: "count"` with `rare: true`, so `src/scoring.py` is untouched. Measured on
-`tr_intent_paired`, built to a scratch directory:
-
-| | `blind` | random 5% | headtail 5% | random 25% |
-|---|---:|---:|---:|---:|
-| ordinary `count` (median answer 74) | 0.458 | 0.535 | 0.542 | 0.805 |
-| **rare `count`** (answers 5 to 30) | **0.000** | **0.268** | **0.348** | 0.646 |
-
-The larger of the two effects is the first. A reader that opens nothing and
-answers N/K scores 0.458 on an ordinary count and **0.000** on a rare one,
-because N/K is wrong by an order of magnitude when the true answer is 20.
-Spare question quota now also goes to the small-answer families first
-(`count_rare`, `entity_count`) rather than to the ones a hundred records settle.
-Rationale and the rejected wider band: `DESIGN_DECISIONS.md` D21.
-
-**This does not reach `musteri_tr` or `marc_en`.** They have no entity axis and,
-with three classes over thousands of records, no rare labels, so neither
-small-answer family is available to them. Their numeric families remain the most
-partially readable in the suite. The margin band
-recorded in earlier revisions is kept as a third, weaker option: it helps the
-ranking families only (capping at 0.15 drops their 5%-sample score from 0.755
-to 0.393 at the cost of 384 of 452 ranking questions) and cannot help
-`count`/`proportion` at all. None of this changes the shipped questions until a
-rebuild; until then disclosure is the fix. `manifests/sampling_audit.json` is
-the committed record.
-
-**(e-i) `shift` is withdrawn, and how it survived four gates.** `shift` asked
-whether a label's share **rose or fell** between the first and second half of the
-haystack. Against the `headtail` reader it is not a hard question:
-
-| set | majority baseline | headtail @5% | headtail @25% | stride @5% |
-|---|---|---|---|---|
-| `vitamins_tr` | 0.55 | **1.000** | **1.000** | 1.000 |
-| `musteri_tr` | 0.60 | **1.000** | **1.000** | 1.000 |
-| `marc_en` | 0.67 | **1.000** | **1.000** | 1.000 |
-| `amazon_hpc_en` | 0.55 | 0.950 | **1.000** | 0.900 |
-| `tr_intent` | 0.60 | **1.000** | **1.000** | 0.800 |
-| `en_intent` | 0.50 | **1.000** | **1.000** | 0.900 |
-| `tr_intent_paired` | 0.70 | 0.900 | **1.000** | 1.000 |
-| `en_intent_paired` | 0.70 | 0.900 | **1.000** | 1.000 |
-
-Fifty records at each end of a 16,000-record document answer it perfectly on
-every set at 25%, and on six of eight at 5%. That is a lift of +0.30 to +0.45
-over the family's own reference for a budget of 100 records.
-
-It is structural. The haystack is two internally-shuffled blocks split at
-`n//2`, with the drift target taking a 30/70 share across them, so the answer is
-a step function at a known position and its direction is **one bit**. Widening
-the drift, moving the boundary, or replacing the step with a smooth gradient all
-leave that bit recoverable from the two endpoints, because direction is the whole
-question.
-
-**Why four gates passed it.** Every difficulty floor in `DESIGN_DECISIONS.md`
-constrains either the *magnitude* of an answer (`min_answer_count` D3,
-`min_entity_answer`) or the *margin* at a boundary (`min_rank_margin` D10,
-`lvl_min_margin` D18). A two-way categorical has neither, so `shift` fell between
-them. And the partial-coverage gate could not see it, because the only positional
-reader it modelled was `prefix`, which returns *no answer* for `shift` and so
-left an empty cell that read as absence rather than as a gap in the test.
-
-The family is disabled in every config and in the fixture as of v0.7.0
-(`"families_disabled": ["shift"]`). **It is gone from the published data**: the
-v0.7.0 release of 16 September carries no `shift` question in any of its eleven
-subsets. It was present in v0.6.3, which was the published revision until then.
-**Tables in this README that are labelled v0.6.3 still include it and remain
-accurate for that superseded revision; a `shift` result should be discarded
-rather than caveated.**
-`drift_mode`, the `drift_target` and the `half` column are all kept: the drift is
-what makes the document non-exchangeable, and `half` is what lets the solvers
-measure positional readers at all. A positional family may return if it asks for
-a **magnitude** rather than a direction, and it must clear the `headtail` reader
-before it ships. Full rationale: `DESIGN_DECISIONS.md` D20.
-
-**(f) Per-question difficulty grades, and what they are actually for**
-(`scripts/grade_questions.py`, added 2026-09-16, `manifests/difficulty.json`).
-Solver (e) reports per FAMILY. Averaging over a family hides the spread: a family
-whose mean lands in the resistant band still contains individually trivial
-questions. Every question is therefore graded on its own, from the **best** score
-any of the four readers achieves at a 5% budget, because a shortcut only has to
-work once.
-
-| grade | threshold | questions | share |
-|---|---|---:|---:|
-| **very hard** | best partial reader < 0.35 | 259 | 11.6% |
-| hard | 0.35 to 0.60 | 140 | 6.2% |
-| moderate | 0.60 to 0.80 | 232 | 10.4% |
-| **easy** | 0.80 and above | **1,609** | **71.8%** |
-
-**Grading does not reduce the 71.8%, and is not intended to. It converts it into
-an instrument.** An easy question is answerable from a twentieth of the records,
-so it measures whether a model can **classify** Turkish records. A very hard one
-is not, so it measures whether the model **aggregated over the whole document**.
-A single aggregate score cannot separate reading from classifying (§4e); two band
-scores can:
-
-| model scores | reading of it |
-|---|---|
-| easy 0.90, very hard 0.30 | **sampling.** Classifies well, reads little |
-| easy 0.40, very hard 0.40 | **cannot classify Turkish.** Its long-context result says nothing about long context |
-| easy 0.90, very hard 0.85 | doing the task |
-
-**The gap between the two bands is the coverage estimate this benchmark
-previously could not produce.** Report both bands and the gap, never a single
-pooled number over all 2,240 questions.
-
-Every tier carries very-hard questions (3.3% to 15.0% from 3K records to 1M
-tokens), so the headline subset still supports a length curve.
-
-**Grades are stable enough to publish, and their instability is reported rather
-than assumed.** Each is averaged over 200 samples of the stochastic reader; the
-largest standard error on any single question is **0.035**. The **10.7%** of
-questions within two standard errors of a band boundary carry `borderline: true`
-and should not be treated as settled.
-
-**Four things that must travel with any published grade.**
-
-1. **The grade is relative to THESE four readers.** `very hard` means `random`,
-   `prefix`, `headtail` and `stride` all failed, not that no shortcut exists. A
-   fifth reader could crack questions graded hardest, exactly as `headtail` and
-   `stride` did to `shift` when they were added (§4e-i).
-2. **The readers are handed the true label of every record they read**, so they
-   are upper bounds. A real model does worse on the same reading. A shortcut that
-   fails a perfect classifier is unavailable to anything.
-3. **The grade is a property of the question AND the `relative` metric.** Under
-   `exact` nearly every numeric question would grade very hard, and that is
-   uninformative because a full reader fails too: a reader that opens all 6,469
-   records and misjudges one in a hundred scores **0.015**.
-4. **Two sets contain essentially no hard questions.** `musteri_tr` has **0**
-   very-hard questions and `marc_en` has **1**. They exist for the matched
-   Turkish/English comparison and as the classification control. Never cite them
-   as evidence of aggregation difficulty.
-
-Grades live in `<set>/difficulty.jsonl`, keyed by question `id`, alongside the
-raw `shortcut_score` and which reader achieved it. They are a SIDECAR:
-`questions.jsonl` is unchanged, so the build stays byte-identical against
-`tests/golden/`.
-
-**Questions must be answerable only by aggregating.** The same audit measures how
-much of the haystack determines each answer. The median `tr_oolong` `pairwise`
-question used to rest on **8 records out of 3,919**, with a margin of 2 — that is
-needle-in-a-haystack retrieval with a coin-flip tiebreak, the task this benchmark
-exists to replace. Depth and margin floors are now enforced in both ground-truth
-paths, and 95–100% of shipped questions clear them.
-
-**Certify the generator, not the sample.** At n = 13 the `tr_oolong` `pairwise`
-prior measured 0.85; at n = 235 distinct draws it measured 0.53. Per-family
-samples of 10–20 cannot certify a family, so the audit runs on hundreds of
-deduplicated candidate draws.
-
-**Label leakage, as measured on the shipped build.** The filter drops any record
-containing any label's surface form. These are the rates recorded in the
-manifests of the current build, not from an earlier one:
-
-| Corpus | Pool | Leaking records | Rate |
-|---|---|---|---|
-| MASSIVE **tr**-TR (intent) | 15,075 | 0 | **0.00%** |
-| MASSIVE **en**-US (intent) | 15,075 | 0 | **0.00%** |
-| `vitamins_tr` | 43,043 | 177 | 0.45% |
-| `amazon_hpc_en` | 60,000 | 557 | 1.00% |
-| `musteri_tr` | 38,649 | 80 | 0.22% |
-| `marc_en` | 120,000 | 657 | 0.55% |
-
-⚠️ **A claim previously made here has been withdrawn.** Earlier revisions reported
-112 leaking English intent records (0.68%) against 0 Turkish, and read that as
-Turkish morphology hiding labels where English surface text gives them away.
-**The current build measures 0.00% on both**, so the asymmetry is not there to
-interpret. The earlier figure came from a larger pool (16,521 rows) than the one
-that ships.
-
-**And the intent-axis comparison was confounded anyway**, which is the more useful
-point. Both locales are scored against the *English* label vocabulary
-(`play_music`), so a Turkish utterance cannot contain a label form no matter how
-transparent it is — 0.00% is a tautology, not a finding. Scoring each language
-against labels **in its own language** reverses the result:
-
-| | leak rate |
-|---|---|
-| EN text vs English labels (`alarm_set`) | **0.00%** |
-| TR text vs Turkish labels (`alarm_kur`) | **0.91%** (137 / 15,075) |
-
-The cause is word order, not morphology: Turkish is verb-final, so a `noun_verb`
-label name matches the natural phrase exactly ("iki saat sonrasına **alarm
-kur**"), while English `verb_noun` labels never surface — you say "set an alarm",
-not "alarm set". This is why the shipped intent labels stay in their original
-MASSIVE identifier form; see §13 for the translation question.
-
-Since the two locales are the same utterances, the filter is applied as a
-**union** over the pair, so a drop on one side removes the same `pair_id` from
-the other and the record-matched twin stays aligned.
-
-**Maximum length is derived, not chosen.** A haystack of R records over K classes
-gives each class a 1/K share on average, so a class can top the ranking only if
-the pool can supply more than R/K of it. The smallest class caps the haystack at
-**R_max = min_class_pool × K** records. The builder computes the ceiling per set,
-warns above 0.85×, and records it in the manifest under `ranking_feasibility`.
-
-**Tokenization penalty at the tokenizer.** Measured by the record-matched twin:
-at identical record counts Turkish costs **1.30–1.34×** the tokens of English
-**under Qwen3-8B**. This separates "harder to tokenize" from "harder to reason
-about" — but only for that tokenizer. Across tokenizers the same aligned
-utterances give 2.16× (GPT-2), 1.53× (Qwen3-8B), 1.29× (mBERT) and **0.57×**
-(BERTurk), so it is a property of the tokenizer, not of Turkish.
-
-## 5. What ships
-
-All figures below are the realized build, regenerated from the manifests.
-
-| set | lang | classes | tiers | haystacks | questions | very hard | longest |
-|---|---|---|---|---|---|---|---|
-| `tr_intent` | tr | 48 | 50K / 100K | 10 | 120 | 17 | 99,998 |
-| `en_intent` | en | 48 | 50K / 100K | 10 | 120 | 9 | 99,871 |
-| `tr_intent_paired` | tr | 48 | 3K rec / 6K rec | 10 | 120 | 9 | 99,057 |
-| `en_intent_paired` | en | 48 | 3K rec / 6K rec | 10 | 120 | 10 | 75,187 |
-| `vitamins_tr` | tr | 3 | 100K / 250K / 500K | 20 | 236 | 21 | 496,526 |
-| `amazon_hpc_en` | en | 3 | 100K / 250K / 500K / 1M | 25 | 292 | 24 | 987,623 |
-| `musteri_tr` | tr | 3 | 100K / 250K / 500K | 20 | 199 | **0** | 496,238 |
-| `marc_en` | en | 3 | 100K / 250K / 500K | 20 | 193 | **1** | 491,821 |
-| `sikayet_tr` | tr | **29** | 100K / 250K / 500K / 1M | 25 | 300 | **76** | 999,625 |
-| `interpress_tr` | tr | 16 | 100K / 250K / 500K / 1M | 25 | 300 | **66** | 998,392 |
-| `sinema_tr` | tr | 10 | 100K / 250K / 500K | 20 | 240 | 26 | 497,150 |
-| **total** | | | | **195** | **2,240** | **259** | |
-
-**2,240 questions over 195 haystacks**, eleven instance sets (v0.6.3 shipped 1,254 over 110 from eight). Realized
-haystack lengths are within 0.97–1.00 of target on every set (D14); each
-manifest records `n_tokens`, `n_chars`, and per-tier haystack overlap.
-
-The `very hard` column is the reason the last three sets exist: they supply 168
-of the 259 sampling-resistant questions. `musteri_tr` supplies none and
-`marc_en` one, which is expected and documented (D21b) rather than a defect:
-three classes over several thousand records cannot produce a small answer. Those
-two are the matched-pair comparison and the classification control.
-
-**Row identity.** Every question and haystack carries `uid` (`<dataset>:<id>`),
-`dataset`, and on questions `haystack_uid`. **Pool subsets on `uid`, never on
-`id`**: `id` is minted per subset, so the 2,240 questions carry only 955 distinct
-`id` values and `tr-100000-0-q0` names three different questions with three
-different answers. Keying a pooled table on `id` drops 57% of the benchmark
-silently. `id` is retained unchanged for within-subset references.
-`scripts/verify_release.py` enforces global `uid` uniqueness (D22).
-
-`tr_intent_paired` / `en_intent_paired` are sized in **records**, not tokens —
-that is what makes them record-identical across languages (§1). Their token
-counts therefore differ by language, and that difference is the measurement.
-
-## 6. Reproducibility
-
-- **Single seed.** All randomness derives from one string seed
-  (`{seed}-{lang}-{target}-{k}`); rebuilds are byte-identical. Row order is
-  canonicalized before every sampling step, so engine-level parallelism cannot
-  perturb output.
-- **Cross-platform.** Verified at v0.3.0: every set rebuilds manifest-identical on
-  macOS/arm64 from an original built on Windows/x86 — same pinned versions, same
-  bytes, including every per-haystack record. Every source corpus has a fetch
-  script under `scripts/`, so the rebuild starts from the public datasets rather
-  than from a local file.
-- **Differential-tested ground truth.** Each answer is computed by a Polars path
-  and an independent pure-Python path and asserted equal — the strongest validity
-  claim in the pipeline. Extended to every family, including the depth and margin
-  floors, so a question cannot ship unless both paths agree it is answerable.
-- **Frozen metric.** `src/scoring.py` reports `exact`, `partial`
-  (`0.75^|y-ŷ|`, identical to Oolong's formula so scores are comparable) and
-  `relative` (scale-free). `partial` is degenerate at this benchmark's
-  magnitudes — `count` answers have a median near 1,000 and reach 12,000, and
-  `0.75^50 ≈ 6e-7` — so it is kept only for comparability and `relative` carries
-  the signal. Do not edit this file after the first model run.
-- **Manifest.** Records version, config, source hash, reference tokenizer,
-  proportion unit, per-haystack drift target + detectability flag, and the
-  realized question-family distribution.
-- **Rebuild command** (per config):
-
-  ```bash
-  python src/build_tr_oolong.py --config configs/tr_intent.json --audit   # inspect first
-  python src/build_tr_oolong.py --config configs/tr_intent.json --build
-  ```
-
-  Build every set and the combined index (run from repo root):
-  ```bash
-  python src/build_tr_oolong.py --config configs/*.json --build \
-      --index manifests/benchmark_index.json
-  ```
-
-- **Acceptance gates** — a rebuild is not accepted until the four gates pass and
-  the fifth report is regenerated:
-
-  ```bash
-  python tests/test_golden.py                        # build is deterministic
-  # NAME THE SETS. `*_out` sweeps in the experimental trlabel dirs, and a
-  # partial list is how the v0.7.0 sets ended up with no style-gate baseline.
-  python scripts/trivial_baseline.py --out manifests/baseline_report.json --sets \
-      tr_intent_out en_intent_out tr_intent_paired_out en_intent_paired_out \
-      vitamins_tr_out amazon_hpc_en_out musteri_tr_out marc_en_out \
-      sikayet_tr_out interpress_tr_out sinema_tr_out   # leakage + majority baselines
-  python scripts/quality_audit.py                    # prior oracle (exact AND relative), depth/margin, pair check
-  python scripts/style_solver.py --config configs/*.json --json manifests/style_audit.json
-  python scripts/verify_release.py                   # the written files are what they claim
-  python scripts/sampling_solver.py                  # partial-coverage report: REPORTED, not passed (§4e)
-  ```
-
-  `verify_release.py` is deliberately independent of the builder: it re-reads the
-  shipped `questions.jsonl` and meta parquets and **recomputes every answer with
-  an implementation that shares no code path with `src/`**, then compares
-  byte-for-byte. It also re-searches the shipped haystack text for label leakage,
-  checks char offsets, and refuses stale or orphaned files. The build-time
-  dual-path check cannot catch a serialization bug; this can.
-
-## 7. Scaling to many datasets (N Turkish + M English)
-
-A dataset is a **config file, not code**. To span N Turkish and M English source
-datasets you write N+M configs — each naming a `source_path`, `text_col`,
-`label_col`, and (optionally) `entity_col` — and build them in one command:
-
-```bash
-python src/build_tr_oolong.py --config configs/*.json --build --index manifests/benchmark_index.json
-```
-
-This writes each set to its own `out_dir` and a combined `benchmark_index.json`
-(per-set language, source, question count, family distribution, and the total).
-Adding a source never touches the builder.
-
-**A new source is calibrated, not assumed.** The difficulty floors that make
-questions non-trivial are necessarily axis-specific: values tuned on a 3-class
-label space reject *every* ranking draw on an 18-class one. Three mechanisms
-handle this so it is not a judgement call:
-
-- `--audit` measures the source before you build it — class balance and
-  imbalance, entity concentration, the **observed adjacent-rank gaps across three
-  trial haystacks**, and **recommended `min_rank_margin` / `min_answer_count`** —
-  plus the chance rate each family hands a solver for free.
-- The builder prints a loud `[starved]` warning when a family produces zero
-  questions. This was a silent failure: an 18-class source lost `most_common`,
-  `least_common` and `second_most` entirely while the quota spilled into
-  `count`/`proportion`, and nothing said so.
-- `scripts/quality_audit.py` **auto-discovers** every built set from `configs/`,
-  so a new source cannot be omitted from the acceptance gate.
-
-The leakage filter, nesting detection, proportion unit, length ceiling, entity
-jitter, and prior-neutral candidate selection are all automatic and need no
-per-source configuration.
-
-Sources may be `.parquet`, `.csv`, **or `.jsonl`**, i.e. any file with a text
-column and a label column. Should OOLONG release its validated English splits
-(`{"input","label"}` lines), they would drop straight in as extra anchor sets with
-no code change:
-
-```json
-{ "source_path": "oolong/.../validated_data/agnews_validated.jsonl",
-  "text_col": "input", "label_col": "label", "entity_col": "",
-  "language": "en", "reference_tokenizer": "Qwen/Qwen3-8B", "out_dir": "agnews_out" }
-```
-
-Adding a source is a config file, so "more datasets" is a scaling knob rather than
-a rewrite.
-
-## 8. Extending: adding a question type
-
-A question family is logic, not data, so a new one is a small, localized change to
-`src/build_tr_oolong.py`:
-
-1. a template in `Q_TEMPLATES` (both languages),
-2. a branch in **both** `gt_primary` (Polars) and `gt_check` (pure Python) —
-   the dual-path discipline is enforced, so a new family cannot ship without an
-   independent oracle,
-3. a generator branch in `_make_one` (its own rejection sampling, including a
-   depth floor and a margin floor — see D9),
-4. registration in `generate_questions` (and `SINGLETON_FAMILIES` if only one such
-   question is meaningful per haystack), and
-5. a chance rate in `scripts/quality_audit.py`. Getting this wrong is not a
-   detail: scoring `top_k` against chance = 0 flagged an at-chance family as
-   broken, when ordering 3 of 5 named candidates has chance 1/60.
-
-The `most_common` / `least_common` / `second_most` families were added exactly this
-way. The invariant to preserve: every answer is computed twice and asserted equal.
-
-## 9. OOLONG vs TR-OOLONG
-
-**Full side-by-side, with real questions from both benchmarks, is in
-[`COMPARISON.md`](COMPARISON.md).** That document is written for a reader with no
-access to the code. The short version:
-
-OOLONG's question set is **task types × conditioning axes** — the same handful of
-shapes asked over everything, over a subset of users, and over a subset of dates.
-TR-OOLONG matches their counting group, replaces the user axis with a richer
-**entity** axis (real brands, prior-neutral candidate sets, plus ordered
-ranking), adds normalised **proportions**, and **lacks their timeline axis** —
-which their paper reports as the hardest of the three.
-
-| | OOLONG | TR-OOLONG |
+| | OOLONG (Bertsch et al., 2025) | TR-OOLONG |
 |---|---|---|
-| languages | English | **Turkish + matched English** |
-| questions | 6,500 synth + 10,810 real | **2,240** (1,254 at v0.6.3) |
-| haystacks | not reported per split | **110**, 28.2M tokens total |
-| context | 1K–4M, reported at 8K–128K | 36K–**987K** (mean 257K) |
-| label space | 2–10 classes | **3 and 48** |
-| entity axis | synthetic user IDs | **real brands**, MI 0.022 on `vitamins_tr` |
-| **timeline axis** | **6 families over real dates** | 1 binary family over positional halves |
-| ordered ranking | — | implemented, withdrawn with its only corpus in v0.5.0 |
-| numeric metric | `0.75^\|y-ŷ\|` | same **+ `relative`** (theirs degenerates at our counts) |
-| shortcut audit | not reported | **5 solvers, committed manifests** (4 fail as intended, 1 partly succeeds — §4e) |
+| languages | English | Turkish, with English counterparts built the same way |
+| document length | 1K to 4M tokens (synthetic split) | 36K to 1M tokens |
+| labels per dataset | 2 to 10 | 3, 10, 16, 29, 48 |
+| grouping | synthetic user ids and dates added to each record | real brands printed in the text (one pair) |
+| questions over dates | yes, and reported as the hardest group | none yet (`interpress_tr` has dates) |
+| same question, same answer in two languages | no | yes (`*_intent_paired`) |
+| numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
+| published shortcut checks | none | five, with reports in `manifests/` |
 
-**The timeline gap is the one real deficit, and it is blocked on data, not code.**
-It needs a labelled corpus with real dates in *both* languages. English has
-several; no Turkish source examined carries dates. See
-[`DATASET_REVIEW.md`](DATASET_REVIEW.md).
+OOLONG's answers are usually small because most questions are first narrowed
+to one user or one date range. Here most answers are large (hundreds to
+thousands), which is what makes sampling work so well; see below.
 
-**What is taken from OOLONG** (from the paper — their construction, scoring and
-analysis code are all still listed as unreleased): the construction principle,
-the counting typology (`most_common`/`least_common` mirror `MOST_FREQ`/`LEAST_FREQ`;
-`second_most` is an extension, since they have second-most *user* and *date* but
-no second-most *label*), and the `0.75^|y-ŷ|` metric implemented from its
-published definition. Everything else is built here.
+## Using it
 
-## 10. How the pipeline was built
-
-The order below is the actual order, and each step exists because the previous
-one turned out to be insufficient. The method generalises to any language pair.
-
-1. **Pick a labelled corpus, not a text corpus.** The whole design rests on
-   ground truth being derivable, so a raw corpus (Havadis, 745K Turkish news
-   articles) is useless no matter how large. The label *is* the answer key.
-2. **Screen the source before building anything.** `--audit` reports class
-   balance, the entity axis, the derived length ceiling, and the surface shape
-   per class. A source that fails here cannot be rescued later.
-3. **Derive the ceiling, do not choose it.** With *K* classes, a class can top a
-   ranking only if the pool can supply more than *R/K* of it, so
-   `R_max = smallest_class × K` records. Exceeding it makes ranking families
-   unanswerable. The builder computes it, warns above 0.85x, and records it.
-4. **Drop the tail.** Classes below `min_class_support` are removed, because a
-   class too small to be sampled competitively is deterministically rarest in
-   every haystack and `least_common` becomes free (D3).
-5. **Filter leakage as enforcement, not assumption.** Any record containing any
-   label's surface form is dropped, over the whole label space. The assumption
-   that this was unnecessary was false: 0.84% leaking records were enough to
-   give a substring solver 73% on `most_common` against 33% chance.
-6. **Randomise the prior.** Per-haystack label proportions are drawn from a
-   Dirichlet, and entity candidate sets are prior-matched and jittered, so the
-   answer cannot be recovered from corpus-level statistics.
-7. **Compute every answer twice.** Two independent code paths, asserted equal.
-   This is what makes "no manual annotation" safe rather than merely cheap.
-8. **Run five solvers and ship only what survives.** Leakage, majority skew,
-   corpus priors, surface format, and sampling. Each was added *after* a version
-   of the benchmark was found solvable by it — the fifth still partly succeeds,
-   and is reported rather than hidden (§4e). A family that fails on a given source is
-   switched off for that source and the omission is recorded, not hidden.
-9. **Certify the generator, not the sample.** At n = 13 the `tr_oolong`
-   `pairwise` prior measured 0.85; at n = 235 it measured 0.53. Per-family
-   samples of 10–20 cannot certify anything, so `--certify` runs on hundreds of
-   deduplicated draws.
-10. **Freeze the scorer before any model runs**, and make every build
-    byte-identical from a single seed, with a full manifest.
-
-**For a new language pair, steps 1–2 are the entire difficulty.** The code is
-language-agnostic; finding two corpora that match on task, label provenance,
-record length and surface shape is the work.
-
-## 11. Choosing a twin: what a good pairing looks like
-
-The cross-lingual claim is only as good as the pairing, so twins here are
-**selected by measurement, not by intuition**. The procedure below is the one
-actually followed; every rejected candidate in the table underneath was rejected
-by a number, and all of them are recorded in
-[`DATASET_REVIEW.md`](DATASET_REVIEW.md).
-
-**The procedure**
-
-1. **Shortlist Turkish corpora that are labelled, large, and permissively
-   licensed.** Searched: `ytu-ce-cosmos`, `turkish-nlp-suite`, `Trendyol`, plus
-   parallel multilingual corpora. A corpus with no labels (Havadis, 745K news
-   articles) is unusable regardless of size — the label *is* the answer key.
-2. **For each survivor, find the English corpus that matches it on the four
-   criteria below.** Not the other way round: Turkish is the scarce side.
-3. **Build both halves and run all four gates.** A pairing is only accepted on
-   question-level numbers, never on source-pool numbers — see §4d, where a
-   candidate that looked disqualifying at the source level turned out not to
-   matter at all once built.
-4. **Compare twin asymmetry across candidates and keep the lowest.**
-
-**The four criteria, in order of how often they bind**
-
-1. **Same label provenance.** Both halves' labels must be produced the same way.
-   Author-assigned star ratings on both sides is the strongest available option,
-   because the person who wrote the text assigned the label — there is no
-   annotator to disagree with.
-2. **Comparable record length.** A 4x mismatch changes what "one chunk" means and
-   interacts with every compression measurement.
-3. **Comparable surface shape.** Measured by §4d. The **gap between the halves**
-   matters, not either half's level.
-4. **Both halves reach the same length tiers.** `R_max = smallest_class × K`.
-
-**And one veto: the licence.** A closer match is not worth an unredistributable
-corpus. This decided the pair that ships — see the `app_reviews` row below.
-
-### Worked examples
-
-| pairing | provenance | length | style gap | verdict |
-|---|---|---|---|---|
-| **MASSIVE tr-TR ↔ en-US** | identical, same utterances | identical by construction | **0.017** | **best available.** The only true record-matched twin; 100/120 questions share a byte-identical gold answer and the other 20 the same fact in language-specific strings |
-| **`musteri_tr` ↔ `marc_en`** | author's stars, both | 13.8 vs 34.1 w (2.5x) | **0.010** | **ships. Lowest asymmetry measured**; both halves redistributable; no entity column, so 6 families |
-| **`vitamins_tr` ↔ `amazon_hpc_en`** | author's stars, both | 12.1 vs 44.8 w (3.7x) | **0.015** | **ships as the primary review pair** — the only one with an orthogonal entity axis (MI 0.022) |
-| Turkish brand reviews ↔ airline tweets | undocumented vs CrowdFlower humans | 24.2 vs 15.7 w | **0.108** | **withdrawn in v0.5.0.** Mismatched provenance, 7x surface-shape asymmetry |
-| MüşteriYorumları ↔ Amazon Home & Kitchen | author's stars, both | 13.2 vs 71.8 w (5.4x) | 0.106 | rejected: no Amazon category is terse enough |
-| MüşteriYorumları ↔ `app_reviews` | author's stars, both | **13.8 vs 14.7 w (1.06x)** | 0.030 | **the closest length match of anything tested, and still rejected** — `sealuzh/app_reviews` is tagged `license:unknown`, which declares no known grant. MARC is Apache-2.0 and scored *better* anyway |
-| `vitamins_tr` ↔ `app_reviews` | author's stars, both | 12.1 vs 18.8 w (1.6x) | 0.021 | no better than the pair in use |
-| SIB-200 tur ↔ eng | identical, parallel | identical | — | **structurally dead**: 1,004 rows total, ~14K token ceiling |
-| XNLI tr ↔ en | identical, parallel | identical | — | **structurally dead**: 7,500 human-translated rows; the 393K train split is machine-translated |
-
-**The lesson from the last two rows is worth stating plainly.** Parallel corpora
-give a record-matched twin for free, which is the strongest possible design, but
-human translation is expensive so they are all small, and this benchmark needs a
-large pool for independent draws at 100K–1M tokens. MASSIVE, at 16.5K parallel
-utterances, is the largest such Turkish resource in existence and it is already
-used here. Full search in `DATASET_REVIEW.md`.
-
-## 11b. Screening a candidate pair automatically
-
-`--audit` screens ONE source. What decides a cross-lingual claim is the **gap**
-between two, and both halves can pass separately while the pair still cannot
-support the claim. `scripts/check_pair.py` runs the §11 criteria as a script:
-
-```bash
-python scripts/check_pair.py configs/musteri_tr.json configs/marc_en.json
+```python
+from datasets import load_dataset
+qs = load_dataset("yigitates17/tr-oolong", "sikayet_tr", split="test")
 ```
 
-It checks declared label provenance, label-space size, mean record length, the
-surface-shape gap, class balance, whether each half reaches its own length tiers
-under its own reference tokenizer, entity-axis symmetry, and the licence veto.
-The verdict is **COMPATIBLE** / **COMPATIBLE WITH CAVEATS** / **INCOMPATIBLE**,
-each failure naming the number that caused it. `--strict` turns every caveat into
-a failure; `--json` writes the report.
+Each subset has `questions.jsonl`, `difficulty.jsonl`, `manifest.json` and,
+where the licence allows, `haystacks.jsonl`. Field-by-field description:
+[`DATACARD.md`](DATACARD.md#fields).
 
-Two fields must be **declared** in the config, because neither can be measured
-from the data and one of them withdrew a whole pair in v0.5.0:
+- **Join and pool on `uid`**, never on `id`. `id` is unique only within one
+  subset; pooling on it silently drops 57% of the benchmark.
+- **Send the model only the haystack text and the question.** Other haystack
+  fields are build metadata.
+- **Score with [`src/scoring.py`](src/scoring.py).** It returns three numbers per
+  question:
+  - `exact`: 1 if correct, else 0.
+  - `partial`: OOLONG's own formula, `0.75 ** |error|`, kept for comparability.
+  - `relative`: `1 - |error| / answer`, floored at 0. Added because most answers
+    here are in the hundreds or thousands, where `partial` gives almost nothing
+    for being 2% off.
+- [`scripts/run_eval.py`](scripts/run_eval.py) runs any OpenAI-compatible
+  endpoint (vLLM, Ollama, hosted APIs) and resumes after interruption.
 
-```json
-"licence": "cc-by-sa-4.0",
-"label_provenance": "author_stars"
-```
+**How to report a score.** Always state how the model saw the document (whole
+document in one prompt, or an agent with code tools that can sample it). Report
+per question type and per difficulty band next to the reference readers in
+`manifests/sampling_audit.json`, not as one pooled number. The reasons are in
+the next section.
 
-On the pairs in this repo it reproduces the verdicts §11 reached by hand:
+## What is measured about difficulty
 
-| pair | verdict |
+Every check below uses **simulated readers**: short programs, not AI models.
+They are given the true label of every record they look at, so they can only
+do better than a real model reading the same records. No model has been run on
+the benchmark yet.
+
+**Checks that pass.** Each tries to answer without doing the task, and fails:
+
+| check | result |
 |---|---|
-| `musteri_tr` ↔ `marc_en` | **COMPATIBLE** |
-| `vitamins_tr` ↔ `amazon_hpc_en` | COMPATIBLE WITH CAVEATS (3.3× length, Amazon licence) |
-| `tr_intent` ↔ `en_intent` | COMPATIBLE WITH CAVEATS |
-| `tr_intent` ↔ `marc_en` | **INCOMPATIBLE** (provenance, label space, 6.1× length) |
+| search the text for the label name | 0 of 856,798 shipped records contain their label; records that did were removed at build time |
+| always give the most common answer | no better than chance per question type |
+| answer from the source corpus's overall label shares, without opening the document | no better than chance (one flagged tier, see datacard) |
+| guess the label from record length and punctuation | no gain over the baselines on any subset |
 
-**It screens sources, not questions.** Only the post-build gates can certify a
-family — source-level numbers have already been shown not to predict
-question-level exploitability (§4d).
+**Checks that partly succeed, and limit what the benchmark shows.**
 
-**Adding a dataset with no partner language?** `check_pair.py` answers "can
-these two halves be compared" and needs a second config to do it. A
-contributor with just one Turkish dataset and no cross-lingual claim doesn't
-have a second config, and the three per-set gates it would otherwise have to
-run by hand (`trivial_baseline.py`, `quality_audit.py`, `style_solver.py`) were
-already twin-agnostic — nobody had wired them into one report for this case.
-`scripts/check_solo.py` does that:
+1. **Most questions can be answered from a sample.** A reader that looks at 5%
+   of the records and scales up gets most `count`, `proportion` and ranking
+   questions nearly right, because their answers are large. Reading the first
+   and last 2.5% works as well as a random 5%, so document order is no defence.
+2. **Guessing from the record count scores 0.43-0.55 on counting questions.** A
+   reader that opens nothing, counts separators and divides by the number of
+   labels gets this much partial credit under `relative`.
+3. **Longer is not harder under `relative`.** Reading 1,000 records scores about
+   the same at 100K tokens as at 1M.
+
+**Per-question difficulty grades** (`difficulty.jsonl`). Each question was
+attacked by four 5%-readers (random, first 5%, first and last 2.5%, evenly
+spaced); its grade comes from the best score any of them got:
+
+| grade | best reader's score | questions |
+|---|---|---:|
+| very hard | below 0.35 | 259 (11.6%) |
+| hard | 0.35 to 0.60 | 140 |
+| moderate | 0.60 to 0.80 | 232 |
+| easy | 0.80 and above | 1,609 (71.8%) |
+
+Read the grades as *"which questions these four readers can answer"*, and
+nothing stronger:
+
+- **The very-hard counting questions are the ones with small answers** (every
+  one of them is 24 or less). The four readers fail there because seeing no
+  matching record makes them answer 0. A reader that instead answers "about 12"
+  when it sees 0 or 1 matches moves 145 of the 226 very-hard numeric questions
+  out of the band ([`experiments/small_guess.py`](experiments/small_guess.py)).
+- **The gap between band scores does not show how much a model read.** On the
+  very-hard questions, that guessing 5% reader scores 0.48 while a reader that
+  opens every record but mislabels one in ten scores 0.41
+  ([`experiments/band_gap.py`](experiments/band_gap.py)).
+- `musteri_tr` has no very-hard questions and `marc_en` has one.
+
+What the benchmark does support: a model must **classify latent labels in Turkish
+text and combine the results**. Small-answer questions additionally demand very
+accurate classification of every relevant record. Separating "did not read" from
+"read but misclassified" needs a direct measurement of the model's per-record
+accuracy, which is planned alongside the first model runs.
+
+## Building and adding a dataset
+
+Tested with Python 3.12. Pinned versions are in `requirements.txt`; `polars`
+and `transformers` affect output bytes.
 
 ```bash
-python scripts/check_solo.py configs/new_tr_set.json          # pre-build checks only
-python scripts/check_solo.py configs/new_tr_set.json --build   # build it, then run all gates
+pip install -r requirements.txt
+python scripts/sinema_tr.py                                   # fetch one source
+python src/build_tr_oolong.py --config configs/sinema_tr.json --build
+python tests/test_golden.py                                   # build is deterministic
 ```
 
-Same three-tier verdict (`SOLO OK` / `SOLO WITH CAVEATS` / `SOLO INCOMPATIBLE`).
-It also catches a source with no label column as a named failure rather than a
-raw stack trace, and flags a `label_provenance` or `text_provenance` value that
-reads as machine/synthetic — citing the exact precedent (winvoker,
-`DATASET_REVIEW.md`) that already cost this project a corpus once.
+Fetch scripts: `massive.py` (intent sets), `vitamins.py`, `musteri.py`,
+`marc_en.py`, `health.py` (`amazon_hpc_en`), `sikayet_tr.py` (needs
+`ticaret-yorum.csv` downloaded from Kaggle by hand), `interpress_tr.py`,
+`sinema_tr.py`.
 
-## 12. Repository layout
+**To add a new dataset**, you need a labelled corpus with a free-text column, a
+label column, at least about 1,000 records per label, and a licence you can
+state.
+
+1. Write a config (copy one from `configs/`). The main settings are the text,
+   label and optional brand columns, the target lengths, and the declared
+   `licence`, `label_provenance` and `text_provenance`.
+2. `python src/build_tr_oolong.py --config configs/new.json --audit` reports
+   size, balance, leakage and which thresholds the source can support.
+3. `python scripts/check_solo.py configs/new.json` (or `check_pair.py a.json b.json`
+   for a Turkish/English pair) runs the licence, provenance and shortcut checks
+   as one PASS/WARN/FAIL table.
+4. Build with `--build`, then run the release checks below.
+5. **Grade the questions:** `python scripts/grade_questions.py --sets new_out --trials 200`.
+   The builder does not do this itself, and `check_solo.py` does not check
+   skimming. `publish_hf.py` refuses to package a subset without grades.
+6. Add a licence entry for the subset in `POLICY` in `scripts/publish_hf.py`.
+
+**Choosing an English partner for a Turkish set.** Start from the Turkish
+corpus (it is the scarce side) and look for an English one that matches on,
+in order of how often each rules a candidate out:
+
+1. **How labels were made.** Both halves should get labels the same way. The
+   writer's own star rating on both sides is the strongest option.
+2. **Record length.** Large gaps change what one record means to a model.
+3. **Surface shape.** The style check (`style_solver.py`) must show a similar
+   result on both halves; the gap matters, not either level.
+4. **Reachable lengths.** Both halves must fill the same length tiers.
+
+A licence that does not allow redistribution rules a candidate out even if it
+matches better. Every candidate considered, and why it was kept or rejected,
+is in [`DATASET_REVIEW.md`](DATASET_REVIEW.md).
+
+**Release checks.** A rebuild is accepted when all of these pass (list every
+subset's output folder explicitly; zsh does not split a variable into words):
+
+```bash
+python tests/test_golden.py
+python scripts/verify_release.py            # answers recomputed, no leakage, ids unique
+python scripts/trivial_baseline.py --sets <all *_out folders> --out manifests/baseline_report.json
+python scripts/quality_audit.py --certify 250 --json manifests/quality_audit.json
+python scripts/style_solver.py --config configs/*.json --json manifests/style_audit.json
+python scripts/sampling_solver.py --json manifests/sampling_audit.json
+python scripts/grade_questions.py --trials 200
+python scripts/publish_hf.py --out hf_release            # dry run; add --repo ... --push to upload
+```
+
+## Limitations
+
+- No model has been run yet. Every difficulty statement comes from simulated readers.
+- Most questions can be answered by sampling (above). Report per band and per
+  question type, and state the reading setup.
+- Questions on one document are not independent. On 3-label sets, 12 questions
+  rest on about two underlying numbers, and 337 document-label pairs are asked
+  both as a count and as a proportion. For statistical claims, the unit is the
+  document.
+- Documents of the same length within a subset share 20-39% of their records;
+  confidence intervals over them need clustered errors.
+- Label quality: the intent labels were checked on 150 records (2.7-9.3% wrong,
+  part of it translation error in the Turkish half). The complaint and news
+  categories were set by the filer and the publisher; how predictable they are
+  from text is what bounds scores (see datacard).
+- Brand questions rest on one corpus pair and only appear at 500K tokens and above.
+- No time-based questions, although `interpress_tr` has publication dates.
+- Lengths are counted with one tokenizer. The Turkish/English token ratio on
+  the same sentences ranges from 0.57x (BERTurk) to 2.16x (GPT-2), so it
+  reflects the tokenizer, not Turkish itself.
+- Three subsets cannot ship text; two of them have no declared licence at all.
+
+## Repository
 
 ```
-tr-oolong/
-├── README.md
-├── ROADMAP.md          # tracked checklist — this is where progress lives
-├── DESIGN_DECISIONS.md # why the benchmark is built this way, with the evidence
-├── DATACARD.md         # per-axis source, license, label-noise, construction
-├── COMPARISON.md       # OOLONG vs TR-OOLONG, for a reader without the code
-├── DATASET_REVIEW.md   # every source considered, the twin search, and each verdict
-├── PAPER_NOTES.md      # claims to carry into the paper, and what is not yet true
-├── REVIEW.md           # adversarial read: the weak parts, ranked
-├── LICENSE             # MIT (code); data licenses in DATACARD
-├── CHEATSHEET.md       # vocabulary, workflows, and what the golden test is for
-├── src/build_tr_oolong.py
-├── src/scoring.py      # FROZEN metric
-├── scripts/quality_audit.py   # prior-oracle + depth/margin acceptance gate
-├── scripts/sampling_solver.py # partial-coverage solvers: random, prefix, fixed budget by tier
-├── scripts/style_solver.py    # surface-format solver
-├── scripts/trivial_baseline.py
-├── scripts/check_pair.py      # is this TR/EN pair a usable matched twin?
-├── scripts/check_solo.py      # is this ONE dataset usable, no partner needed?
-├── scripts/tokenizer_spread.py # seeded TR/EN token-cost comparison across tokenizers
-├── scripts/publish_hf.py      # per-subset licensing for release
-├── scripts/make_readme_figs.py
-├── configs/            # one config per SHIPPING instance set — globbed by
-│                       #   publish_hf.py / quality_audit.py / verify_release.py
-├── configs/experimental/  # ablations kept OUT of the glob above on purpose;
-│                       #   build/check by explicit path, never swept in
-├── manifests/          # committed manifest.json per set (post-rebuild)
-├── examples/           # a real sample question set
-└── data/               # git-ignored; distributed via Hugging Face
+src/build_tr_oolong.py     the builder: config in, haystacks + questions + manifest out
+src/scoring.py             the metric (freeze before the first model run)
+configs/                   one config per subset; configs/experimental/ = Turkish-label variants, not released
+scripts/                   fetch scripts, release checks, grading, publishing, evaluation
+experiments/               one-off analyses with their setup written at the top
+manifests/                 committed reports from the release checks
+tests/                     golden test: a fixed fixture must rebuild byte-identically
+weekly_summaries/          progress reports for thesis supervision
 ```
 
-Data is **not** committed (the largest instance file exceeds GitHub's 100 MB
-limit). The repo ships code + configs + manifests, which reproduce every set by
-construction.
+Working notes: `DESIGN_DECISIONS.md` (reason for each threshold, cited from code
+as D1-D22), `PAPER_NOTES.md` (claims for the write-up), `DATASET_REVIEW.md`
+(every source considered), `COMPARISON.md` (OOLONG and TR-OOLONG side by side),
+`REVIEW.md`, `ROADMAP.md`, `CHEATSHEET.md`.
 
-**Release and licensing.** The six source corpora carry five different licenses,
-and two of them do not permit redistributing their text. `scripts/publish_hf.py`
-packages each set as its own Hugging Face config with its own license tag, and
-ships `amazon_hpc_en` as questions-and-answers only — its
-haystacks are rebuilt locally from the public source, byte-identically. Full
-table in `DATACARD.md`. `LICENSE` (MIT) covers **code only**.
+## Licence and citation
 
+Code: MIT (`LICENSE`). Each data subset keeps its source's licence; see the
+datacard. Three are CC-BY-SA-4.0 (share-alike).
 
-## 13. Limitations, stated before anyone asks
+```bibtex
+@misc{troolong,
+  title  = {TR-OOLONG: A Turkish Long-Context Aggregation Benchmark},
+  author = {Ate{\c{s}}, Yi{\u{g}}it},
+  year   = {2026},
+  note   = {Bo{\u{g}}azi{\c{c}}i University, Institute for Data Science \& Artificial Intelligence},
+  url    = {https://github.com/yigitates17/tr-oolong}
+}
+```
 
-**Contamination resistance (a strength, stated because it will be questioned).**
-Every source corpus is public and almost certainly in the pretraining data of any
-model evaluated here. That is *not* a threat to this benchmark, and the reason is
-structural: no question asks about a fact that exists in the corpus. It asks how
-many records carrying a latent label appear in **one specific random sample**,
-whose composition is decided by a seed at build time. Memorising MASSIVE tells a
-model nothing about how many `play_music` utterances landed in haystack
-`tr-100000-3`. Synthetic aggregation over resampled public data is
-contamination-resistant by construction — unlike a QA benchmark, where the answer
-is a corpus fact.
-
-**Source label noise is a per-family ceiling, and the rate itself is still
-unmeasured.** Every answer is exact *with respect to the haystack*, but the
-haystack's labels come from the source corpus, so a model classifying *better*
-than the annotators is scored wrong. What has been settled is how much that
-matters, which turns out to be family-dependent. Under the OOLONG metric
-`0.75^|y-ŷ|`, with symmetric flips at rate ε, a semantically perfect oracle scores:
-
-| family | ε=2% | ε=5% | ε=10% |
-|---|---|---|---|
-| `count`, N=3,919 (100K tier) | 0.36 | 0.25 | 0.19 |
-| `count`, N=9,873 (500K tier) | 0.26 | 0.18 | 0.13 |
-| `proportion` (percent), N=3,919 | — | 0.95 | 0.92 |
-| `most_common` / `pairwise` / `top_k` | P(answer flips) < 1e-6 at every N and ε tested |
-
-Ranking families are effectively immune: the builder enforces a 10% gold margin
-while noise drift grows only as √(Nε). `proportion` is robust. **Raw `count` is
-not** — at the 100K tier even 2% noise caps a perfect model at 0.36, which is a
-second, independent reason to read `relative` rather than `partial`. So the open
-item is narrower than before: measure ε per corpus (n = 400 gives ±3 pts at
-ε ≈ 0.10) and record it in `DATACARD.md`. Headline results are reported on
-ranking and `proportion`.
-
-**The difficulty grades are relative to five readers, and a sixth could move
-more.** A fifth reader was added after the grades shipped: it greps the category
-name and its component words, ASCII-folded, and never classifies anything. Of
-the 215 very-hard questions it can attempt, **28 leave the band** (13%),
-concentrated in `interpress_tr` and `sikayet_tr` where a category name
-(`iletişim`, `sağlık`) is an ordinary Turkish word appearing in records filed
-under it. The eight sets that ship text unmodified are unaffected. This is the
-declared behaviour of grading against a fixed reader set, measured rather than
-asserted; a further reader could move more, and the grades should always be
-quoted with the reader set they were measured against.
-
-**`shift` was the weakest family and is withdrawn in v0.7.0.** It is a binary
-rose/fell over positional halves, so its floor is the highest in the suite (mean
-majority baseline 0.61), and it is the only family the surface-format solver
-beats: +0.400 on `amazon_hpc_en`, +0.300 on `vitamins_tr`, +0.267 on
-`musteri_tr` and `marc_en`, +0.100 on `en_intent` (§4d). Length correlates with
-label, and length also correlates with position once drift is injected, so format
-alone partly recovers the direction.
-
-That was already enough to say "do not report `shift` as a headline result",
-which is what earlier revisions of this section said. It was not enough. A
-`headtail` reader classifying fifty records at each end of the document scores
-**1.000 on every set at a 25% budget**, and 0.90 to 1.00 at 5% (§4e-i). The
-family is disabled in every config as of v0.7.0 and disappears at the next
-rebuild. **It is present in the published v0.6.3 data; any v0.6.3 result on
-`shift` should be discarded rather than caveated.**
-
-The replacement, if a positional family returns, is a real dated timeline axis of
-the kind OOLONG has, which is blocked on data rather than code: no Turkish source
-examined carries dates (see §9 and `DATASET_REVIEW.md`). A returning positional
-family must ask for a **magnitude** rather than a direction, and must clear the
-`headtail` reader before it ships.
-
-**Haystacks within a length tier are not independent.** They are drawn
-independently from the same pool, so at the longest tiers — where one haystack
-consumes 15–35% of the pool — they necessarily share records. Ground truth is
-unaffected (it is computed from the actual haystack), but per-tier variance is
-understated and the effective sample size is below five. Rather than assert this,
-every manifest records `tier_overlap`: the mean and max Jaccard between the
-haystacks of each tier, and the pool fraction each one consumes. Measured at each
-set's worst tier:
-
-| set | worst tier | mean Jaccard | pool consumed per haystack |
-|---|---|---|---|
-| `vitamins_tr` | 750K | 0.378 | 0.536 |
-| `tr_intent` | 100K | 0.279 | 0.403 |
-| `amazon_hpc_en` | 1M | 0.213 | 0.310 |
-
-Overlap is negligible at the shortest tiers (`tr_intent` 50K: J≈0.05) and grows
-with length, so treat long-tier variance as understated. Prefer more haystacks
-over more questions per haystack when adding statistical power.
-
-**Per-family n is 7–20.** The *generator* is certified at high power
-(`quality_audit.py --certify` draws hundreds of deduplicated candidate
-questions), but the shipped sample cannot support a strong per-family
-cross-lingual claim on its own. The record-matched twin partly compensates by
-making the comparison paired rather than between two independent samples.
-
-**The questions on the 3-class sets are not independent of one another.** Every
-`musteri_tr` haystack is asked `count` for all three labels and `proportion`
-for the same labels (44 of 45 `count` questions have a `proportion` twin on the
-same haystack and label); `most_common`, `second_most`, `least_common` and
-`label_vs_label` are then determined by those same two numbers, and `shift`
-adds one bit. Twelve questions per haystack therefore carry about two
-continuous degrees of freedom and one bit. The headline question total is a question
-count, not an evidence count: for any statistical claim on the review sets the
-unit is the haystack (15–20 per set), further reduced by the tier overlap
-above. The intent sets are least affected (2 to 4 duplicate pairs per 120
-questions), because 48 labels give the sampler room.
-
-Measured across the whole benchmark: **337 (haystack, label) pairs are asked
-both as `count` and as `proportion`**, so 674 of the 2,240 questions cover 337
-facts. Deriving the count from its proportion twin (`count = proportion × N /
-unit`) scores **0.972** mean `relative` and succeeds at ≥0.80 on **16 questions
-graded very hard**. Per set: `amazon_hpc_en` 61, `marc_en` 59, `musteri_tr` 58,
-`sinema_tr` 57, `interpress_tr` 41, `vitamins_tr` 38, `sikayet_tr` 13, the four
-intent sets 2–4 each. Two consequences. (1) For evaluation: a harness that puts
-**all** of a haystack's questions in one prompt hands the model this shortcut;
-asking one question at a time does not. (2) For statistics: use 337, not 674, as
-the count of independent numeric facts.
-
-**A score is only interpretable with its reading protocol.** Under `relative`,
-a perfect classifier reading 5% of a document outscores an honest 90%
-classifier reading all of it (§4e), and a reader that opens nothing scores
-0.43–0.63 on the numeric families. Report every result as lift over the `blind`
-reference in `manifests/sampling_audit.json`; state whether the model had tools
-or code execution over the haystack, and whether it was permitted to sample.
-`scripts/run_eval.py` is the single-prompt, no-tools protocol. An agentic
-harness is a different benchmark condition and must be labelled as one.
-
-**Lengths are measured with one tokenizer.** All tiers are sized under
-Qwen3-8B. A "500K-token" haystack is not 500K tokens for a model with a
-different tokenizer, and for Turkish the discrepancy is large (§4). Every
-haystack therefore records `n_chars` alongside `n_tokens`, so lengths can be
-re-derived for another tokenizer without rebuilding. Always report the tokenizer
-alongside a length claim.
-
-**The haystack is a concatenation, not a document.** Records are joined by a
-separator, so the text has no discourse structure. This is inherited from
-OOLONG-synth deliberately — it is what makes ground truth exact — but it means
-results here do not transfer directly to naturally long documents. That is the
-gap OOLONG-real addresses and this benchmark does not.
-
-**Distribution shift is injected, not observed.** `shift` questions rely on a
-deliberate over-representation of one label in the second half. The target and a
-detectability flag are recorded per haystack (`drift_target`, `drift_ok`).
-
-**Question wording is templated.** As with every synthetic benchmark, a model
-could in principle overfit to the phrasing. Mitigated by nine families across two
-languages, and by the set being evaluation-only — nothing here is for training.
-
-**The retained review pool is not representative Turkish.** 38% of the We-Bears
-corpus carries multi-aspect labels and is dropped, because ground truth needs one
-label per record. The remainder skews shorter and more negative. Aggregate
-answers stay exact for the built haystack, which is all any question asks about —
-but no claim should describe this pool as representative of Turkish review text.
-
-## References
-
-- Bertsch et al. (2025), *OOLONG*, arXiv:2511.02817 — construction principle.
-- Wang, D. (2026), *Think, But Don't Overthink: Reproducing Recursive Language
-  Models*, arXiv:2603.02615 — reproduces RLM on S-NIAH and **OOLONG**; depth-2
-  recursion degrades accuracy and inflates runtime 3.6 s → 344.5 s. Also reports
-  that depth-1 RLM underperforms a vanilla LLM on simple retrieval while helping
-  on complex reasoning — the argument for why aggregation-shaped benchmarks are
-  needed to see the method's advantage at all.
-- Hsieh et al. (2024), *RULER*, arXiv:2404.06654 — the four-category long-context
-  taxonomy (retrieval / multi-hop tracing / aggregation / QA) this benchmark
-  adopts. Its own aggregation tasks are lexical word-frequency extraction (CWE,
-  FWE); ours require latent-label classification, which is the distinction.
-- Zhang, Kraska & Khattab (2026), *Recursive Language Models*, arXiv:2512.24601 — the thesis method under evaluation.
+Please also cite OOLONG (Bertsch et al., 2025) and the source corpus of each
+subset you use.

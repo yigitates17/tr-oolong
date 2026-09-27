@@ -29,7 +29,7 @@ WHAT IT BUYS, computed from the real distribution at 3.4 chars/token:
 
 against 0.88-0.91 at every tier on the current review sets. Note the gradient:
 resistance FALLS as documents get longer, which is a real length axis. The
-current sets are flat in length under the proportional metric (README 4e), and
+current sets are flat in length under the proportional metric (DATACARD, Known issues), and
 this is the first source that is not.
 
 The records are full news articles (median 1,650 characters), which is why a

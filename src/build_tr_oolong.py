@@ -97,7 +97,7 @@ class Config:
     haystack_target_records: list[int] = dataclasses.field(default_factory=list)
     # int: the same count at every tier. list: one count PER TIER, positionally
     # matched to haystack_target_tokens / _records. v0.7.0 allows the list form
-    # because statistical power comes from DOCUMENTS, not questions (README 13),
+    # because statistical power comes from DOCUMENTS, not questions (DATACARD, Known issues),
     # and the short tiers are where more documents are cheap: a 100K haystack
     # costs a tenth of a 1M one and overlaps its siblings far less.
     haystacks_per_length: int | list[int] = 5   # >=5 -> ~50 questions per (length x axis)
@@ -126,7 +126,7 @@ class Config:
     # Declared, not used by the build -- read by scripts/check_solo.py and
     # check_pair.py. "human_written" | "human_translated" | "machine_translated"
     # | "synthetic_generated". Distinct from label_provenance: this is about the
-    # TEXT, not the label. See README section on real-vs-synthetic data for why
+    # TEXT, not the label. See the README before 2026-09-28 (git history), real-vs-synthetic section, for why
     # synthetic TEXT is a much harder objection than synthetic labels.
     text_provenance: str = ""
     # Translate label VALUES (e.g. "play_music" -> "muzik_cal") before anything
@@ -167,7 +167,7 @@ class Config:
     # retrieval. For a count it is the opposite: every record must still be
     # judged ("is this one X or not"), so the answer's magnitude is not the
     # question's depth. See DESIGN_DECISIONS D21 for the measurement that
-    # forced this, and README 4e for why a small answer is the ONLY thing that
+    # forced this, and DATACARD "Known issues" for why a small answer is the ONLY thing that
     # resists partial reading: the relative error of a scaled-up sample is
     # ~sqrt((1-f)/(f*m)) in the answer magnitude m, so m is the only lever.
     rare_min: int = 5
@@ -179,7 +179,7 @@ class Config:
     # forced to look like its source, and a reader that knows the corpus's
     # overall proportions and never opens the document scores well. Measured on
     # `vitamins_tr`, whose 750K tier eats 54% of a 43K-record pool and where the
-    # corpus-share oracle reaches 0.75 under `relative` (README 4e). A tier over
+    # corpus-share oracle reaches 0.75 under `relative` (DATACARD, Known issues). A tier over
     # the cap is DROPPED unless allow_pool_overrun is set, in which case it is
     # built and must be labelled prior-exposed wherever it is reported.
     # WARNS by default and does not drop. A first version of this dropped every

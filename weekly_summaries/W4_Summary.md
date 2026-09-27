@@ -21,7 +21,7 @@
 
 **One defect was found on 20 September and has been repaired.** Each dataset numbered its own questions from scratch, so the same question number was used by several datasets at once. Across the whole benchmark the 2,240 questions carried only 955 distinct numbers. A person who loaded all eleven datasets into one table and used those numbers would have lost well over half the benchmark without any warning or error message. Every question and every document now also carries a name that includes its dataset, which cannot collide, and an automatic check refuses any future release that repeats the mistake. Nothing else changed: every question, every answer and every difficulty grade is identical to what was published on the 16th. Section 6 gives the detail.
 
-**This correction needs to be uploaded.** The repaired files are ready and verified locally. Until they are uploaded, anyone downloading the benchmark gets the version with the colliding numbers.
+**The correction is uploaded.** The repaired files went to Hugging Face on 20 September, and the published files match the local ones exactly.
 
 **Figures that are easy to quote wrongly, and the correct framing:**
 
@@ -135,8 +135,7 @@ For the Turkish-label variant, the 0.14% figure is the *cost* of the filter, not
 
 These are the questions this work cannot settle on its own, phrased as questions rather than as recommendations. A recommendation is given under each, with what it costs.
 
-**1. When should the corrected files be uploaded?** This has replaced the question that stood here before. The earlier question was whether to publish at all; that was answered by publishing on 16 September, and the question no longer applies. What is now outstanding is narrower: the published version numbers its questions in a way that makes the eleven datasets unsafe to combine, the repair is built and verified, and it has not been uploaded. Section 6.1.
-*Recommendation: upload before the benchmark is mentioned publicly anywhere.* It is a replacement of the same files, it changes no question and no answer, and the cost of delay is that anyone who downloads in the meantime gets the version that silently loses data when its datasets are combined.
+**1. Upload of the corrected files.** Done on 20 September (section 6.1). No decision remains.
 
 **2. Should one matched Turkish/English pair be replaced?** The two three-category pairs exist to support the cross-lingual comparison, and they do that well. They contribute almost nothing else: of 259 questions graded very hard, those two pairs supply twenty-one, and one of the four datasets supplies none at all. A replacement partner has been found for the new Turkish complaints dataset: the US consumer-complaints corpus, which is public-domain, has the same register, carries a comparable category space, and additionally has company and date fields.
 *Recommendation: build it and compare before deciding.* This is the largest change on the table, because the matched pair is the centre of the cross-lingual claim, and it should not be swapped on the strength of a table alone.

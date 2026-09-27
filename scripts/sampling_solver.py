@@ -376,7 +376,7 @@ def main() -> int:
     ap.add_argument("--fail-over", type=float, default=None,
                     help="exit 1 if the best partial reader beats the reference by more "
                          "than this. Off by default: this solver is REPORTED as a "
-                         "limitation, not passed as a gate (README 4e).")
+                         "limitation, not passed as a gate (DATACARD, Known issues).")
     args = ap.parse_args()
 
     sets = args.sets
