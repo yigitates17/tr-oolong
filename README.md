@@ -145,6 +145,51 @@ per question type and per difficulty band next to the reference readers in
 `manifests/sampling_audit.json`, not as one pooled number. The reasons are in
 the next section.
 
+## How the benchmark is built
+
+Every subset goes through the same pipeline. Each step can reject a source or
+a question, and the rejections are recorded in
+[`DATASET_REVIEW.md`](DATASET_REVIEW.md) and [`DESIGN_DECISIONS.md`](DESIGN_DECISIONS.md).
+
+```
+1. FIND A LABELLED CORPUS
+   The label is the answer key, so unlabelled text is unusable.
+   Preferred label sources: the writer's own rating > professional
+   annotators > crowd workers. Undocumented labels are rejected.
+        |
+2. SCREEN IT  (build_tr_oolong.py --audit)
+   class balance, the longest document it can fill, whether record
+   length or punctuation gives the label away, licence
+        |
+3. FOR A PAIR: FIND THE ENGLISH PARTNER  (check_pair.py)
+   same label source, similar record length, similar surface shape,
+   same reachable lengths; a licence that forbids sharing rules it out
+        |
+4. BUILD  (build_tr_oolong.py --build)
+   - remove records whose text contains a label name
+   - drop labels with too few examples
+   - for each document, draw a random label mix, sample records to the
+     target length (counted with the Qwen3-8B tokenizer), join them with
+     a symbol separator
+   - generate questions; compute every answer twice, by two independent
+     pieces of code, and require them to agree
+        |
+5. CHECK  (the release checks below)
+   Can the questions be answered by searching for label names, by always
+   giving the most common answer, from the source corpus's overall label
+   shares, from record length and punctuation, or by sampling part of the
+   document? Question types that a check breaks on a source are switched
+   off for that source, and the omission is recorded.
+        |
+6. PUBLISH  (publish_hf.py)
+   one Hugging Face config per source, each with its own licence; text is
+   withheld where the licence does not allow sharing it
+```
+
+Screening (step 2) and checking (step 5) can disagree, and step 5 decides: a
+source can look risky before building and turn out fine once documents are
+built with random label mixes. Never accept or reject a source on step 2 alone.
+
 ## What is measured about difficulty
 
 Every check below uses **simulated readers**: short programs, not AI models.
