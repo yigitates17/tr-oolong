@@ -1,0 +1,125 @@
+{
+  "all": {
+    "skim 5%": 0.5266283524904215,
+    "skim 25%": 0.5682950191570881,
+    "skim 50%": 0.6086206896551725,
+    "topic search 10%": 0.60727969348659,
+    "full, 95% random-err": 0.7735632183908046,
+    "full, 90% random-err": 0.7385057471264368,
+    "full, NB": 0.5766283524904214,
+    "full, NB adj": 0.5593869731800766
+  },
+  "n": 261,
+  "by_set": {
+    "amazon_hpc_en": {
+      "skim 5%": 0.56875,
+      "skim 25%": 0.646875,
+      "skim 50%": 0.80625,
+      "topic search 10%": 0.5,
+      "full, 95% random-err": 0.825,
+      "full, 90% random-err": 0.775,
+      "full, NB": 0.75,
+      "full, NB adj": 0.75
+    },
+    "en_intent": {
+      "skim 5%": 0.5246794871794872,
+      "skim 25%": 0.5576923076923077,
+      "skim 50%": 0.5942307692307692,
+      "topic search 10%": 0.6025641025641025,
+      "full, 95% random-err": 0.7525641025641026,
+      "full, 90% random-err": 0.7153846153846154,
+      "full, NB": 0.5897435897435898,
+      "full, NB adj": 0.6153846153846154
+    },
+    "en_intent_paired": {
+      "skim 5%": 0.4971875,
+      "skim 25%": 0.556875,
+      "skim 50%": 0.5840625,
+      "topic search 10%": 0.675,
+      "full, 95% random-err": 0.7825,
+      "full, 90% random-err": 0.73,
+      "full, NB": 0.575,
+      "full, NB adj": 0.525
+    },
+    "interpress_tr": {
+      "skim 5%": 0.5575,
+      "skim 25%": 0.5866666666666667,
+      "skim 50%": 0.6216666666666667,
+      "topic search 10%": 0.7,
+      "full, 95% random-err": 0.7666666666666666,
+      "full, 90% random-err": 0.8,
+      "full, NB": 0.6,
+      "full, NB adj": 0.5333333333333333
+    },
+    "marc_en": {
+      "skim 5%": 0.6,
+      "skim 25%": 0.6812499999999999,
+      "skim 50%": 0.6125,
+      "topic search 10%": 0.0,
+      "full, 95% random-err": 0.95,
+      "full, 90% random-err": 0.75,
+      "full, NB": 1.0,
+      "full, NB adj": 1.0
+    },
+    "musteri_tr": {
+      "skim 5%": 0.6375,
+      "skim 25%": 0.625,
+      "skim 50%": 0.8,
+      "topic search 10%": 1.0,
+      "full, 95% random-err": 1.0,
+      "full, 90% random-err": 0.85,
+      "full, NB": 0.0,
+      "full, NB adj": 1.0
+    },
+    "sikayet_tr": {
+      "skim 5%": 0.5342307692307693,
+      "skim 25%": 0.5692307692307692,
+      "skim 50%": 0.6338461538461538,
+      "topic search 10%": 0.5230769230769231,
+      "full, 95% random-err": 0.7815384615384615,
+      "full, 90% random-err": 0.76,
+      "full, NB": 0.5923076923076923,
+      "full, NB adj": 0.5076923076923077
+    },
+    "sinema_tr": {
+      "skim 5%": 0.5214285714285715,
+      "skim 25%": 0.5723214285714285,
+      "skim 50%": 0.6482142857142857,
+      "topic search 10%": 0.7142857142857143,
+      "full, 95% random-err": 0.8178571428571428,
+      "full, 90% random-err": 0.7357142857142858,
+      "full, NB": 0.6428571428571429,
+      "full, NB adj": 0.35714285714285715
+    },
+    "tr_intent": {
+      "skim 5%": 0.5175,
+      "skim 25%": 0.5671875,
+      "skim 50%": 0.5865625,
+      "topic search 10%": 0.625,
+      "full, 95% random-err": 0.745,
+      "full, 90% random-err": 0.7125,
+      "full, NB": 0.525,
+      "full, NB adj": 0.6
+    },
+    "tr_intent_paired": {
+      "skim 5%": 0.5325,
+      "skim 25%": 0.5625,
+      "skim 50%": 0.578125,
+      "topic search 10%": 0.6375,
+      "full, 95% random-err": 0.7625,
+      "full, 90% random-err": 0.7275,
+      "full, NB": 0.55,
+      "full, NB adj": 0.6
+    },
+    "vitamins_tr": {
+      "skim 5%": 0.6,
+      "skim 25%": 0.725,
+      "skim 50%": 0.875,
+      "topic search 10%": 0.0,
+      "full, 95% random-err": 1.0,
+      "full, 90% random-err": 0.9,
+      "full, NB": 0.0,
+      "full, NB adj": 1.0
+    }
+  }
+}
