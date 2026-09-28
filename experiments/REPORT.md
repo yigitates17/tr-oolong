@@ -475,6 +475,13 @@ the time.
   of about ±0.07 on a model's core score. Enough to separate a reader from a
   skimmer (0.85 against 0.64), not enough for fine comparisons between similar
   models.
+- **Standard release checks** (run after the rebuild, all pass): searching for
+  label names gets 0.42 to 0.65 per dataset on close comparisons, and guessing
+  from record length and punctuation stays near a coin flip. Answering from the
+  source dataset's overall shares gets 0.52 to 0.68 per dataset, highest on
+  `en_intent` (0.68 on 28 questions, borderline significant). The intent
+  documents are built with label mixes close to the whole corpus, which likely
+  explains it; it is disclosed rather than fixed.
 - **Limitation 3.** Close comparisons reward models that label records very
   accurately; a weak classifier fails them even when it reads everything. This is
   intended: the question measures careful reading of everything.

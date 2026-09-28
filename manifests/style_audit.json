@@ -7,32 +7,32 @@
       "count": {
         "n": 69,
         "style_exact": 0.0,
-        "majority_baseline": 0.018,
-        "lift": -0.018
+        "majority_baseline": 0.014,
+        "lift": -0.014
       },
       "label_vs_label": {
         "n": 26,
         "style_exact": 0.385,
-        "majority_baseline": 0.55,
-        "lift": -0.165
+        "majority_baseline": 0.615,
+        "lift": -0.23
       },
       "least_common": {
         "n": 21,
         "style_exact": 0.333,
-        "majority_baseline": 0.412,
-        "lift": -0.079
+        "majority_baseline": 0.333,
+        "lift": 0.0
       },
       "most_common": {
         "n": 23,
         "style_exact": 0.348,
-        "majority_baseline": 0.5,
-        "lift": -0.152
+        "majority_baseline": 0.478,
+        "lift": -0.13
       },
       "proportion": {
         "n": 63,
         "style_exact": 0.016,
-        "majority_baseline": 0.061,
-        "lift": -0.045
+        "majority_baseline": 0.048,
+        "lift": -0.032
       },
       "second_most": {
         "n": 20,
@@ -41,13 +41,19 @@
         "lift": 0.0
       }
     },
-    "mean_lift": -0.077
+    "mean_lift": -0.068
   },
   {
     "set": "en_intent_out",
     "language": "en",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 28,
+        "style_exact": 0.536,
+        "majority_baseline": 0.071,
+        "lift": 0.465
+      },
       "count": {
         "n": 60,
         "style_exact": 0.0,
@@ -57,8 +63,8 @@
       "label_vs_label": {
         "n": 10,
         "style_exact": 0.3,
-        "majority_baseline": 0.6,
-        "lift": -0.3
+        "majority_baseline": 0.5,
+        "lift": -0.2
       },
       "least_common": {
         "n": 10,
@@ -69,8 +75,8 @@
       "most_common": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.1,
-        "lift": -0.1
+        "majority_baseline": 0.2,
+        "lift": -0.2
       },
       "proportion": {
         "n": 20,
@@ -81,28 +87,34 @@
       "second_most": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.3,
-        "lift": -0.3
+        "majority_baseline": 0.2,
+        "lift": -0.2
       }
     },
-    "mean_lift": -0.175
+    "mean_lift": -0.069
   },
   {
     "set": "en_intent_paired_out",
     "language": "en",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 35,
+        "style_exact": 0.571,
+        "majority_baseline": 0.057,
+        "lift": 0.514
+      },
       "count": {
         "n": 58,
         "style_exact": 0.0,
-        "majority_baseline": 0.05,
-        "lift": -0.05
+        "majority_baseline": 0.069,
+        "lift": -0.069
       },
       "label_vs_label": {
         "n": 11,
         "style_exact": 0.273,
-        "majority_baseline": 0.5,
-        "lift": -0.227
+        "majority_baseline": 0.364,
+        "lift": -0.091
       },
       "least_common": {
         "n": 10,
@@ -113,29 +125,35 @@
       "most_common": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.1,
-        "lift": -0.1
+        "majority_baseline": 0.2,
+        "lift": -0.2
       },
       "proportion": {
         "n": 21,
         "style_exact": 0.0,
-        "majority_baseline": 0.1,
-        "lift": -0.1
+        "majority_baseline": 0.143,
+        "lift": -0.143
       },
       "second_most": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.2,
-        "lift": -0.2
+        "majority_baseline": 0.1,
+        "lift": -0.1
       }
     },
-    "mean_lift": -0.146
+    "mean_lift": -0.041
   },
   {
     "set": "interpress_tr_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 9,
+        "style_exact": 0.444,
+        "majority_baseline": 0.222,
+        "lift": 0.222
+      },
       "count": {
         "n": 142,
         "style_exact": 0.0,
@@ -155,51 +173,57 @@
         "lift": -0.051
       }
     },
-    "mean_lift": -0.124
+    "mean_lift": -0.038
   },
   {
     "set": "marc_en_out",
     "language": "en",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 1,
+        "style_exact": 0.0,
+        "majority_baseline": 1.0,
+        "lift": -1.0
+      },
       "count": {
         "n": 59,
         "style_exact": 0.0,
-        "majority_baseline": 0.044,
-        "lift": -0.044
+        "majority_baseline": 0.034,
+        "lift": -0.034
       },
       "label_vs_label": {
         "n": 36,
         "style_exact": 0.472,
-        "majority_baseline": 0.714,
-        "lift": -0.242
+        "majority_baseline": 0.5,
+        "lift": -0.028
       },
       "least_common": {
         "n": 13,
         "style_exact": 0.308,
-        "majority_baseline": 0.5,
-        "lift": -0.192
+        "majority_baseline": 0.385,
+        "lift": -0.077
       },
       "most_common": {
         "n": 15,
         "style_exact": 0.4,
-        "majority_baseline": 0.545,
-        "lift": -0.145
+        "majority_baseline": 0.533,
+        "lift": -0.133
       },
       "proportion": {
         "n": 59,
         "style_exact": 0.017,
-        "majority_baseline": 0.089,
-        "lift": -0.072
+        "majority_baseline": 0.085,
+        "lift": -0.068
       },
       "second_most": {
         "n": 11,
         "style_exact": 0.545,
-        "majority_baseline": 0.5,
-        "lift": 0.045
+        "majority_baseline": 0.545,
+        "lift": 0.0
       }
     },
-    "mean_lift": -0.108
+    "mean_lift": -0.191
   },
   {
     "set": "musteri_tr_out",
@@ -209,47 +233,53 @@
       "count": {
         "n": 59,
         "style_exact": 0.0,
-        "majority_baseline": 0.022,
-        "lift": -0.022
+        "majority_baseline": 0.017,
+        "lift": -0.017
       },
       "label_vs_label": {
         "n": 38,
         "style_exact": 0.395,
-        "majority_baseline": 0.6,
-        "lift": -0.205
+        "majority_baseline": 0.579,
+        "lift": -0.184
       },
       "least_common": {
         "n": 16,
         "style_exact": 0.25,
-        "majority_baseline": 0.385,
-        "lift": -0.135
+        "majority_baseline": 0.5,
+        "lift": -0.25
       },
       "most_common": {
         "n": 15,
         "style_exact": 0.133,
-        "majority_baseline": 0.545,
-        "lift": -0.412
+        "majority_baseline": 0.467,
+        "lift": -0.334
       },
       "proportion": {
         "n": 58,
         "style_exact": 0.0,
-        "majority_baseline": 0.068,
-        "lift": -0.068
+        "majority_baseline": 0.069,
+        "lift": -0.069
       },
       "second_most": {
         "n": 13,
         "style_exact": 0.385,
-        "majority_baseline": 0.4,
-        "lift": -0.015
+        "majority_baseline": 0.385,
+        "lift": -0.0
       }
     },
-    "mean_lift": -0.143
+    "mean_lift": -0.142
   },
   {
     "set": "sikayet_tr_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 33,
+        "style_exact": 0.485,
+        "majority_baseline": 0.121,
+        "lift": 0.364
+      },
       "count": {
         "n": 150,
         "style_exact": 0.0,
@@ -287,13 +317,19 @@
         "lift": -0.08
       }
     },
-    "mean_lift": -0.094
+    "mean_lift": -0.029
   },
   {
     "set": "sinema_tr_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 2,
+        "style_exact": 1.0,
+        "majority_baseline": 0.5,
+        "lift": 0.5
+      },
       "count": {
         "n": 155,
         "style_exact": 0.0,
@@ -313,24 +349,30 @@
         "lift": -0.153
       }
     },
-    "mean_lift": -0.164
+    "mean_lift": 0.002
   },
   {
     "set": "tr_intent_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 31,
+        "style_exact": 0.677,
+        "majority_baseline": 0.065,
+        "lift": 0.612
+      },
       "count": {
         "n": 60,
         "style_exact": 0.0,
-        "majority_baseline": 0.05,
-        "lift": -0.05
+        "majority_baseline": 0.067,
+        "lift": -0.067
       },
       "label_vs_label": {
         "n": 10,
         "style_exact": 0.3,
-        "majority_baseline": 0.5,
-        "lift": -0.2
+        "majority_baseline": 0.4,
+        "lift": -0.1
       },
       "least_common": {
         "n": 10,
@@ -341,8 +383,8 @@
       "most_common": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.1,
-        "lift": -0.1
+        "majority_baseline": 0.2,
+        "lift": -0.2
       },
       "proportion": {
         "n": 20,
@@ -357,24 +399,30 @@
         "lift": -0.2
       }
     },
-    "mean_lift": -0.142
+    "mean_lift": -0.036
   },
   {
     "set": "tr_intent_paired_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 35,
+        "style_exact": 0.571,
+        "majority_baseline": 0.057,
+        "lift": 0.514
+      },
       "count": {
         "n": 58,
         "style_exact": 0.0,
-        "majority_baseline": 0.05,
-        "lift": -0.05
+        "majority_baseline": 0.069,
+        "lift": -0.069
       },
       "label_vs_label": {
         "n": 11,
         "style_exact": 0.273,
-        "majority_baseline": 0.5,
-        "lift": -0.227
+        "majority_baseline": 0.364,
+        "lift": -0.091
       },
       "least_common": {
         "n": 10,
@@ -385,23 +433,23 @@
       "most_common": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.1,
-        "lift": -0.1
+        "majority_baseline": 0.2,
+        "lift": -0.2
       },
       "proportion": {
         "n": 21,
         "style_exact": 0.0,
-        "majority_baseline": 0.1,
-        "lift": -0.1
+        "majority_baseline": 0.143,
+        "lift": -0.143
       },
       "second_most": {
         "n": 10,
         "style_exact": 0.0,
-        "majority_baseline": 0.2,
-        "lift": -0.2
+        "majority_baseline": 0.1,
+        "lift": -0.1
       }
     },
-    "mean_lift": -0.146
+    "mean_lift": -0.041
   },
   {
     "set": "vitamins_tr_out",
@@ -411,26 +459,26 @@
       "count": {
         "n": 51,
         "style_exact": 0.0,
-        "majority_baseline": 0.021,
-        "lift": -0.021
+        "majority_baseline": 0.02,
+        "lift": -0.02
       },
       "label_vs_label": {
         "n": 20,
         "style_exact": 0.3,
-        "majority_baseline": 0.6,
-        "lift": -0.3
+        "majority_baseline": 0.55,
+        "lift": -0.25
       },
       "least_common": {
         "n": 17,
         "style_exact": 0.235,
-        "majority_baseline": 0.333,
-        "lift": -0.098
+        "majority_baseline": 0.529,
+        "lift": -0.294
       },
       "most_common": {
         "n": 20,
         "style_exact": 0.3,
-        "majority_baseline": 0.421,
-        "lift": -0.121
+        "majority_baseline": 0.4,
+        "lift": -0.1
       },
       "proportion": {
         "n": 42,
@@ -441,10 +489,10 @@
       "second_most": {
         "n": 19,
         "style_exact": 0.421,
-        "majority_baseline": 0.5,
-        "lift": -0.079
+        "majority_baseline": 0.421,
+        "lift": 0.0
       }
     },
-    "mean_lift": -0.115
+    "mean_lift": -0.122
   }
 ]
