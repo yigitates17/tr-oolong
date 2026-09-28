@@ -4,6 +4,12 @@
     "language": "en",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "style_exact": 0.556,
+        "majority_baseline": 0.556,
+        "lift": -0.0
+      },
       "count": {
         "n": 69,
         "style_exact": 0.0,
@@ -41,7 +47,7 @@
         "lift": 0.0
       }
     },
-    "mean_lift": -0.068
+    "mean_lift": -0.058
   },
   {
     "set": "en_intent_out",
@@ -99,10 +105,10 @@
     "baseline_found": true,
     "families": {
       "close_comparison": {
-        "n": 35,
-        "style_exact": 0.571,
-        "majority_baseline": 0.057,
-        "lift": 0.514
+        "n": 55,
+        "style_exact": 0.545,
+        "majority_baseline": 0.091,
+        "lift": 0.454
       },
       "count": {
         "n": 58,
@@ -141,7 +147,7 @@
         "lift": -0.1
       }
     },
-    "mean_lift": -0.041
+    "mean_lift": -0.05
   },
   {
     "set": "interpress_tr_out",
@@ -149,10 +155,10 @@
     "baseline_found": true,
     "families": {
       "close_comparison": {
-        "n": 9,
-        "style_exact": 0.444,
-        "majority_baseline": 0.222,
-        "lift": 0.222
+        "n": 45,
+        "style_exact": 0.556,
+        "majority_baseline": 0.133,
+        "lift": 0.423
       },
       "count": {
         "n": 142,
@@ -173,7 +179,7 @@
         "lift": -0.051
       }
     },
-    "mean_lift": -0.038
+    "mean_lift": 0.013
   },
   {
     "set": "marc_en_out",
@@ -181,10 +187,10 @@
     "baseline_found": true,
     "families": {
       "close_comparison": {
-        "n": 1,
-        "style_exact": 0.0,
-        "majority_baseline": 1.0,
-        "lift": -1.0
+        "n": 19,
+        "style_exact": 0.526,
+        "majority_baseline": 0.526,
+        "lift": 0.0
       },
       "count": {
         "n": 59,
@@ -223,13 +229,19 @@
         "lift": 0.0
       }
     },
-    "mean_lift": -0.191
+    "mean_lift": -0.048
   },
   {
     "set": "musteri_tr_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "style_exact": 0.556,
+        "majority_baseline": 0.556,
+        "lift": -0.0
+      },
       "count": {
         "n": 59,
         "style_exact": 0.0,
@@ -267,7 +279,7 @@
         "lift": -0.0
       }
     },
-    "mean_lift": -0.142
+    "mean_lift": -0.122
   },
   {
     "set": "sikayet_tr_out",
@@ -275,10 +287,10 @@
     "baseline_found": true,
     "families": {
       "close_comparison": {
-        "n": 33,
-        "style_exact": 0.485,
-        "majority_baseline": 0.121,
-        "lift": 0.364
+        "n": 81,
+        "style_exact": 0.543,
+        "majority_baseline": 0.086,
+        "lift": 0.457
       },
       "count": {
         "n": 150,
@@ -317,7 +329,7 @@
         "lift": -0.08
       }
     },
-    "mean_lift": -0.029
+    "mean_lift": -0.016
   },
   {
     "set": "sinema_tr_out",
@@ -325,10 +337,10 @@
     "baseline_found": true,
     "families": {
       "close_comparison": {
-        "n": 2,
-        "style_exact": 1.0,
-        "majority_baseline": 0.5,
-        "lift": 0.5
+        "n": 50,
+        "style_exact": 0.54,
+        "majority_baseline": 0.16,
+        "lift": 0.38
       },
       "count": {
         "n": 155,
@@ -349,7 +361,7 @@
         "lift": -0.153
       }
     },
-    "mean_lift": 0.002
+    "mean_lift": -0.028
   },
   {
     "set": "tr_intent_out",
@@ -407,10 +419,10 @@
     "baseline_found": true,
     "families": {
       "close_comparison": {
-        "n": 35,
-        "style_exact": 0.571,
-        "majority_baseline": 0.057,
-        "lift": 0.514
+        "n": 55,
+        "style_exact": 0.564,
+        "majority_baseline": 0.091,
+        "lift": 0.473
       },
       "count": {
         "n": 58,
@@ -449,13 +461,19 @@
         "lift": -0.1
       }
     },
-    "mean_lift": -0.041
+    "mean_lift": -0.047
   },
   {
     "set": "vitamins_tr_out",
     "language": "tr",
     "baseline_found": true,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "style_exact": 0.556,
+        "majority_baseline": 0.556,
+        "lift": -0.0
+      },
       "count": {
         "n": 51,
         "style_exact": 0.0,
@@ -493,6 +511,6 @@
         "lift": 0.0
       }
     },
-    "mean_lift": -0.122
+    "mean_lift": -0.105
   }
 ]

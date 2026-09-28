@@ -1,10 +1,19 @@
 [
   {
     "set": "amazon_hpc_en_out",
-    "n_questions": 222,
-    "exact": 0.10810810810810811,
-    "partial": 0.12135376025915492,
+    "n_questions": 240,
+    "exact": 0.1375,
+    "partial": 0.1497522282397183,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "exact": 0.5,
+        "partial": 0.5,
+        "chance_floor": 0.5,
+        "majority_baseline": 0.556,
+        "distinct_answers": 2,
+        "degenerate": false
+      },
       "count": {
         "n": 69,
         "exact": 0.0,
@@ -134,17 +143,17 @@
   },
   {
     "set": "en_intent_paired_out",
-    "n_questions": 155,
-    "exact": 0.14193548387096774,
-    "partial": 0.1558067583890084,
+    "n_questions": 175,
+    "exact": 0.18285714285714286,
+    "partial": 0.195143128858836,
     "families": {
       "close_comparison": {
-        "n": 35,
-        "exact": 0.5428571428571428,
-        "partial": 0.5428571428571428,
+        "n": 55,
+        "exact": 0.5272727272727272,
+        "partial": 0.5272727272727272,
         "chance_floor": 0.5,
-        "majority_baseline": 0.057,
-        "distinct_answers": 27,
+        "majority_baseline": 0.091,
+        "distinct_answers": 30,
         "degenerate": false
       },
       "count": {
@@ -205,17 +214,17 @@
   },
   {
     "set": "interpress_tr_out",
-    "n_questions": 309,
-    "exact": 0.032362459546925564,
-    "partial": 0.0662018737736568,
+    "n_questions": 345,
+    "exact": 0.08115942028985507,
+    "partial": 0.11146776520597086,
     "families": {
       "close_comparison": {
-        "n": 9,
-        "exact": 0.5555555555555556,
-        "partial": 0.5555555555555556,
+        "n": 45,
+        "exact": 0.5111111111111111,
+        "partial": 0.5111111111111111,
         "chance_floor": 0.5,
-        "majority_baseline": 0.222,
-        "distinct_answers": 7,
+        "majority_baseline": 0.133,
+        "distinct_answers": 16,
         "degenerate": false
       },
       "count": {
@@ -249,17 +258,17 @@
   },
   {
     "set": "marc_en_out",
-    "n_questions": 194,
-    "exact": 0.08247422680412371,
-    "partial": 0.10066898897445835,
+    "n_questions": 212,
+    "exact": 0.1179245283018868,
+    "partial": 0.13457445217474018,
     "families": {
       "close_comparison": {
-        "n": 1,
-        "exact": 0.0,
-        "partial": 0.0,
+        "n": 19,
+        "exact": 0.47368421052631576,
+        "partial": 0.47368421052631576,
         "chance_floor": 0.5,
-        "majority_baseline": 1.0,
-        "distinct_answers": 1,
+        "majority_baseline": 0.526,
+        "distinct_answers": 2,
         "degenerate": false
       },
       "count": {
@@ -320,10 +329,19 @@
   },
   {
     "set": "musteri_tr_out",
-    "n_questions": 199,
-    "exact": 0.06532663316582915,
-    "partial": 0.07321419526484096,
+    "n_questions": 217,
+    "exact": 0.10138248847926268,
+    "partial": 0.10861578275439333,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "exact": 0.5,
+        "partial": 0.5,
+        "chance_floor": 0.5,
+        "majority_baseline": 0.556,
+        "distinct_answers": 2,
+        "degenerate": false
+      },
       "count": {
         "n": 59,
         "exact": 0.0,
@@ -382,17 +400,17 @@
   },
   {
     "set": "sikayet_tr_out",
-    "n_questions": 333,
-    "exact": 0.07507507507507508,
-    "partial": 0.11578093385599383,
+    "n_questions": 381,
+    "exact": 0.12860892388451445,
+    "partial": 0.1641864854961836,
     "families": {
       "close_comparison": {
-        "n": 33,
-        "exact": 0.42424242424242425,
-        "partial": 0.42424242424242425,
+        "n": 81,
+        "exact": 0.4691358024691358,
+        "partial": 0.4691358024691358,
         "chance_floor": 0.5,
-        "majority_baseline": 0.121,
-        "distinct_answers": 22,
+        "majority_baseline": 0.086,
+        "distinct_answers": 28,
         "degenerate": false
       },
       "count": {
@@ -453,17 +471,17 @@
   },
   {
     "set": "sinema_tr_out",
-    "n_questions": 242,
-    "exact": 0.012396694214876033,
-    "partial": 0.07290723285988744,
+    "n_questions": 290,
+    "exact": 0.09310344827586207,
+    "partial": 0.14359844948997502,
     "families": {
       "close_comparison": {
-        "n": 2,
+        "n": 50,
         "exact": 0.5,
         "partial": 0.5,
         "chance_floor": 0.5,
-        "majority_baseline": 0.5,
-        "distinct_answers": 2,
+        "majority_baseline": 0.16,
+        "distinct_answers": 10,
         "degenerate": false
       },
       "count": {
@@ -568,17 +586,17 @@
   },
   {
     "set": "tr_intent_paired_out",
-    "n_questions": 155,
-    "exact": 0.14193548387096774,
-    "partial": 0.1558067583890084,
+    "n_questions": 175,
+    "exact": 0.18285714285714286,
+    "partial": 0.195143128858836,
     "families": {
       "close_comparison": {
-        "n": 35,
-        "exact": 0.5428571428571428,
-        "partial": 0.5428571428571428,
+        "n": 55,
+        "exact": 0.5272727272727272,
+        "partial": 0.5272727272727272,
         "chance_floor": 0.5,
-        "majority_baseline": 0.057,
-        "distinct_answers": 27,
+        "majority_baseline": 0.091,
+        "distinct_answers": 30,
         "degenerate": false
       },
       "count": {
@@ -639,10 +657,19 @@
   },
   {
     "set": "vitamins_tr_out",
-    "n_questions": 169,
-    "exact": 0.07692307692307693,
-    "partial": 0.08833071697760585,
+    "n_questions": 187,
+    "exact": 0.11764705882352941,
+    "partial": 0.1279566372685315,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "exact": 0.5,
+        "partial": 0.5,
+        "chance_floor": 0.5,
+        "majority_baseline": 0.556,
+        "distinct_answers": 2,
+        "degenerate": false
+      },
       "count": {
         "n": 51,
         "exact": 0.0,

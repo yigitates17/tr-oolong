@@ -8,7 +8,12 @@
   "min_class_support": 1000,
   "seed": 42,
   "dirichlet_alpha": 0.4,
-  "haystacks_per_length": [10, 5, 5, 5],
+  "haystacks_per_length": [
+    10,
+    5,
+    5,
+    5
+  ],
   "questions_per_haystack": 12,
   "proportion_unit": "auto",
   "top_k_k": 3,
@@ -30,5 +35,14 @@
   "text_provenance": "human_written",
   "families_disabled": [
     "shift"
-  ]
+  ],
+  "core_doc_records": [
+    1000,
+    2500,
+    5000,
+    10000
+  ],
+  "core_docs_per_tier": 6,
+  "core_share": 0.15,
+  "core_pairs_per_doc": 2
 }

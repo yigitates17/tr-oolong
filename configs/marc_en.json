@@ -38,5 +38,19 @@
   "text_provenance": "human_written",
   "close_exclude_labels": [
     "neutral"
-  ]
+  ],
+  "core_doc_records": [
+    2500,
+    6000,
+    12000
+  ],
+  "core_docs_per_tier": 6,
+  "core_share": 0.4,
+  "core_pairs": [
+    [
+      "positive",
+      "negative"
+    ]
+  ],
+  "core_seed_key": "musteri-marc"
 }

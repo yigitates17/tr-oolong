@@ -1,8 +1,8 @@
 # TR-OOLONG datacard
 
-Covers **v0.8.0**: 11
-subsets, 195 documents, 2,277 questions, 7 question types, Turkish and English
-(1,558 / 719 questions). Every answer is computed
+Covers **v0.9.0**: 11
+subsets, 353 documents, 2,521 questions, 7 question types, Turkish and English
+(1,746 / 775 questions). Every answer is computed
 from the source dataset's labels, twice, by two independent pieces of code
 that must agree. No answer was written by hand.
 
@@ -15,6 +15,7 @@ For what the benchmark is and how to use it, see the [README](README.md).
 | 0.7.0 | 2026-09-16 | 11 subsets, rare-label counts, difficulty grades; `shift` removed |
 | 0.7.1 | 2026-09-20 | adds `uid`, `dataset`, `haystack_uid`. No question, answer, document or grade changed |
 | 0.8.0 | 2026-09-28 | adds 174 close comparisons (`core`); removes the 137 brand questions; adds `role` to every question; stops releasing difficulty grades. Documents and all other questions unchanged |
+| 0.9.0 | 2026-09-29 | adds 158 core documents with 244 close comparisons (418 core in total), 91 core questions identical in Turkish and English. All earlier documents and questions unchanged |
 
 ## Fields
 
@@ -34,6 +35,7 @@ For what the benchmark is and how to use it, see the [README](README.md).
 | `answer` | the gold answer |
 | `answer_key` | language-neutral form of a word answer (`label_vs_label`, `close_comparison`), for matching the Turkish and English pair |
 | `rare` | true on a rare-label count (answer between 5 and 30) |
+| `core_document` | true on questions (and documents) from core documents, built from exact label counts |
 | `question` | the full question text |
 | `role` | `core`, `retrieval` or `control`: what the question measures (see Known issues) |
 
@@ -151,6 +153,22 @@ the data.
    sentiment, and film ratings less than 3 stars apart, where annotators often
    disagree. At most 4 per document, with no label used twice. Which label is
    named first is random.
+7. Add **core documents** (v0.9.0). Random label mixes rarely put two large
+   labels close together, so these documents are built from exact counts: one
+   or two pairs of labels each get a set share of the document (40% each for
+   positive and negative on the review sets, 15% on complaints, news and
+   films, 7% on intent) with a gap inside the step 6 window; the other labels
+   share the rest. Sizes are in records (2,500 / 6,000 / 12,000 on the review
+   sets, 3,000 on intent, 1,000 to 10,000 elsewhere, reaching about 1M tokens
+   on complaints, news and films). The two counts differ by at least 5
+   records. The two configs of a Turkish/English pair share their random
+   draws, so their core documents have identical sizes and identical counts,
+   and each core question is the same question in both languages. Only the
+   designed pairs are asked. Two things are balanced by design rather than
+   left to chance: which label of the pair is larger (alternating between the
+   label more common in the source and the less common one, or between
+   positive and negative), and whether the answer is the first-named label
+   (every other question).
 
 ## Label quality
 
@@ -182,7 +200,7 @@ label of each record they read. Full setup and examples:
 
 | role | questions | strongest shortcut found | reader of everything |
 |---|---:|---|---|
-| core: close comparisons | 174 | 0.64 (top 10% by topic search); sampling half the document 0.63; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.77 at 90% |
+| core: close comparisons | 418 | sampling half the document 0.63; top 10% by topic search 0.56; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.76 at 90% |
 | retrieval: rare-label counts | 265 | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
 | control: counts, proportions, rankings, wide comparisons | 1,838 | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
 
@@ -191,11 +209,17 @@ label of each record they read. Full setup and examples:
   of reading. Under `relative`, a reader that opens nothing and divides the
   record count by the number of labels already scores 0.43 to 0.55 on counts,
   and longer documents are not harder.
-- On the two paired intent sets, where the compared categories hold about 60
-  records each, topic search gets 0.73 (Turkish) and 0.81 (English) on core
-  questions.
-- The 3-label review sets contribute one core question in total: once
-  "neutral" is excluded, their two remaining labels are rarely close.
+- Core questions come in two groups. The **244 from core documents**
+  (`core_document: true`) are fully balanced: picking the first-named label
+  gets 0.50, the label more common in the source dataset 0.49, topic search
+  0.49, sampling half the document 0.64. The **174 from ordinary documents**
+  (v0.8.0) are slightly exposed: the label more common in the source dataset
+  wins 61% of the time, and on the paired intent sets, where the compared
+  categories hold about 60 records, topic search reaches 0.74 to 0.79. Report
+  the two groups separately.
+- Core scores have a ceiling below 1.0: wrong labels in the source data decide
+  some close comparisons. With 5% of labels wrong a perfect model scores about
+  0.85. A native-speaker check of the Turkish core categories is prepared.
 - The difficulty grades released in v0.7.x are withdrawn: they reflected which
   four skimming programs had been chosen, and on small answers a single lucky
   draw decided them.
@@ -213,7 +237,7 @@ as the unit of evidence.
 | subset | missing types | why |
 |---|---|---|
 | `interpress_tr`, `sinema_tr` | `most_common`, `least_common`, `second_most` | section shares and adjacent ratings are too close to rank with the required 15% margin |
-| `vitamins_tr`, `musteri_tr`, `amazon_hpc_en` | close comparisons | with "neutral" excluded, the two remaining labels are rarely close (`marc_en` has one) |
+| `vitamins_tr`, `musteri_tr`, `amazon_hpc_en`, `marc_en` | close comparisons on random-mix documents | with "neutral" excluded, the two remaining labels are rarely close; these sets' core questions come from core documents |
 
 **One flagged tier.** On `en_intent` at 100K tokens, a reader using only the
 source corpus's label shares scores 0.73 on `proportion` (Turkish counterpart:

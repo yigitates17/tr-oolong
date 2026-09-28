@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.8.0"
+VERSION = "0.9.0"
 
 
 # ---------------------------------------------------------------------------
@@ -238,6 +238,29 @@ class Config:
     # For ordinal labels that start with a number ("7 yıldız"): the two labels
     # must be at least this many points apart (7 vs 8 stars is a judgement call).
     close_ordinal_gap: int = 0
+    # --- v0.9.0: core documents ---------------------------------------------
+    # Extra documents built from EXACT label counts so that chosen pairs of
+    # LARGE labels have close counts. Random label mixes rarely produce such
+    # pairs (v0.8.0 got 174 core questions, one of them from the 3-label review
+    # sets), and small close pairs are findable by topic search. Only close
+    # comparisons are asked on these documents. Sized in records.
+    core_doc_records: list[int] = dataclasses.field(default_factory=list)
+    core_docs_per_tier: int = 0
+    core_share: float = 0.3               # share of the document each designed label gets
+    core_pairs: list[list[str]] = dataclasses.field(default_factory=list)  # explicit pairs; empty = automatic
+    core_pairs_per_doc: int = 1
+    # Shared by the two configs of a cross-lingual pair, so both halves draw
+    # the same counts, the same gaps and the same question order. With explicit
+    # `core_pairs` listed in the same order in both configs (e.g. olumlu/olumsuz
+    # and positive/negative), every core question has the same answer in both
+    # languages, in each language's own label words.
+    core_seed_key: str = ""
+    # In core documents the two counts differ by at least this many records.
+    # Source labels are 3-9% wrong (measured on the intent axis), so a gap of 1-3
+    # records is decided by label noise rather than by reading (audit, REPORT
+    # experiment 10). The random-mix pass keeps `close_min_diff` so the v0.8.0
+    # questions do not change.
+    core_min_diff: int = 5
     entity_band_tol: float = 0.05         # entity candidates' POOL counts agree this closely
     # Label candidates need a much looser band than entity candidates, and the
     # reason is asymmetric: the LABEL axis already gets a fresh Dirichlet prior
@@ -1382,7 +1405,21 @@ def _ordinal(label: str):
     return int(m.group(1)) if m else None
 
 
-def close_comparisons(meta, cfg: Config, rng: random.Random) -> list[dict]:
+def _order_for_balance(a: str, b: str, gt: str, balance: list[int] | None,
+                       rng: random.Random) -> tuple[str, str]:
+    """Which label is named first. With `balance` (a one-element counter shared
+    across a build), the answer is named first in alternating questions, so
+    "pick the first-named label" scores exactly 0.5 over the set instead of
+    whatever a coin toss happens to give. Without it, a coin toss (v0.8.0)."""
+    if balance is None:
+        return (b, a) if rng.random() < 0.5 else (a, b)
+    first = balance[0] % 2 == 0
+    balance[0] += 1
+    return (gt, b if gt == a else a) if first else (b if gt == a else a, gt)
+
+
+def close_comparisons(meta, cfg: Config, rng: random.Random,
+                      balance: list[int] | None = None) -> list[dict]:
     """v0.8.0. Up to `close_per_haystack` close comparisons for one haystack,
     over label pairs that do not share a label (so the questions are not four
     views of the same count)."""
@@ -1413,14 +1450,126 @@ def close_comparisons(meta, cfg: Config, rng: random.Random) -> list[dict]:
             break
         if a in used or b in used:
             continue
-        # which label is named first is random, so "the first one" is not a
-        # shortcut; the answer is balanced between first and second position
-        if rng.random() < 0.5:
-            a, b = b, a
+        # which label is named first must not give the answer away: a coin toss
+        # in v0.8.0 (kept so those questions do not change), balanced exactly
+        # when a `balance` counter is passed (core documents, v0.9.0)
+        if balance is None:
+            if rng.random() < 0.5:
+                a, b = b, a
+            gt = verified_gt(meta, "close_comparison", label_a=a, label_b=b)
+            if gt is None:
+                continue
+        else:
+            gt = verified_gt(meta, "close_comparison", label_a=a, label_b=b)
+            if gt is None:
+                continue
+            a, b = _order_for_balance(a, b, gt, balance, rng)
+        used.update((a, b))
+        out.append({"kind": "close_comparison", "label": None, "label_a": a, "label_b": b,
+                    "candidates": [a, b], "answer": gt, "answer_key": gt,
+                    "question": resolve_template(cfg, "close_comparison").format(
+                        label_a=a, label_b=b)})
+    return out
+
+
+def core_document_counts(pool_counts: dict[str, int], n: int, cfg: Config,
+                         rng: random.Random, big_counter: list[int] | None = None
+                         ) -> tuple[dict[str, int], list[tuple[str, str]]] | None:
+    """v0.9.0. Exact per-label record counts for one core document of `n`
+    records, and the designed pairs. The designed pairs get close counts inside
+    the close-comparison window; every other label shares the rest by a
+    Dirichlet draw. Returns None when the pool cannot supply the design.
+
+    WHICH label of a pair is the larger one is not left to chance, because a
+    coin toss on a few dozen pairs can line up with the source corpus's shares
+    (it did: "pick the label rarer in the corpus" scored 0.70 on the intent core
+    documents). With `big_counter`, the larger label alternates in a fixed
+    rhythm: for listed `core_pairs`, between the first and second label of the
+    pair (so both halves of a cross-lingual pair agree); otherwise, between the
+    label that is more common in the pool and the one that is less common."""
+    c = max(cfg.close_min_count, round(cfg.core_share * n))
+    excluded = set(cfg.close_exclude_labels)
+    if cfg.core_pairs:
+        pairs = [tuple(p) for p in cfg.core_pairs][: cfg.core_pairs_per_doc]
+    else:
+        eligible = sorted(l for l, k in pool_counts.items() if k >= c and l not in excluded)
+        rng.shuffle(eligible)
+        pairs, used = [], set()
+        for i, a in enumerate(eligible):
+            for b in eligible[i + 1:]:
+                if len(pairs) >= cfg.core_pairs_per_doc:
+                    break
+                if a in used or b in used:
+                    continue
+                if cfg.close_ordinal_gap:
+                    oa, ob = _ordinal(a), _ordinal(b)
+                    if oa is None or ob is None or abs(oa - ob) < cfg.close_ordinal_gap:
+                        continue
+                pairs.append((a, b))
+                used.update((a, b))
+    if not pairs:
+        return None
+    counts: dict[str, int] = {}
+    for a, b in pairs:
+        # a relative gap safely inside [lo, hi] / sqrt(smaller count)
+        for _ in range(50):
+            g = rng.uniform(1.1 * cfg.close_gap_lo, 0.9 * cfg.close_gap_hi) / math.sqrt(c)
+            small = round(c * (1 - g))
+            gap = (c - small) / c
+            if (c - small >= cfg.close_min_diff
+                    and cfg.close_gap_lo / math.sqrt(small) <= gap <= cfg.close_gap_hi / math.sqrt(small)):
+                break
+        else:
+            return None
+        if big_counter is None:
+            big = a if rng.random() < 0.5 else b
+        else:
+            k = big_counter[0]
+            big_counter[0] += 1
+            if cfg.core_pairs:
+                ref, other = a, b
+            else:
+                ref, other = (a, b) if pool_counts.get(a, 0) >= pool_counts.get(b, 0) else (b, a)
+            big = ref if (k // 2) % 2 == 0 else other
+        counts[a], counts[b] = (c, small) if big == a else (small, c)
+        if pool_counts.get(a, 0) < counts[a] or pool_counts.get(b, 0) < counts[b]:
+            return None
+    rest = n - sum(counts.values())
+    others = sorted(l for l in pool_counts if l not in counts)
+    if rest < 0 or (rest > 0 and not others):
+        return None
+    alpha = cfg.dirichlet_alpha or 1.0
+    w = {l: rng.gammavariate(alpha, 1.0) for l in others}
+    z = sum(w.values()) or 1.0
+    alloc = {l: min(pool_counts[l], int(rest * w[l] / z)) for l in others}
+    # hand out rounding leftovers (and anything capped by the pool) one by one
+    short = rest - sum(alloc.values())
+    for l in sorted(others, key=lambda x: -w[x]) * 3:
+        if short <= 0:
+            break
+        room = pool_counts[l] - alloc[l]
+        take = min(room, short)
+        alloc[l] += take
+        short -= take
+    counts.update({l: k for l, k in alloc.items() if k > 0})
+    return counts, pairs
+
+
+def designed_close_questions(meta, cfg: Config, rng: random.Random,
+                             balance: list[int] | None = None,
+                             pairs: list[tuple[str, str]] | None = None) -> list[dict]:
+    """v0.9.0. Close comparisons for the pairs listed in `core_pairs`, asked in
+    the listed order. The two configs of a cross-lingual pair list their pairs
+    in the same order (olumlu/olumsuz, positive/negative) and share a seed key,
+    so each question is the same question in both languages."""
+    out = []
+    if pairs is None:
+        pairs = [tuple(p) for p in cfg.core_pairs][: cfg.core_pairs_per_doc]
+    for a, b in pairs:
         gt = verified_gt(meta, "close_comparison", label_a=a, label_b=b)
         if gt is None:
             continue
-        used.update((a, b))
+        a, b = _order_for_balance(a, b, gt, balance, rng)
         out.append({"kind": "close_comparison", "label": None, "label_a": a, "label_b": b,
                     "candidates": [a, b], "answer": gt, "answer_key": gt,
                     "question": resolve_template(cfg, "close_comparison").format(
@@ -1866,6 +2015,69 @@ def build(cfg: Config) -> None:
                 print(f"built {hs_id}: {meta.height} examples, {len(questions)} questions"
                       + (f" (drift={drift_target})" if drift_target else " (no drift)"))
 
+        # v0.9.0: core documents (see Config.core_doc_records). Built after
+        # every random-mix document so none of those changes.
+        pool_counts = dict(Counter(df["label"].to_list()))
+        rows_by_label: dict[str, list[int]] = {}
+        if cfg.core_doc_records:
+            for i, lab in enumerate(df["label"].to_list()):
+                rows_by_label.setdefault(lab, []).append(i)
+        core_balance = [0]
+        big_counter = [0]
+        cfg_core = dataclasses.replace(cfg, close_min_diff=max(cfg.close_min_diff, cfg.core_min_diff))
+        for n_rec in cfg.core_doc_records:
+            for ki in range(cfg.core_docs_per_tier):
+                key = cfg.core_seed_key or ("pair" if cfg.pair_seed else cfg.language)
+                rng_c = random.Random(f"{cfg.seed}-{key}-core-{n_rec}-{ki}")
+                built = core_document_counts(pool_counts, n_rec, cfg_core, rng_c, big_counter)
+                if built is None:
+                    print(f"[core] {cfg.out_dir}: cannot build a {n_rec}-record core "
+                          f"document from this pool; skipped.", file=sys.stderr)
+                    continue
+                counts, designed = built
+                idx = []
+                for lab in sorted(counts):
+                    idx += rng_c.sample(rows_by_label[lab], counts[lab])
+                kept = df[sorted(idx)]
+                hay, meta = order_and_assemble(kept, None, cfg, count_tokens, rng_c)
+                hs_id = f"{cfg.language}-core{n_rec}-{ki}"
+                rng_q = random.Random(f"{cfg.seed}-{key}-coreq-{n_rec}-{ki}")
+                # only the designed pairs are asked: pairs that happen to be
+                # close by chance are small, noisier, easier to find by search,
+                # and their larger label cannot be balanced
+                cq = designed_close_questions(meta, cfg_core, rng_q, core_balance, designed)
+                meta.write_parquet(out / f"meta_{hs_id}.parquet")
+                n_tok = count_tokens(hay)
+                hf.write(json.dumps({
+                    "uid": f"{ds_name}:{hs_id}", "dataset": ds_name,
+                    "haystack_id": hs_id, "language": cfg.language,
+                    "target_tokens": n_tok, "target_records": n_rec,
+                    "n_tokens": n_tok, "n_examples": meta.height,
+                    "drift_target": None, "drift_ok": False,
+                    "core_document": True,
+                    "haystack": hay,
+                }, ensure_ascii=False) + "\n")
+                for qi, q in enumerate(cq):
+                    kind_counts[q["kind"]] += 1
+                    qf.write(json.dumps({
+                        "uid": f"{ds_name}:{hs_id}-q{qi}", "dataset": ds_name,
+                        "id": f"{hs_id}-q{qi}",
+                        "haystack_uid": f"{ds_name}:{hs_id}", "haystack_id": hs_id,
+                        "language": cfg.language,
+                        "target_tokens": None, "target_records": n_rec,
+                        **q, "role": question_role(q), "core_document": True,
+                    }, ensure_ascii=False) + "\n")
+                    n_q += 1
+                hs_summary.append({"haystack_id": hs_id, "n_examples": meta.height,
+                                   "n_tokens": n_tok, "n_chars": len(hay),
+                                   "row_ids": sorted(meta["row_id"].to_list()),
+                                   "_tier": f"core{n_rec}", "drift_target": None,
+                                   "drift_ok": False, "n_questions": len(cq),
+                                   "core_document": True,
+                                   "label_counts": {l: counts[l] for l in sorted(counts)}})
+                print(f"built {hs_id}: {meta.height} examples, {n_tok:,} tokens, "
+                      f"{len(cq)} core questions")
+
     # Overlap between the haystacks of one tier. They are drawn independently
     # from the same pool, so at the longest tiers they necessarily share records
     # and are NOT independent samples: per-tier variance is understated. Ground
@@ -1875,7 +2087,7 @@ def build(cfg: Config) -> None:
     by_tier: dict[int, list[set]] = {}
     for h in hs_summary:
         by_tier.setdefault(h["_tier"], []).append(set(h["row_ids"]))
-    for tier, groups in sorted(by_tier.items()):
+    for tier, groups in sorted(by_tier.items(), key=lambda kv: str(kv[0])):
         pairs = [(a, b) for i, a in enumerate(groups) for b in groups[i + 1:]]
         if not pairs:
             continue

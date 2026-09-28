@@ -33,5 +33,14 @@
   "families_disabled": [
     "shift"
   ],
-  "close_ordinal_gap": 3
+  "close_ordinal_gap": 3,
+  "core_doc_records": [
+    1000,
+    2500,
+    4000,
+    8000
+  ],
+  "core_docs_per_tier": 6,
+  "core_share": 0.15,
+  "core_pairs_per_doc": 2
 }

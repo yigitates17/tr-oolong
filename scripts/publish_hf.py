@@ -46,7 +46,7 @@ POLICY = {
         license="cc-by-4.0", full_text=True,
         source="AmazonScience/massive (tr-TR), record-matched",
         note="Record-matched with en_intent_paired: the same utterances in the "
-             "same order, so all 155 questions have the same answer in both "
+             "same order, so all 175 questions (55 core) have the same answer in both "
              "languages (word answers via answer_key)."),
     "en_intent_paired_out": dict(
         license="cc-by-4.0", full_text=True,
@@ -142,7 +142,7 @@ thesis work. Full details: `DATACARD.md` in this repository.
 
 ## At a glance
 
-**11 subsets · 195 documents · 2,277 questions · 50.7M tokens · 7 question types**
+**11 subsets · 353 documents · 2,521 questions · 106.4M tokens · 7 question types**
 
 {glance_table}
 
@@ -152,17 +152,20 @@ Lengths are tokens under `Qwen/Qwen3-8B`. `classes` is the number of labels.
 
 | role | question types | questions | what it shows |
 |---|---|---:|---|
-| `core` | `close_comparison`: which are there more of, A or B? (both frequent, counts very close) | 174 | that the model read and judged the whole document |
+| `core` | `close_comparison`: which are there more of, A or B? (both frequent, counts very close) | 418 | that the model read and judged the whole document |
 | `retrieval` | `count` with `"rare": true` (answer 5 to 30) | 265 | that it can find a few records by meaning |
 | `control` | `count` 656, `proportion` 492, `label_vs_label` 292, `most_common` 138, `least_common` 132, `second_most` 128 | 1,838 | that it can classify the records at all |
 
-**Turkish/English pairs.** `tr_intent_paired` and `en_intent_paired` contain the
-same 3,000 utterances (MASSIVE is a human translation) in the same order, so all
-155 questions have the same answer in both languages and the two can be compared
-with a paired test. `tr_intent`/`en_intent` match on token budget instead.
-`musteri_tr`/`marc_en` and `vitamins_tr`/`amazon_hpc_en` are different corpora
-with the same task. `sikayet_tr`, `interpress_tr` and `sinema_tr` are Turkish
-only.
+**Turkish/English pairs.** Compare languages within a pair, never by totals
+(three subsets are Turkish only). `tr_intent_paired` and `en_intent_paired`
+contain the same utterances (MASSIVE is a human translation) in the same order,
+so all 175 questions, 55 of them core, are identical in both languages.
+`tr_intent`/`en_intent` match on token budget instead. `musteri_tr`/`marc_en`
+and `vitamins_tr`/`amazon_hpc_en` are different corpora with the same task;
+their core documents are built with identical sizes and identical
+positive/negative counts, so their 18 core questions each are identical too.
+In total 91 core questions are identical across the two languages.
+`sikayet_tr`, `interpress_tr` and `sinema_tr` are Turkish only.
 
 ### Why the Turkish intent questions use English label names
 
@@ -186,7 +189,7 @@ text being classified; the label only names the bucket.
 | questions over dates | yes, its hardest group | none yet (`interpress_tr` has dates) |
 | same question, same answer in two languages | no | yes (`*_intent_paired`) |
 | numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
-| questions that resist sampling and search | none found | 174 close comparisons |
+| questions that resist sampling and search | none found | 418 close comparisons |
 | published shortcut checks | none | yes, in the GitHub repository |
 
 OOLONG's construction code was not released; this is an independent
@@ -217,7 +220,8 @@ qs = load_dataset("yigitates17/tr-oolong", "sikayet_tr", split="test")
 
 - `questions.jsonl`: `uid`, `dataset`, `id`, `haystack_uid`, `haystack_id`,
   `language`, `target_tokens`, `kind`, `label` / `candidates` / `label_a` /
-  `label_b`, `unit`, `answer`, `answer_key`, `rare`, `question`, `role`.
+  `label_b`, `unit`, `answer`, `answer_key`, `rare`, `question`, `role`,
+  `core_document`.
 - `haystacks.jsonl` (where the licence allows): `uid`, `haystack_id`,
   `haystack`, plus build metadata.
 - `manifest.json`: seed, config, source hash, tokenizer, per-document lengths.
@@ -249,7 +253,7 @@ they read, so they show what a reading strategy can achieve.
 
 | role | strongest shortcut found | reader of everything |
 |---|---|---|
-| core | 0.64 (the 10% most relevant records by topic search); sampling half the document 0.63; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.77 at 90% |
+| core | sampling half the document 0.63; the 10% most relevant records by topic search 0.56; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.76 at 90% |
 | retrieval | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
 | control | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
 
@@ -260,9 +264,16 @@ they read, so they show what a reading strategy can achieve.
 - Control questions are not evidence of reading: a 5% sample answers them
   almost as well as the whole document, and under `relative` a longer document
   is not harder.
-- Only 174 questions are core (margin of error about ±0.07 on a model's core
-  score). They come mostly from the intent and complaint sets; on the two paired
-  intent sets topic search gets 0.73 and 0.81. The 3-label review sets have one.
+- 418 questions are core (margin of error about ±0.05 on a model's core score).
+  The 244 from core documents (`core_document: true`), built from exact label
+  counts with which label is larger and which is named first balanced by
+  design, are the cleaner group: first-named 0.50, source-dataset shares 0.49,
+  topic search 0.49. The 174 from ordinary documents are slightly exposed
+  (source-dataset shares 0.61; topic search up to 0.79 on the paired intent
+  sets). Report the two groups separately.
+- Wrong labels in the source data decide some close comparisons, so even a
+  perfect model scores below 1.0 on core questions (about 0.85 with 5% of
+  labels wrong).
 - Brand questions (in v0.7.x) were removed in v0.8.0: searching for the printed
   brand answered all of them. The v0.7.x per-question difficulty grades were
   withdrawn as well.

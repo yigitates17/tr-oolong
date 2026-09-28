@@ -30,5 +30,11 @@
   "text_provenance": "human_written",
   "families_disabled": [
     "shift"
-  ]
+  ],
+  "core_doc_records": [
+    3000
+  ],
+  "core_docs_per_tier": 10,
+  "core_share": 0.07,
+  "core_pairs_per_doc": 2
 }

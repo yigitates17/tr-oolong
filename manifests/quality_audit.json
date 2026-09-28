@@ -1,9 +1,19 @@
 [
   {
     "set": "amazon_hpc_en_out",
-    "n_questions": 222,
+    "n_questions": 240,
     "pct_ok": 100,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "ok": 18,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.444,
+        "chance": 0.556,
+        "p_value": 0.88186,
+        "prior_shortcut": false
+      },
       "count": {
         "n": 69,
         "ok": 69,
@@ -194,17 +204,17 @@
   },
   {
     "set": "en_intent_paired_out",
-    "n_questions": 155,
+    "n_questions": 175,
     "pct_ok": 100,
     "families": {
       "close_comparison": {
-        "n": 35,
-        "ok": 35,
+        "n": 55,
+        "ok": 55,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.629,
+        "prior_acc": 0.582,
         "chance": 0.5,
-        "p_value": 0.08773,
+        "p_value": 0.1403,
         "prior_shortcut": false
       },
       "count": {
@@ -302,17 +312,17 @@
   },
   {
     "set": "interpress_tr_out",
-    "n_questions": 309,
+    "n_questions": 345,
     "pct_ok": 100,
     "families": {
       "close_comparison": {
-        "n": 9,
-        "ok": 9,
+        "n": 45,
+        "ok": 45,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.667,
+        "prior_acc": 0.533,
         "chance": 0.5,
-        "p_value": 0.25391,
+        "p_value": 0.383,
         "prior_shortcut": false
       },
       "count": {
@@ -386,17 +396,17 @@
   },
   {
     "set": "marc_en_out",
-    "n_questions": 194,
+    "n_questions": 212,
     "pct_ok": 100,
     "families": {
       "close_comparison": {
-        "n": 1,
-        "ok": 1,
+        "n": 19,
+        "ok": 19,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 1.0,
-        "chance": 1.0,
-        "p_value": 1.0,
+        "prior_acc": 0.474,
+        "chance": 0.526,
+        "p_value": 0.75478,
         "prior_shortcut": false
       },
       "count": {
@@ -479,9 +489,19 @@
   },
   {
     "set": "musteri_tr_out",
-    "n_questions": 199,
+    "n_questions": 217,
     "pct_ok": 100,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "ok": 18,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.444,
+        "chance": 0.556,
+        "p_value": 0.88186,
+        "prior_shortcut": false
+      },
       "count": {
         "n": 59,
         "ok": 59,
@@ -562,15 +582,15 @@
   },
   {
     "set": "sikayet_tr_out",
-    "n_questions": 333,
+    "n_questions": 381,
     "pct_ok": 100,
     "families": {
       "close_comparison": {
-        "n": 33,
-        "ok": 33,
+        "n": 81,
+        "ok": 81,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.515,
+        "prior_acc": 0.506,
         "chance": 0.5,
         "p_value": 0.5,
         "prior_shortcut": false
@@ -676,17 +696,17 @@
   },
   {
     "set": "sinema_tr_out",
-    "n_questions": 242,
+    "n_questions": 290,
     "pct_ok": 100,
     "families": {
       "close_comparison": {
-        "n": 2,
-        "ok": 2,
+        "n": 50,
+        "ok": 50,
         "thin": 0,
         "knife": 0,
         "prior_acc": 0.5,
         "chance": 0.5,
-        "p_value": 0.75,
+        "p_value": 0.55614,
         "prior_shortcut": false
       },
       "count": {
@@ -865,17 +885,17 @@
   },
   {
     "set": "tr_intent_paired_out",
-    "n_questions": 155,
+    "n_questions": 175,
     "pct_ok": 100,
     "families": {
       "close_comparison": {
-        "n": 35,
-        "ok": 35,
+        "n": 55,
+        "ok": 55,
         "thin": 0,
         "knife": 0,
-        "prior_acc": 0.629,
+        "prior_acc": 0.582,
         "chance": 0.5,
-        "p_value": 0.08773,
+        "p_value": 0.1403,
         "prior_shortcut": false
       },
       "count": {
@@ -973,9 +993,19 @@
   },
   {
     "set": "vitamins_tr_out",
-    "n_questions": 169,
+    "n_questions": 187,
     "pct_ok": 100,
     "families": {
+      "close_comparison": {
+        "n": 18,
+        "ok": 18,
+        "thin": 0,
+        "knife": 0,
+        "prior_acc": 0.556,
+        "chance": 0.556,
+        "p_value": 0.59659,
+        "prior_shortcut": false
+      },
       "count": {
         "n": 51,
         "ok": 51,

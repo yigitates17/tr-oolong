@@ -13,7 +13,8 @@ import polars as pl
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from build_tr_oolong import Config, close_comparisons, question_role  # noqa: E402
+from build_tr_oolong import (Config, close_comparisons, core_document_counts,  # noqa: E402
+                             question_role)
 
 
 def meta(counts):
@@ -54,6 +55,51 @@ def main():
     # the named order is random, the answer follows the counts
     firsts = {close_comparisons(m, cfg(), random.Random(s))[0]["label_a"] for s in range(20)}
     assert firsts == {"a", "b"}, firsts
+    # --- v0.9.0 core documents -------------------------------------------
+    pool = {"pos": 5000, "neg": 5000, "neu": 5000}
+    c1, pairs1 = core_document_counts(pool, 3000, cfg(core_pairs=[["pos", "neg"]], core_share=0.4),
+                                      random.Random(3))
+    assert sum(c1.values()) == 3000, c1
+    big, small = max(c1["pos"], c1["neg"]), min(c1["pos"], c1["neg"])
+    assert big == 1200 and 0.35 / small ** 0.5 <= (big - small) / big <= 0.60 / small ** 0.5, c1
+    # the designed pair is asked, and answered by the larger count
+    m3 = meta(c1)
+    q3 = close_comparisons(m3, cfg(), random.Random(0))
+    assert len(q3) == 1 and q3[0]["answer"] == max(c1, key=lambda l: c1[l] if l != "neu" else -1)
+    # same seed key -> same counts in both languages, with each language's labels
+    c_en, _ = core_document_counts({"positive": 5000, "negative": 5000, "neutral": 5000}, 3000,
+                                   cfg(core_pairs=[["positive", "negative"]], core_share=0.4),
+                                   random.Random(3))
+    assert (c_en["positive"], c_en["negative"]) == (c1["pos"], c1["neg"]), (c_en, c1)
+    # a pool too small for the design is refused, not silently shrunk
+    assert core_document_counts({"a": 100, "b": 100}, 3000, cfg(core_share=0.4),
+                                random.Random(1)) is None
+    # automatic pairs never use an excluded label
+    c4, p4 = core_document_counts({"a": 900, "b": 900, "x": 900, "d": 900}, 2000,
+                                  cfg(core_share=0.2, core_pairs_per_doc=2, close_exclude_labels=["x"]),
+                                  random.Random(5))
+    assert all("x" not in p for p in p4) and c4.get("x", 0) < 400, (c4, p4)
+    # with a counter, the larger label alternates in the rhythm big, big, small, small
+    # relative to the pool-larger label (automatic pairs) ...
+    bc, wins = [0], []
+    for s_ in range(8):
+        cc, pp = core_document_counts({"a": 900, "b": 800, "c": 900}, 1000,
+                                      cfg(core_share=0.2, core_pairs_per_doc=1), random.Random(s_), bc)
+        x, y = pp[0]
+        ref = x if {"a": 900, "b": 800, "c": 900}[x] >= {"a": 900, "b": 800, "c": 900}[y] else y
+        wins.append(cc[ref] > cc[x if ref == y else y])
+    assert wins == [True, True, False, False] * 2, wins
+    # ... and between the first and second listed label (explicit pairs)
+    bc, firsts = [0], []
+    for s_ in range(4):
+        cc, _ = core_document_counts(pool, 3000, cfg(core_pairs=[["pos", "neg"]], core_share=0.4),
+                                     random.Random(s_), bc)
+        firsts.append(cc["pos"] > cc["neg"])
+    assert firsts == [True, True, False, False], firsts
+    # with a balance counter the answer is first-named in alternating questions
+    bal = [0]
+    firsts = [close_comparisons(m, cfg(), random.Random(s), bal)[0] for s in range(10)]
+    assert [q["answer"] == q["label_a"] for q in firsts] == [True, False] * 5, firsts
     print("CLOSE-COMPARISON TEST PASSED")
 
 

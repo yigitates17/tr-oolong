@@ -37,5 +37,13 @@
     "most_common",
     "least_common",
     "second_most"
-  ]
+  ],
+  "core_doc_records": [
+    500,
+    1000,
+    2500
+  ],
+  "core_docs_per_tier": 6,
+  "core_share": 0.15,
+  "core_pairs_per_doc": 2
 }

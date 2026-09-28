@@ -1078,3 +1078,40 @@ accuracy scores 0.85 (experiment 8).
 from the intent and complaint sets; on the paired intent sets a targeted topic
 search reaches 0.73 to 0.81, and on `en_intent` the corpus-share oracle reaches
 0.68 on 28 questions. Stated as limitations.
+
+## D24. Core documents: exact label counts for close comparisons (v0.9.0)
+
+**The problem.** v0.8.0 produced 174 close comparisons from random label
+mixes. Random mixes rarely put two large labels close together, so the review
+pairs got one core question, and on the paired intent sets the compared
+categories held about 60 records each, few enough for a targeted topic search
+to find most of them (0.74 to 0.79).
+
+**What was changed.** `core_doc_records`, `core_docs_per_tier`, `core_share`,
+`core_pairs`, `core_pairs_per_doc`, `core_seed_key`, `core_min_diff`: extra
+documents built from exact label counts (`core_document_counts`) after every
+random-mix document. A shared `core_seed_key` (and the existing `pair_seed` on
+the intent pair) makes both halves of a Turkish/English pair draw identical
+counts and questions; listed `core_pairs` are asked in their listed order.
+Only the designed pairs are asked (`designed_close_questions`). The two counts
+differ by at least `core_min_diff` = 5 records. Which label is larger and
+whether the answer is named first are balanced by design, not by coin toss.
+
+**Why the balancing and the minimum gap.** An audit of a first draft (REPORT,
+experiment 10) found that a coin toss for the larger label had lined up against
+the source-dataset shares ("pick the rarer label" scored 0.70 on the intent core
+documents), and that 14 questions had gaps of 1 to 3 records, which the 3-9%
+source-label noise decides. It also found too few core questions on long
+documents, so complaints and films got core documents of about 1M tokens.
+
+**The evidence.** 244 new core questions (418 in total), 91 identical across
+languages. On the core-document questions: first-named 0.50, source-dataset
+shares 0.49, topic search 0.49, skimming half the document 0.64, a reader of
+everything at 95% accuracy 0.85 (REPORT, experiment 9). All earlier documents
+and questions unchanged.
+
+**What it cost.** 55.7M more tokens (106.4M in total), which raises evaluation
+cost. Core documents are sized in records, so within a review pair the English
+and Turkish documents have the same record counts but different token counts.
+The 174 v0.8.0 core questions keep a mild source-share exposure (0.61) and are
+reported as a separate group.

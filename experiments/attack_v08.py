@@ -6,7 +6,9 @@ correctly; guessing gets 0.50):
 
   first named        always answer the first label in the question
   corpus shares      answer whichever label is more common in the whole source
-                     corpus, without opening the document
+                     dataset (after the builder's cleaning), without opening the
+                     document. Both directions matter: far BELOW 0.50 means
+                     "pick the rarer label" is the shortcut
   skim 5/25/50%      random share of the records, true labels, 40 samples
   topic search 10%   the 10% of records the word-count classifier finds most
                      likely to be either label, true labels
@@ -32,11 +34,27 @@ sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "experiments"))
 from sampling_solver import load_set, noisy_labels                 # noqa: E402
 from honest_reader import SETS, train_predict                      # noqa: E402
+import dataclasses                                                  # noqa: E402
+from build_tr_oolong import Config, load_source, clean              # noqa: E402
+
+
+def source_counts(name):
+    c = json.load(open(ROOT / "configs" / f"{name}.json"))
+    fields = {f.name for f in dataclasses.fields(Config)}
+    cfg = Config(**{k: v for k, v in c.items() if k in fields})
+    cwd = Path.cwd()
+    import os
+    os.chdir(ROOT)
+    try:
+        return Counter(clean(load_source(cfg), cfg, {})["label"].to_list())
+    finally:
+        os.chdir(cwd)
 
 
 def main():
     res = defaultdict(list)
     per_set = defaultdict(lambda: defaultdict(list))
+    by_origin = defaultdict(lambda: defaultdict(list))    # random-mix vs core documents
     examples = []
     for s in SETS:
         d = ROOT / f"{s}_out"
@@ -52,7 +70,7 @@ def main():
         pred_of, labs, _ = train_predict(texts, [pool[t] for t in texts], qs[0]["language"])
         post = train_predict.last_post
         li = {l: i for i, l in enumerate(labs)}
-        corpus = Counter(pool.values())
+        corpus = source_counts(s)
         for q in cq:
             m = metas[q["haystack_id"]]
             tx, lab = m["text"].to_list(), m["label"].to_list()
@@ -84,9 +102,12 @@ def main():
                 out[f"full, {int(acc * 100)}% right"] = statistics.mean(v)
             pl_ = [pred_of[t] for t in tx]
             out["full, classifier"] = right(pl_.count(a), pl_.count(b))
+            origin = "core documents (v0.9)" if q.get("core_document") else "random-mix documents (v0.8)"
             for k2, v in out.items():
                 res[k2].append(v)
                 per_set[s][k2].append(v)
+                by_origin[origin][k2].append(v)
+                by_origin[f"{origin} / {s}"][k2].append(v)
             if len(examples) < 3 and not any(e[0] == s for e in examples):
                 examples.append((s, q["uid"], q["question"], gold, lab.count(a), lab.count(b), N,
                                  {k2: round(v, 2) for k2, v in out.items()}))
@@ -101,11 +122,19 @@ def main():
         print(f"   {s:18} n={len(d['skim 5%']):>3}  {statistics.mean(d['skim 50%']):.2f} / "
               f"{statistics.mean(d['topic search 10%']):.2f} / "
               f"{statistics.mean(d['full, 95% right']):.2f} / {statistics.mean(d['full, classifier']):.2f}")
+    print("\nby origin: n | first | corpus | skim 50% | topic 10% | full 95% | full 90% | classifier")
+    for o, d in sorted(by_origin.items()):
+        print(f"   {o:44} n={len(d['skim 5%']):>3} " + " ".join(
+            f"{statistics.mean(d[k]):.2f}" for k in ["first named", "corpus shares", "skim 50%",
+                                                     "topic search 10%", "full, 95% right",
+                                                     "full, 90% right", "full, classifier"]))
     print("\nexamples:")
     for e in examples:
         print("  ", e)
     json.dump({"n": n, "all": {k: statistics.mean(v) for k, v in res.items()},
-               "by_set": {s: {k: statistics.mean(v) for k, v in d.items()} for s, d in per_set.items()}},
+               "by_set": {s: {k: statistics.mean(v) for k, v in d.items()} for s, d in per_set.items()},
+               "by_origin": {o: {"n": len(d["skim 5%"]), **{k: statistics.mean(v) for k, v in d.items()}}
+                             for o, d in by_origin.items()}},
               open(ROOT / "experiments" / "attack_v08.json", "w"), indent=2)
 
 

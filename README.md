@@ -20,7 +20,7 @@ source dataset's own labels, so no one writes an answer key by hand.
 The construction follows OOLONG (Bertsch et al., 2025, arXiv:2511.02817), whose
 build code was not released; this is an independent implementation.
 
-- **Data:** <https://huggingface.co/datasets/yigitates17/tr-oolong> (v0.8.0)
+- **Data:** <https://huggingface.co/datasets/yigitates17/tr-oolong> (v0.9.0)
 - **Datacard:** [`DATACARD.md`](DATACARD.md), sources, licences, known issues
 - **Why each choice was made:** [`DESIGN_DECISIONS.md`](DESIGN_DECISIONS.md)
 
@@ -29,24 +29,24 @@ Boğaziçi University, as MSc thesis work.
 
 ## At a glance
 
-**11 subsets · 195 documents · 2,277 questions · 50.7M tokens · 7 question types**
-(1,558 Turkish, 719 English). Every question has a role: **174 core**, 265
+**11 subsets · 353 documents · 2,521 questions · 106.4M tokens · 7 question types**
+(1,746 Turkish, 775 English). Every question has a role: **418 core**, 265
 retrieval, 1,838 control (see below). Lengths are counted with the
 `Qwen/Qwen3-8B` tokenizer.
 
 | subset | lang | records are | labels | docs | questions | core | longest doc | text shipped |
 |---|---|---|---:|---:|---:|---:|---:|:---:|
-| `sikayet_tr` | tr | consumer complaints | 29 | 25 | 333 | 33 | 1.0M | no |
-| `interpress_tr` | tr | news articles | 16 | 25 | 309 | 9 | 1.0M | no |
-| `sinema_tr` | tr | film reviews (1-10 stars) | 10 | 20 | 242 | 2 | 497K | yes |
-| `vitamins_tr` | tr | supplement reviews (sentiment) | 3 | 20 | 169 | 0 | 497K | yes |
-| `musteri_tr` | tr | shopping reviews (sentiment) | 3 | 20 | 199 | 0 | 496K | yes |
+| `sikayet_tr` | tr | consumer complaints | 29 | 49 | 381 | 81 | 1.0M | no |
+| `interpress_tr` | tr | news articles | 16 | 43 | 345 | 45 | 1.0M | no |
+| `sinema_tr` | tr | film reviews (1-10 stars) | 10 | 44 | 290 | 50 | 1.0M | yes |
+| `vitamins_tr` | tr | supplement reviews (sentiment) | 3 | 38 | 187 | 18 | 497K | yes |
+| `musteri_tr` | tr | shopping reviews (sentiment) | 3 | 38 | 217 | 18 | 496K | yes |
 | `tr_intent` | tr | voice commands (intent) | 48 | 10 | 151 | 31 | 100K | yes |
-| `tr_intent_paired` | tr | voice commands (intent) | 48 | 10 | 155 | 35 | 99K | yes |
-| `amazon_hpc_en` | en | health product reviews (sentiment) | 3 | 25 | 222 | 0 | 988K | no |
-| `marc_en` | en | shopping reviews (sentiment) | 3 | 20 | 194 | 1 | 492K | yes |
+| `tr_intent_paired` | tr | voice commands (intent) | 48 | 20 | 175 | 55 | 99K | yes |
+| `amazon_hpc_en` | en | health product reviews (sentiment) | 3 | 43 | 240 | 18 | 988K | no |
+| `marc_en` | en | shopping reviews (sentiment) | 3 | 38 | 212 | 19 | 536K | yes |
 | `en_intent` | en | voice commands (intent) | 48 | 10 | 148 | 28 | 100K | yes |
-| `en_intent_paired` | en | voice commands (intent) | 48 | 10 | 155 | 35 | 75K | yes |
+| `en_intent_paired` | en | voice commands (intent) | 48 | 20 | 175 | 55 | 75K | yes |
 
 Three subsets ship questions and answers only, because their sources grant no
 right to redistribute the text. The build is deterministic, so the text can be
@@ -56,10 +56,10 @@ rebuilt locally byte for byte (see [Building](#building-and-adding-a-dataset)).
 
 | pair | what is matched | use it for |
 |---|---|---|
-| `tr_intent_paired` / `en_intent_paired` | **the same 3,000 utterances** (MASSIVE is a human translation), same order, same labels. All 155 questions have the same answer in both languages. | a paired test: any score gap is not caused by the questions |
+| `tr_intent_paired` / `en_intent_paired` | **the same utterances** (MASSIVE is a human translation), same order, same labels. All 175 questions, 55 of them core, are identical and have the same answer in both languages. | a paired test: any score gap is not caused by the questions |
 | `tr_intent` / `en_intent` | same corpus, same **token budget** | comparing languages at equal cost |
-| `musteri_tr` / `marc_en` | different corpora, same task (star-rating sentiment), similar record length | comparing languages on natural text |
-| `vitamins_tr` / `amazon_hpc_en` | different corpora, same task, same product area (supplements, health) | comparing languages on natural text |
+| `musteri_tr` / `marc_en` | different corpora, same task (star-rating sentiment), similar record length. Their 18 core documents have identical sizes and identical positive/negative counts, so the 18 core questions are the same question with the same answer | comparing languages on natural text |
+| `vitamins_tr` / `amazon_hpc_en` | different corpora, same task, same product area (supplements, health). Core documents matched the same way (18 identical core questions) | comparing languages on natural text |
 
 `sikayet_tr`, `interpress_tr` and `sinema_tr` have no English partner. They were
 added because 3-label sets cannot produce questions with small answers.
@@ -68,13 +68,13 @@ added because 3-label sets cannot produce questions with small answers.
 and English totals** (which differ because three subsets are Turkish only).
 Compare the two halves of a pair on the same length tiers and the same
 question types. `amazon_hpc_en` has a 1M tier that `vitamins_tr` lacks, so that
-pair is compared up to 500K. Core questions exist in both languages only in
-the two intent pairs (35 + 35 identical ones in the paired sets; 31 and 28 in
-the token-matched sets); the review pairs carry control questions only.
+pair is compared up to 500K. **91 core questions are identical in both
+languages**: 55 in the paired intent sets and 18 in each review pair. The
+token-matched intent pair adds 31 and 28 that are not identical.
 
 | role | Turkish | English |
 |---|---:|---:|
-| core | 110 | 64 |
+| core | 298 | 120 |
 | retrieval | 213 | 52 |
 | control | 1,235 | 603 |
 
@@ -82,7 +82,7 @@ the token-matched sets); the review pairs carry control questions only.
 
 | type | example | answer | role | count |
 |---|---|---|---|---:|
-| `close_comparison` | which are there more of, A or B? (two frequent labels, counts very close) | a label | core | 174 |
+| `close_comparison` | which are there more of, A or B? (two frequent labels, counts very close) | a label | core | 418 |
 | `count` with `"rare": true` | how many records have label X? (true answer 5 to 30) | a number | retrieval | 265 |
 | `count` | how many records have label X? | a number | control | 656 |
 | `proportion` | what percent (or per mille) have label X? | a number | control | 492 |
@@ -125,8 +125,8 @@ label is only the name of the bucket. The translated variants are kept in
 | labels per dataset | 2 to 10 | 3, 10, 16, 29, 48 |
 | narrowing to a subset | to users or months printed on every record | none (brand questions removed, see below) |
 | questions over dates | yes, and reported as the hardest group | none yet (`interpress_tr` has dates) |
-| questions that resist sampling and search | none found | 174 close comparisons |
-| same question, same answer in two languages | no | yes (`*_intent_paired`) |
+| questions that resist sampling and search | none found | 418 close comparisons |
+| same question, same answer in two languages | no | yes: every question of the paired intent sets, and the review pairs' core questions (91 core in all) |
 | numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
 | published shortcut checks | none | yes, reports in `manifests/` and `experiments/` |
 
@@ -197,6 +197,9 @@ a question, and the rejections are recorded in
    - for each document, draw a random label mix, sample records to the
      target length (counted with the Qwen3-8B tokenizer), join them with
      a symbol separator
+   - core documents: exact label counts, so that one or two pairs of large
+     labels have close counts; shared random draws make the two halves of
+     a Turkish/English pair match
    - generate questions; compute every answer twice, by two independent
      pieces of code, and require them to agree
         |
@@ -228,13 +231,19 @@ No AI model has been run on the benchmark yet.
 
 | role | question types | strongest shortcut found | a reader of everything |
 |---|---|---|---|
-| **core** (174) | close comparisons | 0.64 (reading the 10% most relevant records); sampling half the document 0.63 | 0.85 if it labels 95% of records right, 0.77 at 90% |
+| **core** (418) | close comparisons | sampling half the document 0.63; reading the 10% most relevant records 0.56 | 0.85 if it labels 95% of records right, 0.76 at 90% |
 | **retrieval** (265) | rare-label counts | searching by topic and reading the top 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
 | **control** (1,838) | counts, proportions, rankings, wide comparisons | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
 
 - **Core questions** are the evidence that a model read and judged the whole
-  document. Guessing gets 0.50. On the two paired intent sets, where the two
-  categories are small, topic search does better (0.73 and 0.81).
+  document. Guessing gets 0.50. 244 of them come from *core documents*
+  (`"core_document": true`), built so that two large categories have close
+  counts, with which label is larger and which is named first balanced by
+  design: there, always picking the first-named label gets 0.50, the label
+  more common in the source dataset 0.49, and reading the 10% most relevant
+  records 0.49. The other 174 come from ordinary documents, where picking the
+  label more common in the source dataset gets 0.61 and topic search 0.65.
+  Report the two groups separately; the core-document group is the cleaner one.
 - **Retrieval questions** show whether a model can find a few records by their
   meaning.
 - **Control questions** show whether a model can classify the records at all.
@@ -313,11 +322,17 @@ python scripts/publish_hf.py --out hf_release            # dry run; add --repo .
 
 - No model has been run yet. Every statement about shortcuts comes from
   simulated readers.
-- Only 174 questions are core. Answered right or wrong, they give a margin of
-  error of about ±0.07 on a model's core score: enough to tell reading from
-  skimming, not enough for fine comparisons between similar models. Almost all
-  come from the intent and complaint sets; the 3-label review sets have one.
-- Control questions (81%) can be answered by sampling. Report per role.
+- 418 questions are core (244 from core documents). Answered right or wrong,
+  they give a margin of error of about ±0.05 on a model's core score, ±0.06 on
+  the core-document group, and about ±0.10 on the 91 core questions that are
+  identical in both languages.
+- Half of the core questions are on documents of 100K tokens or less; 52 are on
+  documents above 600K.
+- Wrong labels in the source data decide some close comparisons, so even a
+  perfect model scores below 1.0 on core questions: about 0.85 if 5% of labels
+  are wrong. The intent labels were measured at 2.7-9.3% wrong; a check of the
+  Turkish core categories is prepared (`scripts/make_core_label_slice.py`).
+- Control questions (73%) can be answered by sampling. Report per role.
 - Questions on one document are not independent. On 3-label sets, 12 questions
   rest on about two underlying numbers, and 337 document-label pairs are asked
   both as a count and as a proportion. For statistical claims, the unit is the

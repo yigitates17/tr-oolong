@@ -326,7 +326,7 @@ OOLONG, not only a Turkish version of it.
 | most / least / second most common | 398 | sampling | measures classification; control |
 | rare-category counts | 265 | topic search of 5% (0.53 under `partial`) | mostly finding a few records by meaning. Keep only if described as that |
 | brand questions | 137 | string search of about 2% (1.00) | retrieval, not aggregation. Remove, or describe as retrieval |
-| **close comparisons (added in v0.8.0)** | **174 built (261 simulated first)** | **sampling 50% or search 10%: 0.61** | **the only type that needs the whole document** |
+| **close comparisons (v0.8.0 and v0.9.0)** | **418 built (174 + 244; 261 simulated first)** | **sampling 50% or search 10%: 0.61** | **the only type that needs the whole document** |
 
 ## Recommendations (decisions for the thesis owner and advisor)
 
@@ -485,3 +485,108 @@ the time.
 - **Limitation 3.** Close comparisons reward models that label records very
   accurately; a weak classifier fails them even when it reads everything. This is
   intended: the question measures careful reading of everything.
+
+---
+
+## Experiment 9: core documents (v0.9.0)
+
+**Question.** Version 0.8.0 had only 174 core questions. Almost none came from
+the Turkish/English review pairs, and on the paired intent sets a targeted topic
+search did well (0.74 to 0.79), because the compared categories were small.
+Can we get more core questions, in both languages, with large categories?
+
+**What was done.** New documents were added to nine datasets, built from exact
+label counts instead of a random mix. In each, one or two pairs of labels get a
+fixed share of the document with counts inside the close-comparison window, and
+the other labels share the rest:
+
+| datasets | documents added | designed pair(s) |
+|---|---|---|
+| paired intent, Turkish and English | 10 of 3,000 records (identical in both languages) | 2 pairs of intents, about 210 records each |
+| `musteri_tr` / `marc_en`, `vitamins_tr` / `amazon_hpc_en` | 18 each: 6 at 2,500, 6,000 and 12,000 records | positive vs negative, about 40% each |
+| `sikayet_tr`, `sinema_tr` | 24 each, up to about 1M tokens | 2 pairs, 15% each (film ratings at least 3 stars apart) |
+| `interpress_tr` | 18, up to about 1M tokens | 2 pairs, 15% each |
+
+The two configs of each Turkish/English pair share their random draws. So the
+paired intent documents contain the same utterances, and each review pair's
+documents have identical sizes and identical positive/negative counts. Every
+core question on them is the same question, with the same answer, in both
+languages. Only the designed pairs are asked, the two counts differ by at least
+5 records, and two things are balanced by design (experiment 10 explains why):
+which label is larger, and whether the answer is named first.
+
+**Result of the build.** 158 documents and 244 core questions added. All 195
+earlier documents and all 2,277 earlier questions are byte-identical, checked
+one by one. Totals: 353 documents, 2,521 questions, 418 core, 106.4M tokens.
+**91 core questions are identical across the two languages** (55 intent, 18
+per review pair).
+
+**The attacks, on the 244 new core questions** (guessing 0.50):
+
+| reader | correct |
+|---|---:|
+| always the first-named label | 0.50 |
+| more common in the whole source dataset | 0.49 |
+| skimmer reading 50% | 0.64 |
+| topic search, top 10% of records | 0.49 |
+| reads everything, 95% right | **0.85** |
+| reads everything, 90% right | 0.76 |
+
+**Example.** A 2,500-review English health-products document has 1,000
+negative and 986 positive reviews: *"Which are there more of in these records:
+records labeled 'negative' or records labeled 'positive'?"*, answer *negative*.
+The Turkish supplement-review document built alongside it has the same counts
+of *olumsuz* and *olumlu* reviews and asks the same question in Turkish, with
+the answer *olumsuz*.
+
+**What it means.** The core set is large enough for a margin of error of about
+±0.05, the Turkish/English comparison rests on 91 identical core questions from
+three different corpora, and on the new questions every shortcut tried stays at
+or near a coin flip except reading half of the document (0.64).
+
+## Experiment 10: a full audit, question by question of a reviewer
+
+**Question.** Each earlier round found a new problem because only one part was
+examined at a time. What does a systematic pass over every angle of attack
+find?
+
+**What was done.** Every way a reviewer could attack the core questions was
+listed, and each was checked on the built data. The first pass (on a draft of
+v0.9.0) found three problems, which were fixed and the data rebuilt; the table
+shows the final state.
+
+| angle of attack | how it was checked | result |
+|---|---|---|
+| answers wrong | every answer recomputed by independent code | all match |
+| label written in the text | search of every shipped record | none |
+| sampling | random readers of 5%, 25%, 50% | at most 0.64 |
+| search | read the 10% of records most related to the two labels | 0.56 overall, 0.49 on core documents |
+| source-dataset shares | pick the label more common in the source | 0.54 overall, 0.49 on core documents (0.61 on the older 174) |
+| answer position | always pick the first-named label | 0.52 overall, 0.50 on core documents |
+| record length and punctuation | standard style check | see release checks |
+| repeated records in a document | exact duplicate search | none |
+| documents sharing records | overlap between documents of one size | at most 22% (use clustered errors) |
+| gap decided by a few wrong labels | smallest gap between the two counts | core documents: at least 5 records; 12 older questions have 3 or fewer |
+| hard questions only on short documents | document length of core questions | 210 up to 100K tokens, 79 to 300K, 77 to 600K, 52 above |
+| Turkish and English documents differ in length | tokens per matched pair | intent: Turkish 1.31-1.34x longer; reviews: Turkish 0.62-0.86x (shorter) |
+| wrong source labels | native-speaker check | prepared (200 Turkish records), not yet done |
+| memorised labels | cannot test without models | a model still has to go through every record and count |
+
+**The three problems the first pass found, and the fixes.**
+
+1. *Gaps of 1 to 3 records* in 14 new questions. Source labels are 3% to 9%
+   wrong, so such a gap is decided by label noise. Fix: core documents now
+   require a gap of at least 5 records.
+2. *Core questions mostly on short documents* (28 above 600K tokens). Fix: core
+   documents of about 1M tokens for complaints and films (now 52 above 600K).
+3. *"Pick the label rarer in the source dataset" scored 0.70 on the intent
+   core documents.* Which label came out larger had been a coin toss, and with
+   few questions the tosses lined up against the source shares. Fix: only the
+   designed pairs are asked, and which label is larger alternates by design
+   (now 0.49).
+
+**What it means.** On the core-document questions, no angle found gives more
+than reading half the document (0.64). The older 174 core questions from v0.8.0
+keep a mild exposure to source-dataset shares (0.61) and are reported as a
+separate group. The remaining open item is the label check, which sets how far
+below 1.0 even a perfect model scores.
