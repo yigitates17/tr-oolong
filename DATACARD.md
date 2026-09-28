@@ -1,6 +1,6 @@
 # TR-OOLONG datacard
 
-Covers **v0.8.0** (built, not yet published; the Hub serves v0.7.1): 11
+Covers **v0.8.0**: 11
 subsets, 195 documents, 2,277 questions, 7 question types, Turkish and English
 (1,558 / 719 questions). Every answer is computed
 from the source dataset's labels, twice, by two independent pieces of code

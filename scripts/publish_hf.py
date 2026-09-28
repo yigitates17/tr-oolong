@@ -408,7 +408,13 @@ def main() -> None:
         sys.exit("pip install huggingface_hub")
     api = HfApi()           # token from `huggingface-cli login` or $HF_TOKEN
     api.create_repo(args.repo, repo_type="dataset", exist_ok=True)
-    api.upload_folder(folder_path=str(out), repo_id=args.repo, repo_type="dataset")
+    # Remote files inside a subset folder that this release does not contain
+    # are deleted in the same commit. Without this, files dropped from a
+    # release (v0.8.0 dropped every difficulty.jsonl) stay on the Hub and keep
+    # being served next to data they no longer describe.
+    api.upload_folder(folder_path=str(out), repo_id=args.repo, repo_type="dataset",
+                      delete_patterns=["*/*"],
+                      commit_message=f"TR-OOLONG v{version}")
     print(f"pushed -> https://huggingface.co/datasets/{args.repo}")
 
 

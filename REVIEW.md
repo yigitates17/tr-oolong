@@ -1,5 +1,11 @@
 # Critical review — reading this repo as a jury member would
 
+> **Status, 28 September 2026.** This is a working note written for versions up
+> to 0.7.1. Version 0.8.0 replaced the difficulty grades with question roles,
+> added close comparisons and removed the brand questions. Where this file
+> disagrees with `README.md`, `DATACARD.md` or `experiments/REPORT.md`, those
+> are current.
+
 Written 2026-08-25 against `main`. The tone is adversarial on purpose. Findings
 are ordered by how much damage they would do in a viva or a review, and each says
 plainly whether it is fixable, expensive, or a dead end.

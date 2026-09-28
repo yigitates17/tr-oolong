@@ -1,5 +1,11 @@
 # OOLONG vs TR-OOLONG
 
+> **Status, 28 September 2026.** This is a working note written for versions up
+> to 0.7.1. Version 0.8.0 replaced the difficulty grades with question roles,
+> added close comparisons and removed the brand questions. Where this file
+> disagrees with `README.md`, `DATACARD.md` or `experiments/REPORT.md`, those
+> are current.
+
 **A reader with no access to the code should finish this page understanding both
 benchmarks.** Every number and every example below is taken from the actual
 released data, not from a paper summary. Verified 2026-08-25.

@@ -1040,3 +1040,41 @@ silently matches nothing is exactly the failure mode being fixed here.
 a defect that only exists between units. Four of the five acceptance gates run
 per-set; this was the first cross-set invariant in the repo, and it is worth
 asking, for each remaining gate, whether its per-set scoping hides something.
+
+## D23. Close comparisons become the core; brand questions and difficulty grades go (v0.8.0)
+
+**The problem.** A review of v0.7.1 (`experiments/REPORT.md`, experiments 1 to
+7) found that most questions could be answered without reading the whole
+document, in two ways. *Sampling*: questions with large answers are estimated
+well from a 5% sample. *Search*: questions with small answers depend on a few
+records that can be found directly; the brand questions were answered
+perfectly by searching for the printed `[[Brand]]` and reading about 2% of the
+document. The per-question difficulty grades did not catch this: every "very
+hard" counting question had a small answer, the four grading programs failed
+only because they answer 0 on an empty sample, and a program answering "about
+12" instead took 145 of 226 out of the band. OOLONG has both weaknesses
+(user-narrowed questions: a search reads 0.8% of the document and is exactly
+right 99% of the time).
+
+**What was changed.**
+
+1. `close_comparison`: "which are there more of, A or B?" for two labels that
+   each hold at least 30 records and 2% of the document, with a relative gap in
+   [0.35, 0.60] / sqrt(smaller count). Generated in a separate pass with its own
+   seed so no existing question moved. Excludes "neutral" sentiment and film
+   ratings under 3 stars apart. At most 4 per document, no label reused.
+2. Brand families withdrawn (`families_withdrawn`), keeping every other
+   question's id.
+3. `role` on every question: core (174), retrieval (265), control (1,838).
+4. `scoring.primary`: exact for word answers, partial for rare counts,
+   relative for other numbers.
+5. Difficulty grades no longer released.
+
+**The evidence it works.** On the 174 built core questions the best shortcut
+found scores 0.64 (guessing 0.50); a reader of everything at 95% labelling
+accuracy scores 0.85 (experiment 8).
+
+**What it cost.** 137 questions. Core questions are few (174) and come mostly
+from the intent and complaint sets; on the paired intent sets a targeted topic
+search reaches 0.73 to 0.81, and on `en_intent` the corpus-share oracle reaches
+0.68 on 28 questions. Stated as limitations.

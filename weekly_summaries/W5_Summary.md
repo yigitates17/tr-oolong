@@ -20,12 +20,12 @@ works by writing code over the document, and code can sample and search. The
 same weakness was found in OOLONG, the benchmark this work follows. A new
 question type was designed that neither sampling nor search can answer, the
 questions that searching answers outright were removed, and every question now
-states what it measures. The benchmark was rebuilt as version 0.8 and checked;
-it is not yet published.
+states what it measures. The benchmark was rebuilt as version 0.8, checked and
+published on 28 September.
 
 ## 2. Where the benchmark stands
 
-| | at the week 3 meeting | published now (v0.7.1) | built, not yet published (v0.8.0) |
+| | at the week 3 meeting | v0.7.1 (16 and 20 Sep) | v0.8.0 (published 28 Sep) |
 |---|---:|---:|---:|
 | datasets | 8 | 11 | 11 |
 | documents | 110 | 195 | 195 (unchanged) |
@@ -112,7 +112,7 @@ are there more of: A or B?", where both categories are frequent and their counts
 are very close. Sampling cannot resolve a small difference, and there are too
 many relevant records to find by search.
 
-## 4. What was changed (version 0.8.0, built and checked, not yet published)
+## 4. What was changed (version 0.8.0, published 28 September)
 
 1. **Close comparisons added**: 174 questions, the new core of the benchmark.
    The allowed gap between the two counts is set from their size (for example 2%
@@ -199,16 +199,15 @@ answered by the core questions, and turned into a finding about OOLONG.
 
 ## 8. Next steps
 
-1. Publish version 0.8.0 on Hugging Face (after approval).
-2. First model runs, in this order: each model's accuracy on single records;
+1. First model runs, in this order: each model's accuracy on single records;
    whole documents up to about 130K tokens in one prompt; then code-using systems
    (RLM, RLM-Qwen3-8B, Claude Code), recording the code they write, in Turkish
    and English.
 
 ## 9. Decisions required
 
-1. **Publish version 0.8.0 now**, or first add more core questions (section 5,
-   item 2)?
+1. **Add more core questions** before the model runs (section 5, item 2), or
+   run the models on the current 174 first?
 2. **Thesis title.** Current: *Recursive Language Models for Turkish Long-Context
    Aggregation: A Matched-Twin Benchmark and a Cross-Lingual Study.* Given
    section 6, a title that does not rest on "recursive" is safer, for example

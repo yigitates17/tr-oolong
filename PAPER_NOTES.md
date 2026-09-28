@@ -1,5 +1,11 @@
 # Claims to carry into the paper
 
+> **Status, 28 September 2026.** This is a working note written for versions up
+> to 0.7.1. Version 0.8.0 replaced the difficulty grades with question roles,
+> added close comparisons and removed the brand questions. Where this file
+> disagrees with `README.md`, `DATACARD.md` or `experiments/REPORT.md`, those
+> are current.
+
 Findings that are measured, defensible, and easy to lose track of between
 sessions. Each says what the number is, where it came from, and what it is good
 for in a write-up.

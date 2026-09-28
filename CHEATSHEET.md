@@ -1,5 +1,11 @@
 # TR-OOLONG — cheat sheet
 
+> **Status, 28 September 2026.** This is a working note written for versions up
+> to 0.7.1. Version 0.8.0 replaced the difficulty grades with question roles,
+> added close comparisons and removed the brand questions. Where this file
+> disagrees with `README.md`, `DATACARD.md` or `experiments/REPORT.md`, those
+> are current.
+
 For when you come back after a month and can't remember what any of it is for.
 Read top to bottom the first time; after that use it as a lookup.
 

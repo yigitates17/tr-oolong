@@ -1,5 +1,11 @@
 # TR-OOLONG — Roadmap
 
+> **Status, 28 September 2026.** This is a working note written for versions up
+> to 0.7.1. Version 0.8.0 replaced the difficulty grades with question roles,
+> added close comparisons and removed the brand questions. Where this file
+> disagrees with `README.md`, `DATACARD.md` or `experiments/REPORT.md`, those
+> are current.
+
 > **Note on set names in completed items.** Entries below Phase 6 may name
 > `tr_oolong` (Turkish brand reviews) and `en_twin` (airline tweets). That pair
 > was **withdrawn in v0.5.0**. The entries are kept as a work log — the

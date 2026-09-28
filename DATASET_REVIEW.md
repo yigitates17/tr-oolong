@@ -1,5 +1,11 @@
 # Turkish source review — the short version
 
+> **Status, 28 September 2026.** This is a working note written for versions up
+> to 0.7.1. Version 0.8.0 replaced the difficulty grades with question roles,
+> added close comparisons and removed the brand questions. Where this file
+> disagrees with `README.md`, `DATACARD.md` or `experiments/REPORT.md`, those
+> are current.
+
 **One document for every source question.** Absorbs the former
 `PAIRING_SEARCH.md` and `MUSTERI_TRIAL.md`.
 

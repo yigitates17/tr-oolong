@@ -20,7 +20,7 @@ source dataset's own labels, so no one writes an answer key by hand.
 The construction follows OOLONG (Bertsch et al., 2025, arXiv:2511.02817), whose
 build code was not released; this is an independent implementation.
 
-- **Data:** <https://huggingface.co/datasets/yigitates17/tr-oolong> (v0.7.1; v0.8.0 below is built and not yet published)
+- **Data:** <https://huggingface.co/datasets/yigitates17/tr-oolong> (v0.8.0)
 - **Datacard:** [`DATACARD.md`](DATACARD.md), sources, licences, known issues
 - **Why each choice was made:** [`DESIGN_DECISIONS.md`](DESIGN_DECISIONS.md)
 
