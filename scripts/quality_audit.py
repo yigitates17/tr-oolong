@@ -86,6 +86,12 @@ def question_support(q: dict, meta: pl.DataFrame, k: int) -> tuple[int, float | 
         i = {"most_common": 0, "second_most": 1, "least_common": len(r) - 1}[kind]
         nb = r[i + 1][1] if i + 1 < len(r) else r[i - 1][1]
         return r[i][1], abs(r[i][1] - nb) / max(1, r[i][1])
+    if kind == "close_comparison":
+        # small margins are the POINT of this family (it is built so that
+        # sampling cannot resolve them), so the knife-edge check does not apply
+        a = meta.filter(pl.col("label") == q["label_a"]).height
+        b = meta.filter(pl.col("label") == q["label_b"]).height
+        return a + b, None
     if kind == "label_vs_label":
         a = meta.filter(pl.col("label") == q["label_a"]).height
         b = meta.filter(pl.col("label") == q["label_b"]).height
@@ -115,6 +121,10 @@ def prior_prediction(q: dict, st: dict) -> str:
         return {"most_common": r[0], "second_most": r[1], "least_common": r[-1]}[kind][0]
     if kind == "shift":
         return {"tr": "arttı", "en": "rose"}[q["language"]]
+    if kind == "close_comparison":
+        a = st["share"].get(q["label_a"], 0.0)
+        b = st["share"].get(q["label_b"], 0.0)
+        return q["label_a"] if a >= b else q["label_b"]
     if kind == "label_vs_label":
         a = st["share"].get(q["label_a"], 0.0)
         b = st["share"].get(q["label_b"], 0.0)
@@ -176,7 +186,7 @@ def chance_rate(kind: str, K: int, q: dict) -> float:
     n = len(q.get("candidates") or [])
     if kind in ("most_common", "least_common", "second_most"):
         return 1.0 / (n or K)
-    if kind in ("shift", "pairwise"):
+    if kind in ("shift", "pairwise", "close_comparison"):
         return 0.5
     if kind == "label_vs_label":
         return 1.0 / 3.0          # more / less / same, and the builder balances them

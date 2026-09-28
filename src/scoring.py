@@ -21,6 +21,13 @@ Three numbers per question:
             reported; `partial` is the comparability metric, `relative` is the
             informative one.
 
+primary   (v0.8.0) the one number to report per question, chosen by what the
+            question measures (its `role`): `partial` for rare-label counts,
+            where being close is easy but being right requires finding the
+            records; `relative` for the other numeric questions, which are the
+            classification control; `exact` for every word answer. See
+            experiments/REPORT.md for why each is the right one.
+
 Categorical matching also accepts an ASCII-folded form, so a model that answers
 'nötr' where the gold label is the corpus's 'notr' (or 'artti' for 'arttı') is
 not penalised for an orthographic artifact of the source data.
@@ -65,6 +72,15 @@ def _cat_eq(gold: str, pred: str, lang: str) -> float:
 
 
 def score(question: dict, prediction: str) -> dict:
+    s = _score(question, prediction)
+    if question["kind"] in NUMERIC_KINDS:
+        s["primary"] = s["partial"] if question.get("rare") else s["relative"]
+    else:
+        s["primary"] = s["exact"]
+    return s
+
+
+def _score(question: dict, prediction: str) -> dict:
     lang = question["language"]
     kind = question["kind"]
     gold = question["answer"]

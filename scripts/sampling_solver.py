@@ -144,6 +144,13 @@ def answer_from_sample(q: dict, rows: list[tuple], frac: float) -> str | None:
             return "daha az" if lang == "tr" else "less common"
         return "eşit" if lang == "tr" else "the same"
 
+    if kind == "close_comparison":
+        a, b = q["label_a"], q["label_b"]
+        ca, cb = labels.count(a), labels.count(b)
+        if ca == cb:
+            return a            # a sample that cannot tell them apart still has to answer
+        return a if ca > cb else b
+
     if kind == "entity_count":
         n = sum(1 for l, e, _ in rows if l == q["label"] and e == q["entity"])
         return str(round(n * scale))

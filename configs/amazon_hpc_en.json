@@ -42,5 +42,13 @@
   "render_entity": true,
   "licence": "unknown",
   "label_provenance": "author_stars",
-  "text_provenance": "human_written"
+  "text_provenance": "human_written",
+  "families_withdrawn": [
+    "entity_count",
+    "entity_argmax",
+    "pairwise"
+  ],
+  "close_exclude_labels": [
+    "neutral"
+  ]
 }

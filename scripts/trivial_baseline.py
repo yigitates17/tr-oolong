@@ -117,6 +117,9 @@ def answer(q, hs: Haystack, labels, entities, language):
     if kind == "pairwise":
         a, b = hs.count(q["label"], q["entity_a"]), hs.count(q["label"], q["entity_b"])
         return q["entity_a"] if a >= b else q["entity_b"]
+    if kind == "close_comparison":
+        a, b = hs.count(q["label_a"]), hs.count(q["label_b"])
+        return q["label_a"] if a >= b else q["label_b"]
     if kind == "label_vs_label":
         a, b = hs.count(q["label_a"]), hs.count(q["label_b"])
         rel = abs(a - b) / max(a, b, 1)
@@ -133,7 +136,7 @@ def answer(q, hs: Haystack, labels, entities, language):
     raise ValueError(kind)
 
 
-CHANCE = {"shift": 0.5, "pairwise": 0.5, "label_vs_label": 1 / 3}
+CHANCE = {"shift": 0.5, "pairwise": 0.5, "label_vs_label": 1 / 3, "close_comparison": 0.5}
 
 
 def run_set(d: Path) -> dict:

@@ -1,7 +1,8 @@
 # TR-OOLONG datacard
 
-Covers **v0.7.1**: 11 subsets, 195 documents, 2,240 questions, 9 question
-types, Turkish and English (1,515 / 725 questions). Every answer is computed
+Covers **v0.8.0** (built, not yet published; the Hub serves v0.7.1): 11
+subsets, 195 documents, 2,277 questions, 7 question types, Turkish and English
+(1,558 / 719 questions). Every answer is computed
 from the source dataset's labels, twice, by two independent pieces of code
 that must agree. No answer was written by hand.
 
@@ -13,6 +14,7 @@ For what the benchmark is and how to use it, see the [README](README.md).
 |---|---|---|
 | 0.7.0 | 2026-09-16 | 11 subsets, rare-label counts, difficulty grades; `shift` removed |
 | 0.7.1 | 2026-09-20 | adds `uid`, `dataset`, `haystack_uid`. No question, answer, document or grade changed |
+| 0.8.0 | 2026-09-28 | adds 174 close comparisons (`core`); removes the 137 brand questions; adds `role` to every question; stops releasing difficulty grades. Documents and all other questions unchanged |
 
 ## Fields
 
@@ -27,27 +29,17 @@ For what the benchmark is and how to use it, see the [README](README.md).
 | `language` | `tr` or `en` |
 | `target_tokens` / `target_records` | the document's length tier (by tokens, or by records for the paired sets) |
 | `kind` | question type |
-| `label`, `entity`, `candidates`, `label_a`, `label_b` | what the question asks about |
+| `label`, `candidates`, `label_a`, `label_b` | what the question asks about |
 | `unit` | `percent` or `per_mille`, on `proportion` questions |
 | `answer` | the gold answer |
-| `answer_key` | language-neutral form of a word answer (`label_vs_label`), for matching the Turkish and English pair |
+| `answer_key` | language-neutral form of a word answer (`label_vs_label`, `close_comparison`), for matching the Turkish and English pair |
 | `rare` | true on a rare-label count (answer between 5 and 30) |
 | `question` | the full question text |
+| `role` | `core`, `retrieval` or `control`: what the question measures (see Known issues) |
 
 `haystacks.jsonl`, one document per line: `uid`, `dataset`, `haystack_id`,
 `haystack` (the text), `n_examples`, `drift_target`. **Give the model only
 `haystack`.** The other fields are build metadata.
-
-`difficulty.jsonl`, one row per question, joined on `uid`:
-
-| field | meaning |
-|---|---|
-| `difficulty` | `very hard` / `hard` / `moderate` / `easy` |
-| `shortcut_score` | best `relative` score of four simulated 5%-readers on this question |
-| `shortcut_reader` | which reader got it |
-| `blind_score` | score of a reader that opens nothing and guesses from the record count |
-| `grade_se` | standard error of the grade (200 random samples) |
-| `borderline` | true if the grade is within two standard errors of a band edge |
 
 `manifest.json`: seed, full config, source hash, tokenizer, per-document token
 and record counts, and the question-type counts.
@@ -93,7 +85,9 @@ Notes per source, only where something is not obvious:
 - **`sinema_tr`.** Ratings are uneven (2.4% at 3 stars, 24.4% at 8 stars), so
   some labels are naturally rare in a document.
 - **`vitamins_tr` / `amazon_hpc_en`.** The only pair with a brand per record,
-  printed in the text as `[[Brand]]`. English brands come from joining reviews
+  printed in the text as `[[Brand]]`. Questions about brands were removed in
+  v0.8.0 because searching for the printed name answers them; the markers stay
+  in the text so the documents are unchanged. English brands come from joining reviews
   to product metadata. English reviews name a different brand than their own
   13.8% of the time (Turkish: 0.66%), mostly because some brand names are
   ordinary words. Questions use the printed marker, so answers are unaffected.
@@ -149,6 +143,14 @@ the data.
    (except rare counts), and labels being ranked must differ by a set margin
    (3% on the intent sets, 10-20% on the others; see each config).
 5. Compute every answer twice with independent code and require agreement.
+6. Add close comparisons in a separate pass with its own random seed: pairs of
+   labels that each hold at least 30 records and 2% of the document, whose
+   counts differ by between 0.35 and 0.60 divided by the square root of the
+   smaller count (for counts near 300, a 2% to 3.5% gap). This is the one
+   question type allowed small margins, on purpose. Excluded: "neutral"
+   sentiment, and film ratings less than 3 stars apart, where annotators often
+   disagree. At most 4 per document, with no label used twice. Which label is
+   named first is random.
 
 ## Label quality
 
@@ -172,35 +174,31 @@ the data.
 
 ## Known issues
 
-**Most questions can be answered by sampling.** Simulated readers are given the
-true label of each record they read (so they are upper bounds on what a model
-reading the same records could do):
+**What each role measures.** Every question type was attacked by sampling
+(reading a random part of the document) and by search (finding the relevant
+records by a word or topic), using simulated readers that are told the true
+label of each record they read. Full setup and examples:
+`experiments/REPORT.md` in the GitHub repository.
 
-- Reading 5% of the records and scaling up: 0.89-0.92 on `count` and 0.98 on
-  `most_common` on the review sets.
-- Reading the first and last 2.5% does as well as a random 5%.
-- Opening nothing and dividing the record count by the number of labels:
-  0.43-0.55 on `count`.
-- Reading 1,000 records scores about the same at 100K tokens as at 1M, so
-  under `relative` scoring longer documents are not harder.
+| role | questions | strongest shortcut found | reader of everything |
+|---|---:|---|---|
+| core: close comparisons | 174 | 0.64 (top 10% by topic search); sampling half the document 0.63; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.77 at 90% |
+| retrieval: rare-label counts | 265 | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
+| control: counts, proportions, rankings, wide comparisons | 1,838 | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
 
-**Difficulty grades describe four readers, not reading.** Each question's
-grade is the best `relative` score of four 5%-readers (random, first 5%, first
-and last 2.5%, evenly spaced): 259 very hard (below 0.35), 140 hard, 232
-moderate, 1,609 easy (0.80 and above). Very-hard questions come mostly from
-`sikayet_tr` (76), `interpress_tr` (66), `sinema_tr` (26) and `amazon_hpc_en`
-(24); `musteri_tr` has none and `marc_en` one.
-
-- All very-hard `count` and `entity_count` questions have answers of 24 or less.
-  The four readers fail on them because a sample with no matching record
-  makes them answer 0.
-- A 5%-reader that answers "about 12" whenever it sees 0 or 1 matches takes 145
-  of the 226 very-hard numeric questions out of the band.
-- On very-hard questions that reader scores 0.48, while a reader that opens
-  everything but mislabels one record in ten scores 0.41. So the difference
-  between a model's easy and very-hard scores does not measure how much it read.
-
-Both results: `experiments/small_guess.py`, `experiments/band_gap.py`.
+- Control questions show whether a model can classify the records; a 5% sample
+  answers them almost as well as the whole document, so they are not evidence
+  of reading. Under `relative`, a reader that opens nothing and divides the
+  record count by the number of labels already scores 0.43 to 0.55 on counts,
+  and longer documents are not harder.
+- On the two paired intent sets, where the compared categories hold about 60
+  records each, topic search gets 0.73 (Turkish) and 0.81 (English) on core
+  questions.
+- The 3-label review sets contribute one core question in total: once
+  "neutral" is excluded, their two remaining labels are rarely close.
+- The difficulty grades released in v0.7.x are withdrawn: they reflected which
+  four skimming programs had been chosen, and on small answers a single lucky
+  draw decided them.
 
 **Questions overlap.** 337 document-label pairs are asked both as a count and
 as a proportion (one answer gives the other). On 3-label sets the 12 questions
@@ -214,14 +212,16 @@ as the unit of evidence.
 
 | subset | missing types | why |
 |---|---|---|
-| intent sets | brand types | intent is nested inside its scenario, so no independent group exists |
-| `musteri_tr`, `marc_en`, `sikayet_tr` | brand types | no brand column (for `sikayet_tr`, the company is only in the excluded title) |
-| `interpress_tr`, `sinema_tr` | brand types, `most_common`, `least_common`, `second_most` | section shares and adjacent ratings are too close to rank with the required 15% margin |
-| `vitamins_tr`, `amazon_hpc_en` | brand types below 500K tokens are sparse | too few reviews per brand in short documents; at 100K the English half has no `pairwise` questions |
+| `interpress_tr`, `sinema_tr` | `most_common`, `least_common`, `second_most` | section shares and adjacent ratings are too close to rank with the required 15% margin |
+| `vitamins_tr`, `musteri_tr`, `amazon_hpc_en` | close comparisons | with "neutral" excluded, the two remaining labels are rarely close (`marc_en` has one) |
 
 **One flagged tier.** On `en_intent` at 100K tokens, a reader using only the
 source corpus's label shares scores 0.73 on `proportion` (Turkish counterpart:
 0.45). It is kept and flagged, since removing it would break the pairing.
+
+**Contamination.** Every record comes from a public dataset. A model that has
+memorised a dataset's labels could label its records without reading them. Not
+tested; the same holds for OOLONG.
 
 **Other.** No time-based questions. Lengths are counted with one tokenizer
 (`Qwen/Qwen3-8B`); the Turkish/English token ratio on identical sentences

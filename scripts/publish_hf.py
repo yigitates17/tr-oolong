@@ -46,7 +46,7 @@ POLICY = {
         license="cc-by-4.0", full_text=True,
         source="AmazonScience/massive (tr-TR), record-matched",
         note="Record-matched with en_intent_paired: the same utterances in the "
-             "same order, so all 120 questions have the same answer in both "
+             "same order, so all 155 questions have the same answer in both "
              "languages (word answers via answer_key)."),
     "en_intent_paired_out": dict(
         license="cc-by-4.0", full_text=True,
@@ -64,13 +64,12 @@ POLICY = {
         source="turkish-nlp-suite/MusteriYorumlari (Hepsiburada, Trendyol)",
         note="CC-BY-SA-4.0 is SHARE-ALIKE: this subset and anything derived from "
              "it must stay CC-BY-SA-4.0. Labels are the customer's own 1-5 star "
-             "rating. No entity column, so six families ship."),
+             "rating."),
     "marc_en_out": dict(
         license="apache-2.0", full_text=True,
         source="SetFit/amazon_reviews_multi_en (Multilingual Amazon Reviews Corpus)",
         note="Apache-2.0: redistribution permitted. The English half of the "
-             "cleanest pair; labels are the reviewer's own 1-5 star rating, and "
-             "the entity families are omitted to stay parallel with musteri_tr."),
+             "cleanest pair; labels are the reviewer's own 1-5 star rating."),
     "amazon_hpc_en_out": dict(
         license="other", full_text=False,
         source="McAuley-Lab/Amazon-Reviews-2023 (Health_and_Personal_Care)",
@@ -124,12 +123,16 @@ built by the same pipeline. Each document joins thousands of real records
 tokens, and each question asks about the whole collection:
 
 ```
-Bu kayıtlarda kaç tane 'ulaşım' etiketli kayıt var?        -> 166
-Which label is the least common in these records?           -> play_audiobook
+Bu kayıtlarda hangisi daha çok: 'turizm' etiketli kayıtlar mı,
+'magazin' etiketli kayıtlar mı?                              -> magazin  (44 vs 41 of 266)
+Bu kayıtlarda kaç tane 'ulaşım' etiketli kayıt var?          -> 166
 ```
 
 The label of a record is never written in the text, so a model has to decide
-what each record is about and then count. Every answer is computed from the
+what each record is about and then count. The core questions (the first
+example) compare two categories whose counts are so close that neither
+sampling part of the document nor searching for the relevant records answers
+them. Every answer is computed from the
 source dataset's own labels, twice, by independent code. The construction
 follows [OOLONG](https://arxiv.org/abs/2511.02817) (Bertsch et al., 2025).
 
@@ -139,19 +142,23 @@ thesis work. Full details: `DATACARD.md` in this repository.
 
 ## At a glance
 
-**11 subsets · 195 documents · 2,240 questions · 50.7M tokens · 9 question types**
+**11 subsets · 195 documents · 2,277 questions · 50.7M tokens · 7 question types**
 
 {glance_table}
 
 Lengths are tokens under `Qwen/Qwen3-8B`. `classes` is the number of labels.
 
-**Question types:** `count` 921 (265 of them rare-label counts, answer 5 to 30)
-· `proportion` 492 · `label_vs_label` 292 · `most_common` 138 · `least_common`
-132 · `second_most` 128 · `entity_count` 87 · `pairwise` 35 · `entity_argmax` 15.
+**Question types and roles.** Every question has a `role`:
+
+| role | question types | questions | what it shows |
+|---|---|---:|---|
+| `core` | `close_comparison`: which are there more of, A or B? (both frequent, counts very close) | 174 | that the model read and judged the whole document |
+| `retrieval` | `count` with `"rare": true` (answer 5 to 30) | 265 | that it can find a few records by meaning |
+| `control` | `count` 656, `proportion` 492, `label_vs_label` 292, `most_common` 138, `least_common` 132, `second_most` 128 | 1,838 | that it can classify the records at all |
 
 **Turkish/English pairs.** `tr_intent_paired` and `en_intent_paired` contain the
 same 3,000 utterances (MASSIVE is a human translation) in the same order, so all
-120 questions have the same answer in both languages and the two can be compared
+155 questions have the same answer in both languages and the two can be compared
 with a paired test. `tr_intent`/`en_intent` match on token budget instead.
 `musteri_tr`/`marc_en` and `vitamins_tr`/`amazon_hpc_en` are different corpora
 with the same task. `sikayet_tr`, `interpress_tr` and `sinema_tr` are Turkish
@@ -175,16 +182,19 @@ text being classified; the label only names the bucket.
 | languages | English | Turkish, with English counterparts built the same way |
 | document length | 1K to 4M tokens (synthetic split) | 36K to 1M tokens |
 | labels per dataset | 2 to 10 | 3, 10, 16, 29, 48 |
-| grouping | synthetic user ids and dates on each record | real brands printed in the text (one pair) |
+| narrowing to a subset | to users or months printed on every record | none |
 | questions over dates | yes, its hardest group | none yet (`interpress_tr` has dates) |
 | same question, same answer in two languages | no | yes (`*_intent_paired`) |
 | numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
-| published shortcut checks | none | five, reports in the GitHub repository |
+| questions that resist sampling and search | none found | 174 close comparisons |
+| published shortcut checks | none | yes, in the GitHub repository |
 
 OOLONG's construction code was not released; this is an independent
-implementation from the paper. OOLONG's answers are usually small because most
-questions are first narrowed to one user or date range. Most answers here are
-large, which is why sampling works well on them (see Limitations).
+implementation from the paper. OOLONG narrows questions to listed users or a
+month, both printed on every record, so a string search finds the relevant
+records: for user-narrowed questions it reads a median of 0.8% of the document
+and gets the exact answer 99% of the time. Its whole-document comparisons have a
+median gap of 38% between the two counts, so sampling answers them.
 
 ## Loading and scoring
 
@@ -196,19 +206,20 @@ qs = load_dataset("yigitates17/tr-oolong", "sikayet_tr", split="test")
 - **Join and pool on `uid`.** `id` is unique only inside one subset.
 - Give the model only the `haystack` text and the `question`.
 - Score with `src/scoring.py` from the GitHub repository. It returns `exact`,
-  `partial` (OOLONG's `0.75 ** |error|`) and `relative` (`1 - |error| / answer`).
-- State how the model saw the document (one prompt, or an agent with code
-  tools), and report per question type and difficulty band rather than one
-  pooled score.
+  `partial` (OOLONG's `0.75 ** |error|`), `relative` (`1 - |error| / answer`)
+  and `primary`, the one to report: `exact` for word answers (all core
+  questions), `partial` for rare-label counts, `relative` for other numbers.
+- Report the `primary` score per role, never pooled, and state how the model
+  saw the document (one prompt, or an agent with code tools that can sample or
+  search it).
 
 ## Files
 
 - `questions.jsonl`: `uid`, `dataset`, `id`, `haystack_uid`, `haystack_id`,
-  `language`, `target_tokens`, `kind`, `label` / `entity` / `candidates`,
-  `unit`, `answer`, `answer_key`, `rare`, `question`.
+  `language`, `target_tokens`, `kind`, `label` / `candidates` / `label_a` /
+  `label_b`, `unit`, `answer`, `answer_key`, `rare`, `question`, `role`.
 - `haystacks.jsonl` (where the licence allows): `uid`, `haystack_id`,
   `haystack`, plus build metadata.
-- `difficulty.jsonl`: per-question grade, see below.
 - `manifest.json`: seed, config, source hash, tokenizer, per-document lengths.
 
 ## Subsets and licences
@@ -230,35 +241,38 @@ python scripts/<fetch_script>.py
 python src/build_tr_oolong.py --config configs/<set>.json --build
 ```
 
-## Difficulty grades and limitations
+## What each role measures, and limitations
 
 No model has been run on this benchmark yet. The statements below come from
 simulated readers: short programs that are told the true label of every record
-they read, so they are upper bounds on what a model reading the same records
-could do.
+they read, so they show what a reading strategy can achieve.
 
-- **Four shortcut checks fail, as intended:** searching the text for label names
+| role | strongest shortcut found | reader of everything |
+|---|---|---|
+| core | 0.64 (the 10% most relevant records by topic search); sampling half the document 0.63; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.77 at 90% |
+| retrieval | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
+| control | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
+
+- Every release also passes four checks: searching the text for label names
   (0 of 856,798 shipped records contain one), always giving the most common
   answer, answering from the source corpus's label shares, and guessing labels
   from record length and punctuation.
-- **Most questions can be answered from a sample.** Reading 5% of the records
-  and scaling up scores 0.89-0.92 on `count` in the review sets; reading the
-  first and last 2.5% does as well. Opening nothing and dividing the record
-  count by the number of labels scores 0.43-0.55 on `count`. Under `relative`,
-  a 1M-token document is not harder than a 100K one.
-- **`difficulty.jsonl` grades each question** by the best score of four 5%-readers
-  (random, first 5%, first and last 2.5%, evenly spaced): 259 very hard, 140
-  hard, 232 moderate, 1,609 easy. Read it as "which questions these readers can
-  answer". Very-hard numeric questions all have small answers (24 or less), and
-  a reader that answers "about 12" when its sample shows 0 or 1 matches takes
-  145 of those 226 out of the band. The gap between a model's easy and
-  very-hard scores therefore does not measure how much of the document it read.
-- `musteri_tr` has no very-hard questions and `marc_en` one.
+- Control questions are not evidence of reading: a 5% sample answers them
+  almost as well as the whole document, and under `relative` a longer document
+  is not harder.
+- Only 174 questions are core (margin of error about ±0.07 on a model's core
+  score). They come mostly from the intent and complaint sets; on the two paired
+  intent sets topic search gets 0.73 and 0.81. The 3-label review sets have one.
+- Brand questions (in v0.7.x) were removed in v0.8.0: searching for the printed
+  brand answered all of them. The v0.7.x per-question difficulty grades were
+  withdrawn as well.
 - Questions on one document overlap (337 are a count and a proportion of the
   same thing); treat the document as the unit of evidence.
 - Documents of the same subset and length share 20-39% of their records.
 - Intent labels: 2.7-9.3% judged wrong on a 150-record check, partly from
   translation, which affects only the Turkish half.
+- Every record comes from a public dataset; a model that memorised a dataset's
+  labels could label records without reading them (not tested).
 - No time-based questions. Lengths use one tokenizer; the Turkish/English token
   ratio on the same sentences ranges from 0.57x to 2.16x across tokenizers.
 
@@ -334,16 +348,10 @@ def main() -> None:
         dst.mkdir()
         shutil.copy(src / "questions.jsonl", dst / "questions.jsonl")
         shutil.copy(src / "manifest.json", dst / "manifest.json")
-        # The per-question difficulty grade ships with the questions it grades.
-        # The card documents it, so omitting it would leave the card describing a
-        # file nobody receives. It is derived, not source text, so it ships even
-        # for the sets whose text is withheld.
-        if (src / "difficulty.jsonl").exists():
-            shutil.copy(src / "difficulty.jsonl", dst / "difficulty.jsonl")
-        else:
-            raise SystemExit(
-                f"refusing to package: {src.name} has no difficulty.jsonl. "
-                f"Run scripts/grade_questions.py before publishing.")
+        # v0.8.0: the per-question difficulty grades are no longer released.
+        # They depended on which skimming programs were chosen and were partly
+        # luck (experiments/REPORT.md, experiments 1-3); each question's `role`
+        # replaces them.
         if pol["full_text"]:
             shutil.copy(src / "haystacks.jsonl", dst / "haystacks.jsonl")
         else:

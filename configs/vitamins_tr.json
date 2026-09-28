@@ -45,5 +45,13 @@
   "text_provenance": "human_written",
   "drop_tiers": [
     750000
+  ],
+  "families_withdrawn": [
+    "entity_count",
+    "entity_argmax",
+    "pairwise"
+  ],
+  "close_exclude_labels": [
+    "nötr"
   ]
 }

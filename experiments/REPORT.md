@@ -326,9 +326,12 @@ OOLONG, not only a Turkish version of it.
 | most / least / second most common | 398 | sampling | measures classification; control |
 | rare-category counts | 265 | topic search of 5% (0.53 under `partial`) | mostly finding a few records by meaning. Keep only if described as that |
 | brand questions | 137 | string search of about 2% (1.00) | retrieval, not aggregation. Remove, or describe as retrieval |
-| **close comparisons (proposed)** | **0 (261 simulated)** | **sampling 50% or search 10%: 0.61** | **the only type that needs the whole document** |
+| **close comparisons (added in v0.8.0)** | **174 built (261 simulated first)** | **sampling 50% or search 10%: 0.61** | **the only type that needs the whole document** |
 
 ## Recommendations (decisions for the thesis owner and advisor)
+
+*Status, 28 September: recommendations 1 to 6 were carried out in version
+0.8.0 (see experiment 8). Recommendation 7 remains a stated limitation.*
 
 1. **Add close comparisons as the central question type**, with the allowed gap
    set from the size of the two counts (so that a 50% skimmer stays near 0.65),
@@ -408,3 +411,70 @@ Yes. Natural separate releases, each on Hugging Face with its own card:
 One paper can present the benchmark with its training split and the audit (a
 datasets-and-benchmarks paper). The trajectories fit better with the model
 study, as a second paper or a thesis chapter.
+
+---
+
+## Experiment 8: the fix, as actually built (v0.8.0)
+
+**What was changed** (branch `explore/anti-hacking`, version 0.8.0):
+
+- **New question type, "close comparison"**: *"Which are there more of in these
+  records: records labelled A or records labelled B?"* Asked only when both
+  categories are frequent (at least 30 records and 2% of the document) and their
+  counts are close, with the allowed gap set from the size of the counts
+  (between 0.35 and 0.60 divided by the square root of the smaller count; for
+  example 2% to 3.5% for counts near 300). Categories that annotators often
+  disagree on are excluded ("neutral" sentiment; film ratings less than 3 stars
+  apart). Which label is named first is random. The answer is a label, scored
+  right or wrong.
+- **Brand questions removed** (137 questions, from `vitamins_tr` and
+  `amazon_hpc_en`).
+- **Every question gets a role**: `core` (close comparisons), `retrieval`
+  (rare-category counts), `control` (everything else).
+- **Per-question difficulty grades are no longer released.**
+- **Nothing else changed.** The 195 documents are byte-identical to v0.7.1, and
+  every one of the 2,103 remaining earlier questions has the same text, answer
+  and id. This was checked question by question after the rebuild.
+
+**Result of the rebuild.** 2,277 questions: 174 core, 265 retrieval, 1,838
+control. Close comparisons come mostly from the intent sets (129) and complaints
+(33); the 3-category review sets almost never contain two close categories once
+"neutral" is excluded (1 question in total). The Turkish and English paired
+intent sets received the identical 35 close comparisons, with identical
+answers.
+
+**The attacks, on the 174 built close comparisons** (share answered correctly;
+guessing gets 0.50):
+
+| reader | correct |
+|---|---:|
+| always pick the first-named label | 0.54 |
+| pick whichever is more common in the whole source corpus | 0.58 |
+| skimmer reading 5% / 25% / 50% | 0.53 / 0.58 / 0.63 |
+| topic search reading the top 10% | 0.64 |
+| reads everything, 95% of labels right | **0.85** |
+| reads everything, 90% of labels right | 0.77 |
+| reads everything, weak word-count classifier | 0.57 |
+
+**Example.** A news document of 266 articles: *"Bu kayıtlarda hangisi daha
+çok: 'turizm' etiketli kayıtlar mı, 'magazin' etiketli kayıtlar mı?"* There are
+41 tourism and 44 celebrity-news articles; the answer is *magazin*. Skimmers get
+it right about 55% to 60% of the time and topic search gets it wrong; a reader
+that reads everything and labels 95% of articles correctly gets it right 85% of
+the time.
+
+**What it means.**
+
+- The fix works: the best shortcut found reaches 0.64, while reading everything
+  accurately reaches 0.85.
+- **Limitation 1.** On the two paired intent sets, topic search does better
+  (0.73 Turkish, 0.81 English): the two categories there hold only about 60
+  records each, so a good search can find most of them in 10% of the document.
+  Those questions sit between "core" and "retrieval".
+- **Limitation 2.** 174 questions answered right or wrong give a margin of error
+  of about ±0.07 on a model's core score. Enough to separate a reader from a
+  skimmer (0.85 against 0.64), not enough for fine comparisons between similar
+  models.
+- **Limitation 3.** Close comparisons reward models that label records very
+  accurately; a weak classifier fails them even when it reads everything. This is
+  intended: the question measures careful reading of everything.

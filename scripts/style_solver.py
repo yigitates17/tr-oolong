@@ -74,6 +74,9 @@ def predict(q, counts, records, table, fallback):
         return ranked[-1] if ranked else ""
     if kind == "second_most":
         return ranked[1] if len(ranked) > 1 else ""
+    if kind == "close_comparison":
+        a, b = counts.get(q["label_a"], 0), counts.get(q["label_b"], 0)
+        return q["label_a"] if a >= b else q["label_b"]
     if kind == "label_vs_label":
         a, b = counts.get(q["label_a"], 0), counts.get(q["label_b"], 0)
         rel = abs(a - b) / max(a, b, 1)

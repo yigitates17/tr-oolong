@@ -35,5 +35,8 @@
   "min_rank_margin": 0.2,
   "licence": "cc-by-sa-4.0",
   "label_provenance": "author_stars",
-  "text_provenance": "human_written"
+  "text_provenance": "human_written",
+  "close_exclude_labels": [
+    "nötr"
+  ]
 }

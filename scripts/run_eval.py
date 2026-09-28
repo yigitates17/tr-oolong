@@ -64,17 +64,6 @@ def run_set(d: Path, args) -> dict:
         h = json.loads(line)
         haystacks[h["haystack_id"]] = h["haystack"]
 
-    # the difficulty grade per question, if it has been computed for this set.
-    # Without it only a pooled score can be reported, and a pooled score over a
-    # question set that is 71.8% easy mostly measures whether the model reads
-    # Turkish (W4 decision 4). The bands are the point of reporting at all.
-    grade = {}
-    dpath = d / "difficulty.jsonl"
-    if dpath.exists():
-        for line in dpath.read_text(encoding="utf-8").splitlines():
-            g = json.loads(line)
-            grade[g.get("uid") or g["id"]] = g["difficulty"]
-
     safe_model = re.sub(r"[^\w.-]", "_", args.model)
     pred_path = d / f"predictions_{safe_model}.jsonl"
     done = set()
@@ -121,7 +110,7 @@ def run_set(d: Path, args) -> dict:
         r = json.loads(line)
         preds[r.get("uid") or r["id"]] = r
     ex, pa, rl = defaultdict(list), defaultdict(list), defaultdict(list)
-    band_rl, band_ex = defaultdict(list), defaultdict(list)
+    by_role = defaultdict(list)
     errors = 0
     for q in questions:
         r = preds.get(q["uid"]) or preds.get(q["id"])
@@ -133,29 +122,16 @@ def run_set(d: Path, args) -> dict:
         ex[q["kind"]].append(r["exact"])
         pa[q["kind"]].append(r["partial"])
         rl[q["kind"]].append(r.get("relative", r["exact"]))
-        g = grade.get(q["uid"])
-        if g:
-            band_rl[g].append(r.get("relative", r["exact"]))
-            band_ex[g].append(r["exact"])
+        # the primary score is recomputed rather than read from the row, so
+        # prediction files written before v0.8.0 are reported the same way
+        by_role[q.get("role", "control")].append(score(q, r["prediction"])["primary"])
     fam = {k: {"n": len(v), "exact": sum(v) / len(v),
                "partial": sum(pa[k]) / len(pa[k]), "relative": sum(rl[k]) / len(rl[k])}
            for k, v in sorted(ex.items())}
-    all_ex = [v for vs in ex.values() for v in vs]
-    n = max(1, len(all_ex))
-    bands = {b: {"n": len(v), "relative": sum(v) / len(v),
-                 "exact": sum(band_ex[b]) / len(band_ex[b])}
-             for b, v in band_rl.items() if v}
-    # The headline number. A model high on `easy` and low on `very hard` is
-    # sampling; the size of this gap estimates how much of the document it read.
-    gap = None
-    if "easy" in bands and "very hard" in bands:
-        gap = bands["easy"]["relative"] - bands["very hard"]["relative"]
-    return {"set": d.name, "model": args.model, "n_scored": len(all_ex), "n_errors": errors,
-            "exact": sum(all_ex) / n,
-            "partial": sum(v for vs in pa.values() for v in vs) / n,
-            "relative": sum(v for vs in rl.values() for v in vs) / n,
-            "bands": bands, "easy_minus_veryhard": gap,
-            "families": fam, "predictions": str(pred_path)}
+    roles = {k: {"n": len(v), "primary": sum(v) / len(v)} for k, v in by_role.items() if v}
+    return {"set": d.name, "model": args.model,
+            "n_scored": sum(len(v) for v in ex.values()), "n_errors": errors,
+            "roles": roles, "families": fam, "predictions": str(pred_path)}
 
 
 def main():
@@ -175,27 +151,15 @@ def main():
         print(f"\n== {d} / {args.model}")
         report.append(run_set(Path(d), args))
     for r in report:
-        print(f"\n== {r['set']}  scored={r['n_scored']} errors={r['n_errors']}  "
-              f"exact={r['exact']:.3f} partial={r['partial']:.3f} relative={r['relative']:.3f}")
+        print(f"\n== {r['set']}  scored={r['n_scored']} errors={r['n_errors']}")
+        print("   --- by role (REPORT THESE; never pool the roles) ---")
+        for role in ("core", "retrieval", "control"):
+            v = r["roles"].get(role)
+            if v:
+                print(f"   {role:<10} n={v['n']:<4} primary={v['primary']:.3f}")
         for k, v in r["families"].items():
-            print(f"   {k:<14} n={v['n']:<4} exact={v['exact']:.3f} "
+            print(f"   {k:<16} n={v['n']:<4} exact={v['exact']:.3f} "
                   f"partial={v['partial']:.3f} relative={v['relative']:.3f}")
-        if r["bands"]:
-            print("   --- by measured difficulty (REPORT THESE, not the pooled figure) ---")
-            for b in ("very hard", "hard", "moderate", "easy"):
-                v = r["bands"].get(b)
-                if v:
-                    print(f"   {b:<14} n={v['n']:<4} exact={v['exact']:.3f} "
-                          f"relative={v['relative']:.3f}")
-            if r["easy_minus_veryhard"] is not None:
-                print(f"   easy - very hard = {r['easy_minus_veryhard']:+.3f}   "
-                      f"(large gap = the model sampled rather than read)")
-        else:
-            why = ("nothing was scored (every question errored)" if r["n_scored"] == 0
-                   else "this set has no difficulty.jsonl -- run scripts/grade_questions.py")
-            print(f"   [no difficulty bands: {why}.\n"
-                  "    A pooled score alone mostly measures whether the model reads Turkish,\n"
-                  "    so do not report this run until the bands are available.]")
     Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nreport -> {args.out}")
 

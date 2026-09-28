@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.7.1"
+VERSION = "0.8.0"
 
 
 # ---------------------------------------------------------------------------
@@ -206,6 +206,38 @@ class Config:
     entity_candidates: int = 5            # named candidates for entity_argmax/top_k
     label_candidates: int = 5             # named candidates for the label-ranking families
     families_disabled: list[str] = dataclasses.field(default_factory=list)
+    # --- v0.8.0: withdrawn families -----------------------------------------
+    # Generated exactly as before (so every other question keeps its text,
+    # answer and id) and then dropped from the output. Used for the brand
+    # families: the brand is printed as [[Brand]], so a string search that reads
+    # about 2% of the document answers every one of them (experiments/REPORT.md,
+    # experiment 5). `families_disabled` would instead change which other
+    # questions get drawn.
+    families_withdrawn: list[str] = dataclasses.field(default_factory=list)
+    # --- v0.8.0: close comparisons ------------------------------------------
+    # "Which are there more of: A or B?" for two FREQUENT labels whose counts
+    # differ by a small amount. Sampling cannot resolve a small difference and
+    # the relevant records are too many to find by search, so this is the one
+    # question type where no shortcut found gets far above guessing
+    # (experiments/REPORT.md, experiment 6). The allowed difference scales with
+    # the counts: the relative gap must lie in
+    #   [close_gap_lo, close_gap_hi] / sqrt(smaller count)
+    # which keeps a reader of half the document near 0.65 while a reader of all
+    # of it that labels 95% of records correctly reaches about 0.85-0.9.
+    # Generated in a separate pass with its own seed, AFTER the other families,
+    # so adding it changed no existing question.
+    close_per_haystack: int = 4
+    close_min_count: int = 30             # both labels need at least this many records
+    close_min_share: float = 0.02         # ... and at least this share of the document
+    close_gap_lo: float = 0.35
+    close_gap_hi: float = 0.60
+    close_min_diff: int = 2               # never decided by a single record
+    # Labels never used in a close comparison, because annotators disagree on
+    # them often enough to decide a close call (e.g. "neutral" sentiment).
+    close_exclude_labels: list[str] = dataclasses.field(default_factory=list)
+    # For ordinal labels that start with a number ("7 yıldız"): the two labels
+    # must be at least this many points apart (7 vs 8 stars is a judgement call).
+    close_ordinal_gap: int = 0
     entity_band_tol: float = 0.05         # entity candidates' POOL counts agree this closely
     # Label candidates need a much looser band than entity candidates, and the
     # reason is asymmetric: the LABEL axis already gets a fresh Dirichlet prior
@@ -907,6 +939,7 @@ Q_TEMPLATES = {
         "least_common": "Bu kayıtlarda en az görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
         "second_most": "Bu kayıtlarda ikinci en sık görülen etiket hangisi? Etiketler: {labels}. Sadece etiket adını yaz.",
         "label_vs_label": "'{label_a}' etiketli kayıtlar '{label_b}' etiketli kayıtlardan daha mı çok, daha mı az, yoksa eşit sayıda mı? 'daha çok', 'daha az' veya 'eşit' yaz.",
+        "close_comparison": "Bu kayıtlarda hangisi daha çok: '{label_a}' etiketli kayıtlar mı, '{label_b}' etiketli kayıtlar mı? Sadece etiket adını yaz.",
     },
     "en": {
         "count": "How many records are labeled '{label}'? Answer with the number only.",
@@ -921,6 +954,7 @@ Q_TEMPLATES = {
         "least_common": "Which label is the least common in these records? Labels: {labels}. Answer with the label name only.",
         "second_most": "Which label is the second most common in these records? Labels: {labels}. Answer with the label name only.",
         "label_vs_label": "Are records labeled '{label_a}' more common, less common, or the same frequency as records labeled '{label_b}'? Answer 'more common', 'less common', or 'the same'.",
+        "close_comparison": "Which are there more of in these records: records labeled '{label_a}' or records labeled '{label_b}'? Answer with the label name only.",
     },
 }
 
@@ -1032,6 +1066,10 @@ def gt_primary(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=N
         a = meta.filter(pl.col("label") == label_a).height
         b = meta.filter(pl.col("label") == label_b).height
         return _label_vs_label(a, b, min_margin, same_tol, min_answer)
+    if kind == "close_comparison":
+        a = meta.filter(pl.col("label") == label_a).height
+        b = meta.filter(pl.col("label") == label_b).height
+        return None if a == b else (label_a if a > b else label_b)
     if kind in ("most_common", "least_common", "second_most"):
         agg = meta.group_by("label").len().sort(["len", "label"], descending=[True, False])
         ranked = list(zip(agg["label"].to_list(), agg["len"].to_list()))
@@ -1137,6 +1175,11 @@ def gt_check(meta, kind, *, label=None, entity=None, entity_a=None, entity_b=Non
         a = sum(1 for l in labels if l == label_a)
         b = sum(1 for l in labels if l == label_b)
         return _label_vs_label(a, b, min_margin, same_tol, min_answer)
+    if kind == "close_comparison":
+        c = Counter(labels)
+        if c[label_a] == c[label_b]:
+            return None
+        return max((label_a, label_b), key=lambda l: c[l])
     if kind in ("most_common", "least_common", "second_most"):
         c = Counter(labels)
         if askable:
@@ -1332,6 +1375,69 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k,
                     labels=", ".join(f"'{l}'" for l in cands))}
 
     raise ValueError(kind)
+
+
+def _ordinal(label: str):
+    m = re.match(r"\s*(\d+)", label)
+    return int(m.group(1)) if m else None
+
+
+def close_comparisons(meta, cfg: Config, rng: random.Random) -> list[dict]:
+    """v0.8.0. Up to `close_per_haystack` close comparisons for one haystack,
+    over label pairs that do not share a label (so the questions are not four
+    views of the same count)."""
+    counts = Counter(meta["label"].to_list())
+    n = meta.height
+    floor = max(cfg.close_min_count, cfg.close_min_share * n)
+    excluded = set(cfg.close_exclude_labels)
+    freq = sorted(l for l, c in counts.items() if c >= floor and l not in excluded)
+    pairs = []
+    for i, a in enumerate(freq):
+        for b in freq[i + 1:]:
+            if cfg.close_ordinal_gap:
+                oa, ob = _ordinal(a), _ordinal(b)
+                if oa is None or ob is None or abs(oa - ob) < cfg.close_ordinal_gap:
+                    continue
+            ca, cb = counts[a], counts[b]
+            diff, lo = abs(ca - cb), min(ca, cb)
+            gap = diff / max(ca, cb)
+            if diff < cfg.close_min_diff:
+                continue
+            if cfg.close_gap_lo / math.sqrt(lo) <= gap <= cfg.close_gap_hi / math.sqrt(lo):
+                pairs.append((a, b))
+    rng.shuffle(pairs)
+    used: set[str] = set()
+    out = []
+    for a, b in pairs:
+        if len(out) >= cfg.close_per_haystack:
+            break
+        if a in used or b in used:
+            continue
+        # which label is named first is random, so "the first one" is not a
+        # shortcut; the answer is balanced between first and second position
+        if rng.random() < 0.5:
+            a, b = b, a
+        gt = verified_gt(meta, "close_comparison", label_a=a, label_b=b)
+        if gt is None:
+            continue
+        used.update((a, b))
+        out.append({"kind": "close_comparison", "label": None, "label_a": a, "label_b": b,
+                    "candidates": [a, b], "answer": gt, "answer_key": gt,
+                    "question": resolve_template(cfg, "close_comparison").format(
+                        label_a=a, label_b=b)})
+    return out
+
+
+def question_role(q: dict) -> str:
+    """v0.8.0. What a question measures, from experiments/REPORT.md:
+    core       needs the whole document; no shortcut found gets far above chance
+    retrieval  needs finding a few records by meaning (rare-label counts)
+    control    answerable from a sample; shows whether a model can classify at all"""
+    if q["kind"] == "close_comparison":
+        return "core"
+    if q.get("rare"):
+        return "retrieval"
+    return "control"
 
 
 def _dedup_key(q: dict) -> tuple:
@@ -1699,6 +1805,18 @@ def build(cfg: Config) -> None:
                 questions = generate_questions(
                     meta, cfg, rng, drift_target=drift_target, unit=unit, k=k,
                     prior_ent=prior_ent, prior_lab=prior_lab)
+                # v0.8.0. Keep each question's original index so ids and uids of
+                # every surviving pre-0.8 question are unchanged; withdrawn ones
+                # leave a gap. Close comparisons are numbered after them and use
+                # their own seed, keyed WITHOUT the language, so the two halves of
+                # a record-matched pair get identical questions and the shared
+                # `rng` (which drives the next haystack) is untouched.
+                numbered = [(qi, q) for qi, q in enumerate(questions)
+                            if q["kind"] not in set(cfg.families_withdrawn)]
+                close_rng = random.Random(f"{cfg.seed}-close-{target}-{ki}")
+                numbered += [(len(questions) + j, q) for j, q in
+                             enumerate(close_comparisons(meta, cfg, close_rng))]
+                questions = [q for _, q in numbered]
                 tier_key = hs_id.rsplit("-", 1)[0]
                 tier_counter = per_tier.setdefault(tier_key, Counter())
                 for _q in questions:
@@ -1715,7 +1833,7 @@ def build(cfg: Config) -> None:
                     "haystack": hay,
                 }, ensure_ascii=False) + "\n")
 
-                for qi, q in enumerate(questions):
+                for qi, q in numbered:
                     kind_counts[q["kind"]] += 1
                     if q.get("rare"):
                         # emitted as kind "count" so the frozen scorer treats it
@@ -1730,6 +1848,7 @@ def build(cfg: Config) -> None:
                         "target_tokens": target if not record_mode else None,
                         "target_records": target if record_mode else None,
                         **q,
+                        "role": question_role(q),
                     }, ensure_ascii=False) + "\n")
                     n_q += 1
 

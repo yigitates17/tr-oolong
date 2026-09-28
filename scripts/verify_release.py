@@ -72,6 +72,10 @@ def recompute(kind, meta, q, k, unit):
         a = sum(1 for l, e in zip(labels, ents) if l == lab and e == q["entity_a"])
         b = sum(1 for l, e in zip(labels, ents) if l == lab and e == q["entity_b"])
         return q["entity_a"] if a > b else q["entity_b"]
+    if kind == "close_comparison":
+        a = labels.count(q["label_a"])
+        b = labels.count(q["label_b"])
+        return q["label_a"] if a > b else q["label_b"]
     if kind == "label_vs_label":
         a = labels.count(q["label_a"])
         b = labels.count(q["label_b"])

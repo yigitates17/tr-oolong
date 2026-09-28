@@ -1,6 +1,6 @@
 {
-  "version": "0.7.1",
-  "date": "2026-09-20",
+  "version": "0.8.0",
+  "date": "2026-09-28",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -53,6 +53,15 @@
     "families_disabled": [
       "shift"
     ],
+    "families_withdrawn": [],
+    "close_per_haystack": 4,
+    "close_min_count": 30,
+    "close_min_share": 0.02,
+    "close_gap_lo": 0.35,
+    "close_gap_hi": 0.6,
+    "close_min_diff": 2,
+    "close_exclude_labels": [],
+    "close_ordinal_gap": 0,
     "entity_band_tol": 0.05,
     "label_band_tol": 0.15,
     "entity_jitter_sigma": 1.0,
