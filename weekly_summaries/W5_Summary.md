@@ -33,6 +33,23 @@ it is not yet published.
 | question types | 10 | 9 | 7 |
 | questions that need the whole document | not measured | not measured | 174 |
 
+Questions by role and language (v0.8.0):
+
+| role | Turkish | English | what it shows |
+|---|---:|---:|---|
+| core | 110 | 64 | that a model read and judged the whole document |
+| retrieval | 213 | 52 | that it can find a few records by meaning |
+| control | 1,235 | 603 | that it can classify the records at all |
+
+The Turkish and English totals differ because three datasets are Turkish only.
+Cross-lingual results come from the four Turkish/English pairs, each compared
+within itself: the record-matched intent pair (the same 3,000 or 6,000
+utterances in both languages, 155 identical questions each, 35 of them core),
+the token-matched intent pair (same length in tokens, 151 and 148 questions),
+and two review pairs with the same task on different texts (control questions
+only). The core questions that support a cross-lingual claim therefore all come
+from the intent pairs.
+
 Also since the week 3 meeting:
 
 - **Three Turkish datasets added**: consumer complaints (29 categories), news
@@ -85,7 +102,10 @@ were tested the same way. 36% of OOLONG's questions are restricted to certain
 users or a month, both printed on every record: searching for the user reads a
 median of 0.8% of the document and gives the exact answer 99% of the time. Its
 whole-document comparisons have a median gap of 38% between the two counts, so
-sampling answers them. This has not been reported for OOLONG.
+sampling answers them. No paper found measures this. The closest remark (Recursive Agent Harnesses,
+2026) notes that coding agents on OOLONG fall back on text-pattern searches
+instead of judging each record, and still score 72%, but treats that as a
+weakness of the agent rather than of the benchmark.
 
 **Finding 4: one question type resists both.** A **close comparison**, "which
 are there more of: A or B?", where both categories are frequent and their counts

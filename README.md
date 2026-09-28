@@ -64,6 +64,20 @@ rebuilt locally byte for byte (see [Building](#building-and-adding-a-dataset)).
 `sikayet_tr`, `interpress_tr` and `sinema_tr` have no English partner. They were
 added because 3-label sets cannot produce questions with small answers.
 
+**Cross-lingual comparisons are made within a pair, never between the Turkish
+and English totals** (which differ because three subsets are Turkish only).
+Compare the two halves of a pair on the same length tiers and the same
+question types. `amazon_hpc_en` has a 1M tier that `vitamins_tr` lacks, so that
+pair is compared up to 500K. Core questions exist in both languages only in
+the two intent pairs (35 + 35 identical ones in the paired sets; 31 and 28 in
+the token-matched sets); the review pairs carry control questions only.
+
+| role | Turkish | English |
+|---|---:|---:|
+| core | 110 | 64 |
+| retrieval | 213 | 52 |
+| control | 1,235 | 603 |
+
 ## Question types
 
 | type | example | answer | role | count |
