@@ -18,6 +18,14 @@ press `m` to see the full text of the row you are on.
 Keys per row:  e = label correct   h = label wrong   s = skip / unsure
                b = back one row    m = show full text   q = save and quit
 
+Review mode (--review), for a slice that carries a model's pre-judgement in
+columns 8-10 ("CLAUDE VERDICT", suggestion, reason): the verdict is shown under
+each record and Enter accepts it; e / h / s overrule it. Only YOUR answers count
+towards the error rate; --stats also reports how often you agreed. Every row is
+still shown, so a wrong "correct" verdict cannot slip through unseen.
+
+  python scripts/annotate_noise.py --csv noise_slices/core_labels_tr.csv --review
+
 The question is NOT "is this the best possible label". It is "would a careful
 annotator have rejected this label as wrong". Anything defensible counts as
 correct -- we are measuring error, not taste.
@@ -49,7 +57,8 @@ def load(path: Path) -> tuple[list, list]:
     rows = list(csv.reader(path.open(encoding="utf-8-sig")))
     if not rows:
         sys.exit(f"{path} is empty -- run: python scripts/make_noise_slice.py")
-    return rows[0], [r + [""] * (8 - len(r)) for r in rows[1:]]
+    n = max(8, len(rows[0]))
+    return rows[0], [r + [""] * (n - len(r)) for r in rows[1:]]
 
 
 def save(path: Path, header: list, body: list) -> None:
@@ -67,8 +76,30 @@ def stats(body: list) -> tuple[int, int, int]:
     return ok, bad, len(body)
 
 
+CV, CS, CR = 8, 9, 10          # model pre-judgement columns (review mode)
+
+
 def report(body: list) -> None:
     ok, bad, total = stats(body)
+    by = {}
+    for r in body:
+        if ":" in r[1]:
+            by.setdefault(r[1].split(":")[0], []).append(r)
+    if len(by) > 1:
+        print(f"\n  {'dataset':16}{'judged':>8}{'wrong':>7}{'eps':>8}{'95% CI':>18}")
+        for name, rs in sorted(by.items()):
+            o, b, _ = stats(rs)
+            if o + b:
+                lo, hi = wilson(b, o + b)
+                print(f"  {name:16}{o + b:>8}{b:>7}{b / (o + b):>7.1%}"
+                      f"{f'[{lo*100:.1f}%, {hi*100:.1f}%]':>18}")
+    if len(body[0]) > CV and any(r[CV].strip() for r in body):
+        both = [r for r in body if r[ANS].strip().lower() in ("e", "h")
+                and r[CV].strip().lower() in ("e", "h")]
+        if both:
+            agree = sum(1 for r in both if r[ANS].strip().lower() == r[CV].strip().lower())
+            print(f"\n  agreement with the model's pre-judgement: {agree}/{len(both)} "
+                  f"({100 * agree / len(both):.0f}%)")
     judged = ok + bad
     print(f"\n  judged {judged}/{total}   correct {ok}   wrong {bad}")
     if judged == 0:
@@ -138,6 +169,8 @@ def main() -> None:
     ap.add_argument("--chars", type=int, default=700,
                     help="clip each record to this many characters (0 = never clip)")
     ap.add_argument("--width", type=int, default=92)
+    ap.add_argument("--review", action="store_true",
+                    help="show the model's pre-judgement (columns 8-10); Enter accepts it")
     a = ap.parse_args()
     if a.all_stats:
         all_stats()
@@ -170,8 +203,19 @@ def main() -> None:
         menu = label_menu(body, a.width)
         if menu:
             print(menu)
+        cv = r[CV].strip().lower() if a.review and len(r) > CV else ""
+        if cv:
+            name = {"e": "CORRECT", "h": "WRONG", "s": "UNSURE"}.get(cv, cv)
+            extra = f" -> {r[CS]}" if r[CS].strip() else ""
+            print(f"\n  MODEL SAYS: {name}{extra}")
+            if r[CR].strip():
+                print(textwrap.fill(r[CR], width=a.width, initial_indent="  reason: ",
+                                    subsequent_indent="          "))
+        prompt = ("\n  [Enter] agree  or  [e]vet  [h]ayır  [s]kip  [b]ack  [m]ore  [q]uit > "
+                  if cv in ("e", "h") else
+                  "\n  correct? [e]vet  [h]ayır  [s]kip  [b]ack  [m]ore  [q]uit > ")
         try:
-            k = input("\n  correct? [e]vet  [h]ayır  [s]kip  [b]ack  [m]ore  [q]uit > ").strip().lower()
+            k = input(prompt).strip().lower()
         except (EOFError, KeyboardInterrupt):
             save(path, header, body)
             print("\nsaved.")
@@ -192,6 +236,14 @@ def main() -> None:
                 print("\n  FULL TEXT (EN):")
                 print(show(r[3], a.width, None))
             continue
+        if k == "" and cv in ("e", "h"):
+            k = cv
+            r[ANS] = k
+            if k == "h":
+                r[FIX] = r[CS]
+            save(path, header, body)
+            i += 1
+            continue
         if k == "s":
             i += 1
             continue
@@ -200,7 +252,10 @@ def main() -> None:
             continue
         r[ANS] = k
         if k == "h":
-            r[FIX] = input("  what should it be? (blank = don't know) > ").strip()
+            default = r[CS].strip() if a.review and len(r) > CS else ""
+            hint = f" [Enter = {default}]" if default else ""
+            got = input(f"  what should it be?{hint} (blank = don't know) > ").strip()
+            r[FIX] = got or default
         save(path, header, body)           # write after every answer, never batch
         i += 1
 
