@@ -79,16 +79,24 @@ class Haystack:
         for l in labels:
             toks = leak_tokens(l, language)
             self.lab[l] = bitmask([any(t in r for t in toks) for r in self.records])
+        # Entity masks are built on first use: a document holds thousands of
+        # brands, and building every mask up front made this script take over
+        # half an hour once brand questions were withdrawn (v0.8.0) and long core
+        # documents were added (v0.9.0). Results are identical.
+        self.language = language
         self.ent = {}
-        for e in entities:
-            ef = fold(e, language)
-            self.ent[e] = bitmask([ef in r for r in self.records])
         self.first_half = (1 << (self.n // 2)) - 1          # bits of records 0..n//2-1
+
+    def _ent(self, e):
+        if e not in self.ent:
+            ef = fold(e, self.language)
+            self.ent[e] = bitmask([ef in r for r in self.records])
+        return self.ent[e]
 
     def count(self, label, entity=None):
         m = self.lab[label]
         if entity is not None:
-            m &= self.ent[entity]
+            m &= self._ent(entity)
         return m.bit_count()
 
 

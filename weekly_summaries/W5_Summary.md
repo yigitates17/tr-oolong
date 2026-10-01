@@ -1,6 +1,6 @@
 # TR-OOLONG: Weeks 4 and 5
 
-*29 September 2026. There was no meeting in week 4, so this summary covers both
+*1 October 2026. There was no meeting in week 4, so this summary covers both
 weeks. The main text is one page; the appendices hold the detail.*
 
 ## 1. Summary
@@ -12,8 +12,9 @@ document**: for example, "which label is most common?" was answered correctly
 96% of the time from a random 5% of the records, and OOLONG turned out to have
 the same weakness. A new kind of question was built that cannot be answered that way,
 "are there more negative or more positive reviews?" when the document holds
-1,000 negative and 986 positive ones, and the benchmark was republished as
-version 0.9 with 418 such questions.
+1,000 negative and 986 positive ones. A native-speaker check of the labels then
+led to a final cleaning round, and the benchmark was republished as version
+0.10 with 309 such questions, 77 of them identical in Turkish and English.
 
 ## 2. The problem
 
@@ -53,34 +54,43 @@ models, told the correct label of each record they read):
 |---|---:|
 | always pick the first-named label | 0.50 |
 | pick the label more common in the source dataset | 0.49 |
-| read a random 5% / 25% / 50% of the document | 0.53 / 0.58 / 0.64 |
+| read a random 5% / 25% / 50% of the document | 0.53 / 0.57 / 0.62 |
 | read the 10% of records most related to the two labels | 0.49 |
 | **read everything, label 95% of records correctly** | **0.85** |
 
-*(Figures for the 244 questions from documents built for this purpose; all 418
+*(Figures for the 214 questions from documents built for this purpose; all 309
 core questions are in appendix B.)*
 
-## 4. Where the benchmark stands (version 0.9.0, published 29 September)
+**A further rule, from the label check.** A comparison is only asked between
+two categories that can actually be told apart from the text, measured with a
+simple classifier. *Example of what this excludes:* a complaint about a refund,
+with no product named, filed under "furniture and home textiles"; or news filed
+under "tourism" vs "travel". For the same reason the film reviews now use
+sentiment (negative, neutral, positive) instead of exact 1-10 ratings: "loved
+it" can be a 7 or a 10, and no reader can tell which.
+
+## 4. Where the benchmark stands (version 0.10.0, published 1 October)
 
 | | week 3 meeting | now |
 |---|---:|---:|
 | datasets | 8 | 11 (3 Turkish only) |
-| documents | 110 | 353 |
-| questions | 1,254 | 2,521 |
-| total length | 28.3M tokens | 106.4M tokens |
-| questions that need the whole document | not measured | 418 |
+| documents | 110 | 347 |
+| questions | 1,254 | 2,362 |
+| total length | 28.3M tokens | 102.5M tokens |
+| questions that need the whole document | not measured | 309 |
 
 Every question now states what it shows:
 
 | role | Turkish | English | what it shows |
 |---|---:|---:|---|
-| **core** | 298 | 120 | that a model read and judged the whole document |
-| retrieval | 213 | 52 | that it can find a few records by meaning |
-| control | 1,235 | 603 | that it can classify the records at all |
+| **core** | 217 | 92 | that a model read and judged the whole document |
+| retrieval | 185 | 52 | that it can find a few records by meaning |
+| control | 1,213 | 603 | that it can classify the records at all |
 
 **Cross-lingual:** comparisons are made inside each Turkish/English pair, never
-between totals. **91 core questions are the same question with the same answer
-in both languages**, from three different pairs of corpora.
+between totals. **77 core questions are the same question with the same answer
+in both languages**, from three different pairs of corpora (the RLM paper's
+OOLONG results rest on 50 questions).
 
 **No AI model has been run yet.** That is the next step.
 
@@ -93,7 +103,10 @@ in both languages**, from three different pairs of corpora.
   the intent data), and when two counts differ by a few records a few wrong
   labels can flip the answer, so even a perfect model scores below 1.0 on core
   questions (about 0.85 with 5% of labels wrong). A native-speaker check of 200
-  Turkish records is prepared.
+  Turkish records is under way: a model pre-judged every record and a native
+  speaker confirms or overrules each judgement. The pre-judgement found about
+  5% clearly wrong labels overall (news about 12%, shopping reviews 8%,
+  complaints 5%, film 3%, supplements 0%).
 
 ## 6. Decisions required
 
@@ -128,10 +141,19 @@ in both languages**, from three different pairs of corpora.
 - **Brand questions removed** (137). The brand is printed in the text, so
   searching for it answers them. *Example: "how many reviews of 'FASH Limited'
   are negative?" means reading the 21 reviews with that brand out of 1,685.*
-- **Close comparisons added** (version 0.8, 174 questions from ordinary
-  documents; version 0.9, 244 more from documents built for them).
-- **All earlier documents and questions are unchanged** in every rebuild,
-  checked one by one.
+- **Close comparisons added** (version 0.8 from ordinary documents; version 0.9
+  from documents built for them).
+- **Cleaning** (version 0.10), found during the label check: newspaper
+  mastheads instead of articles (2.1% of news records); reviews that write their
+  score in the text, which hands over a rating-based label ("ben 6/10
+  veriyorum", "1 star"; 11.2% of film reviews, 1-3% elsewhere); leftover web
+  formatting in 12.7% of Amazon reviews. All removed.
+- **Only categories that can be told apart** are compared (version 0.10, see
+  section 3). Kept for comparisons: 32 of 48 intents, 23 of 29 complaint
+  categories, 5 of 16 news sections, positive vs negative everywhere.
+- **Questions kept unchanged where possible:** every rebuild was compared
+  question by question; the intent and complaint datasets' other questions are
+  identical to version 0.7.
 
 `W4_Summary.md` sections 1 to 3 (answers to the week 3 questions on recursion
 depth, parallel sub-calls, string-search exploits, test targets and publishing)
@@ -143,20 +165,23 @@ still stand; its other sections are replaced by this summary.
 |---|---|
 | answers wrong | none: every answer recomputed by independent code |
 | label written in the text | none of the shipped records |
-| sampling 5% / 25% / 50% | 0.53 / 0.58 / 0.63 (all 418) |
-| searching the most related 10% | 0.56 (all), 0.49 (built documents) |
-| label more common in the source dataset | 0.54 (all), 0.49 (built), 0.61 (the 174 older ones) |
-| always the first-named label | 0.52 (all), 0.50 (built) |
-| two counts differ by 3 records or fewer | none in built documents (at least 5); 12 older ones |
+| sampling 5% / 25% / 50% | 0.53 / 0.58 / 0.62 (all 309) |
+| searching the most related 10% | 0.54 (all), 0.49 (built documents) |
+| label more common in the source dataset | 0.53 (all), 0.50 (built), 0.62 (the 95 from ordinary documents) |
+| always the first-named label | 0.51 (all), 0.50 (built) |
+| score written in the text, masthead, web formatting | removed (version 0.10) |
+| categories that cannot be told apart from the text | never compared (version 0.10) |
+| two counts differ by 3 records or fewer | none in built documents (at least 5); 6 from ordinary documents |
 | documents sharing records | at most 22% |
-| length coverage | 210 core questions up to 100K tokens, 156 between 100K and 600K, 52 above |
+| length coverage | 150 core questions up to 100K tokens, 117 between 100K and 600K, 42 above |
 | Turkish vs English length on matched documents | intent: Turkish 1.3x longer; reviews: Turkish 0.6-0.9x |
-| reader of everything, 95% / 90% labelling accuracy | 0.85 / 0.76 |
+| reader of everything, 95% / 90% labelling accuracy | 0.86 / 0.76 |
 
-The first pass of this check found three problems, all fixed before release:
-some gaps of only 1-3 records, too few core questions on long documents, and a
-chance alignment that let "pick the rarer label" score 0.70 on one dataset.
-Details: `experiments/REPORT.md`, experiment 10.
+Earlier passes of this check found and fixed: gaps of only 1-3 records, too few
+core questions on long documents, a chance alignment that let "pick the rarer
+label" score 0.70 on one dataset, and, during the label check, the leaks and
+unreadable categories above. Details: `experiments/REPORT.md`, experiments 10
+and 11.
 
 ## Appendix C. TR-OOLONG and OOLONG
 
@@ -165,8 +190,8 @@ Details: `experiments/REPORT.md`, experiment 10.
 | languages | English | Turkish, with English counterparts built the same way |
 | document length | 1K to 4M tokens | 36K to 1M tokens |
 | labels per dataset | 2 to 10 | 3 to 48 |
-| questions that resist sampling and search | none found | 418 |
-| same question and answer in two languages | no | yes (91 core questions) |
+| questions that resist sampling and search | none found | 309 |
+| same question and answer in two languages | no | yes (77 core questions) |
 | shortcut checks published | none | yes |
 
 ## Appendix D. Literature (details in `LITERATURE_REVIEW.md`)

@@ -1,0 +1,3172 @@
+{
+ "dataset": "tr_intent",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 15075,
+ "recall": {
+  "social_query": 0.1987,
+  "recommendation_movies": 0.2673,
+  "email_querycontact": 0.3155,
+  "music_likeness": 0.321,
+  "general_joke": 0.3333,
+  "alarm_remove": 0.3486,
+  "alarm_query": 0.4241,
+  "general_quirky": 0.4279,
+  "recommendation_events": 0.4683,
+  "audio_volume_mute": 0.5039,
+  "transport_traffic": 0.5102,
+  "iot_cleaning": 0.5463,
+  "lists_query": 0.5474,
+  "qa_maths": 0.5478,
+  "recommendation_locations": 0.566,
+  "music_query": 0.5805,
+  "play_game": 0.6076,
+  "takeaway_query": 0.6145,
+  "alarm_set": 0.6239,
+  "transport_taxi": 0.6389,
+  "audio_volume_up": 0.641,
+  "iot_hue_lightup": 0.6481,
+  "play_audiobook": 0.6512,
+  "play_radio": 0.6816,
+  "qa_factoid": 0.6853,
+  "play_podcasts": 0.6857,
+  "cooking_recipe": 0.6952,
+  "qa_stock": 0.71,
+  "transport_query": 0.7235,
+  "lists_remove": 0.7265,
+  "lists_createoradd": 0.7362,
+  "qa_definition": 0.7367,
+  "calendar_query": 0.7382,
+  "takeaway_order": 0.7471,
+  "datetime_query": 0.7754,
+  "iot_coffee": 0.7848,
+  "iot_hue_lightchange": 0.8046,
+  "transport_ticket": 0.8177,
+  "news_query": 0.8191,
+  "social_post": 0.8403,
+  "calendar_remove": 0.861,
+  "iot_hue_lightoff": 0.8662,
+  "email_sendemail": 0.8819,
+  "qa_currency": 0.8852,
+  "email_query": 0.9049,
+  "calendar_set": 0.9267,
+  "weather_query": 0.9322,
+  "play_music": 0.9478
+ },
+ "allowed_pairs": [
+  [
+   "alarm_set",
+   "audio_volume_up"
+  ],
+  [
+   "alarm_set",
+   "calendar_query"
+  ],
+  [
+   "alarm_set",
+   "calendar_remove"
+  ],
+  [
+   "alarm_set",
+   "calendar_set"
+  ],
+  [
+   "alarm_set",
+   "cooking_recipe"
+  ],
+  [
+   "alarm_set",
+   "datetime_query"
+  ],
+  [
+   "alarm_set",
+   "email_query"
+  ],
+  [
+   "alarm_set",
+   "email_sendemail"
+  ],
+  [
+   "alarm_set",
+   "iot_coffee"
+  ],
+  [
+   "alarm_set",
+   "iot_hue_lightchange"
+  ],
+  [
+   "alarm_set",
+   "iot_hue_lightoff"
+  ],
+  [
+   "alarm_set",
+   "iot_hue_lightup"
+  ],
+  [
+   "alarm_set",
+   "lists_createoradd"
+  ],
+  [
+   "alarm_set",
+   "lists_remove"
+  ],
+  [
+   "alarm_set",
+   "news_query"
+  ],
+  [
+   "alarm_set",
+   "play_audiobook"
+  ],
+  [
+   "alarm_set",
+   "play_game"
+  ],
+  [
+   "alarm_set",
+   "play_music"
+  ],
+  [
+   "alarm_set",
+   "play_podcasts"
+  ],
+  [
+   "alarm_set",
+   "play_radio"
+  ],
+  [
+   "alarm_set",
+   "qa_currency"
+  ],
+  [
+   "alarm_set",
+   "qa_definition"
+  ],
+  [
+   "alarm_set",
+   "qa_factoid"
+  ],
+  [
+   "alarm_set",
+   "qa_stock"
+  ],
+  [
+   "alarm_set",
+   "social_post"
+  ],
+  [
+   "alarm_set",
+   "takeaway_order"
+  ],
+  [
+   "alarm_set",
+   "takeaway_query"
+  ],
+  [
+   "alarm_set",
+   "transport_query"
+  ],
+  [
+   "alarm_set",
+   "transport_taxi"
+  ],
+  [
+   "alarm_set",
+   "transport_ticket"
+  ],
+  [
+   "alarm_set",
+   "weather_query"
+  ],
+  [
+   "audio_volume_up",
+   "calendar_query"
+  ],
+  [
+   "audio_volume_up",
+   "calendar_remove"
+  ],
+  [
+   "audio_volume_up",
+   "calendar_set"
+  ],
+  [
+   "audio_volume_up",
+   "cooking_recipe"
+  ],
+  [
+   "audio_volume_up",
+   "datetime_query"
+  ],
+  [
+   "audio_volume_up",
+   "email_query"
+  ],
+  [
+   "audio_volume_up",
+   "email_sendemail"
+  ],
+  [
+   "audio_volume_up",
+   "iot_coffee"
+  ],
+  [
+   "audio_volume_up",
+   "iot_hue_lightchange"
+  ],
+  [
+   "audio_volume_up",
+   "iot_hue_lightoff"
+  ],
+  [
+   "audio_volume_up",
+   "iot_hue_lightup"
+  ],
+  [
+   "audio_volume_up",
+   "lists_createoradd"
+  ],
+  [
+   "audio_volume_up",
+   "lists_remove"
+  ],
+  [
+   "audio_volume_up",
+   "news_query"
+  ],
+  [
+   "audio_volume_up",
+   "play_audiobook"
+  ],
+  [
+   "audio_volume_up",
+   "play_game"
+  ],
+  [
+   "audio_volume_up",
+   "play_music"
+  ],
+  [
+   "audio_volume_up",
+   "play_podcasts"
+  ],
+  [
+   "audio_volume_up",
+   "play_radio"
+  ],
+  [
+   "audio_volume_up",
+   "qa_currency"
+  ],
+  [
+   "audio_volume_up",
+   "qa_definition"
+  ],
+  [
+   "audio_volume_up",
+   "qa_factoid"
+  ],
+  [
+   "audio_volume_up",
+   "qa_stock"
+  ],
+  [
+   "audio_volume_up",
+   "social_post"
+  ],
+  [
+   "audio_volume_up",
+   "takeaway_order"
+  ],
+  [
+   "audio_volume_up",
+   "takeaway_query"
+  ],
+  [
+   "audio_volume_up",
+   "transport_query"
+  ],
+  [
+   "audio_volume_up",
+   "transport_taxi"
+  ],
+  [
+   "audio_volume_up",
+   "transport_ticket"
+  ],
+  [
+   "audio_volume_up",
+   "weather_query"
+  ],
+  [
+   "calendar_query",
+   "calendar_remove"
+  ],
+  [
+   "calendar_query",
+   "calendar_set"
+  ],
+  [
+   "calendar_query",
+   "cooking_recipe"
+  ],
+  [
+   "calendar_query",
+   "datetime_query"
+  ],
+  [
+   "calendar_query",
+   "email_query"
+  ],
+  [
+   "calendar_query",
+   "email_sendemail"
+  ],
+  [
+   "calendar_query",
+   "iot_coffee"
+  ],
+  [
+   "calendar_query",
+   "iot_hue_lightchange"
+  ],
+  [
+   "calendar_query",
+   "iot_hue_lightoff"
+  ],
+  [
+   "calendar_query",
+   "iot_hue_lightup"
+  ],
+  [
+   "calendar_query",
+   "lists_createoradd"
+  ],
+  [
+   "calendar_query",
+   "lists_remove"
+  ],
+  [
+   "calendar_query",
+   "news_query"
+  ],
+  [
+   "calendar_query",
+   "play_audiobook"
+  ],
+  [
+   "calendar_query",
+   "play_game"
+  ],
+  [
+   "calendar_query",
+   "play_music"
+  ],
+  [
+   "calendar_query",
+   "play_podcasts"
+  ],
+  [
+   "calendar_query",
+   "play_radio"
+  ],
+  [
+   "calendar_query",
+   "qa_currency"
+  ],
+  [
+   "calendar_query",
+   "qa_definition"
+  ],
+  [
+   "calendar_query",
+   "qa_factoid"
+  ],
+  [
+   "calendar_query",
+   "qa_stock"
+  ],
+  [
+   "calendar_query",
+   "social_post"
+  ],
+  [
+   "calendar_query",
+   "takeaway_order"
+  ],
+  [
+   "calendar_query",
+   "takeaway_query"
+  ],
+  [
+   "calendar_query",
+   "transport_query"
+  ],
+  [
+   "calendar_query",
+   "transport_taxi"
+  ],
+  [
+   "calendar_query",
+   "transport_ticket"
+  ],
+  [
+   "calendar_query",
+   "weather_query"
+  ],
+  [
+   "calendar_remove",
+   "calendar_set"
+  ],
+  [
+   "calendar_remove",
+   "cooking_recipe"
+  ],
+  [
+   "calendar_remove",
+   "datetime_query"
+  ],
+  [
+   "calendar_remove",
+   "email_query"
+  ],
+  [
+   "calendar_remove",
+   "email_sendemail"
+  ],
+  [
+   "calendar_remove",
+   "iot_coffee"
+  ],
+  [
+   "calendar_remove",
+   "iot_hue_lightchange"
+  ],
+  [
+   "calendar_remove",
+   "iot_hue_lightoff"
+  ],
+  [
+   "calendar_remove",
+   "iot_hue_lightup"
+  ],
+  [
+   "calendar_remove",
+   "lists_createoradd"
+  ],
+  [
+   "calendar_remove",
+   "lists_remove"
+  ],
+  [
+   "calendar_remove",
+   "news_query"
+  ],
+  [
+   "calendar_remove",
+   "play_audiobook"
+  ],
+  [
+   "calendar_remove",
+   "play_game"
+  ],
+  [
+   "calendar_remove",
+   "play_music"
+  ],
+  [
+   "calendar_remove",
+   "play_podcasts"
+  ],
+  [
+   "calendar_remove",
+   "play_radio"
+  ],
+  [
+   "calendar_remove",
+   "qa_currency"
+  ],
+  [
+   "calendar_remove",
+   "qa_definition"
+  ],
+  [
+   "calendar_remove",
+   "qa_factoid"
+  ],
+  [
+   "calendar_remove",
+   "qa_stock"
+  ],
+  [
+   "calendar_remove",
+   "social_post"
+  ],
+  [
+   "calendar_remove",
+   "takeaway_order"
+  ],
+  [
+   "calendar_remove",
+   "takeaway_query"
+  ],
+  [
+   "calendar_remove",
+   "transport_query"
+  ],
+  [
+   "calendar_remove",
+   "transport_taxi"
+  ],
+  [
+   "calendar_remove",
+   "transport_ticket"
+  ],
+  [
+   "calendar_remove",
+   "weather_query"
+  ],
+  [
+   "calendar_set",
+   "cooking_recipe"
+  ],
+  [
+   "calendar_set",
+   "datetime_query"
+  ],
+  [
+   "calendar_set",
+   "email_query"
+  ],
+  [
+   "calendar_set",
+   "email_sendemail"
+  ],
+  [
+   "calendar_set",
+   "iot_coffee"
+  ],
+  [
+   "calendar_set",
+   "iot_hue_lightchange"
+  ],
+  [
+   "calendar_set",
+   "iot_hue_lightoff"
+  ],
+  [
+   "calendar_set",
+   "iot_hue_lightup"
+  ],
+  [
+   "calendar_set",
+   "lists_createoradd"
+  ],
+  [
+   "calendar_set",
+   "lists_remove"
+  ],
+  [
+   "calendar_set",
+   "news_query"
+  ],
+  [
+   "calendar_set",
+   "play_audiobook"
+  ],
+  [
+   "calendar_set",
+   "play_game"
+  ],
+  [
+   "calendar_set",
+   "play_music"
+  ],
+  [
+   "calendar_set",
+   "play_podcasts"
+  ],
+  [
+   "calendar_set",
+   "play_radio"
+  ],
+  [
+   "calendar_set",
+   "qa_currency"
+  ],
+  [
+   "calendar_set",
+   "qa_definition"
+  ],
+  [
+   "calendar_set",
+   "qa_factoid"
+  ],
+  [
+   "calendar_set",
+   "qa_stock"
+  ],
+  [
+   "calendar_set",
+   "social_post"
+  ],
+  [
+   "calendar_set",
+   "takeaway_order"
+  ],
+  [
+   "calendar_set",
+   "takeaway_query"
+  ],
+  [
+   "calendar_set",
+   "transport_query"
+  ],
+  [
+   "calendar_set",
+   "transport_taxi"
+  ],
+  [
+   "calendar_set",
+   "transport_ticket"
+  ],
+  [
+   "calendar_set",
+   "weather_query"
+  ],
+  [
+   "cooking_recipe",
+   "datetime_query"
+  ],
+  [
+   "cooking_recipe",
+   "email_query"
+  ],
+  [
+   "cooking_recipe",
+   "email_sendemail"
+  ],
+  [
+   "cooking_recipe",
+   "iot_coffee"
+  ],
+  [
+   "cooking_recipe",
+   "iot_hue_lightchange"
+  ],
+  [
+   "cooking_recipe",
+   "iot_hue_lightoff"
+  ],
+  [
+   "cooking_recipe",
+   "iot_hue_lightup"
+  ],
+  [
+   "cooking_recipe",
+   "lists_createoradd"
+  ],
+  [
+   "cooking_recipe",
+   "lists_remove"
+  ],
+  [
+   "cooking_recipe",
+   "news_query"
+  ],
+  [
+   "cooking_recipe",
+   "play_audiobook"
+  ],
+  [
+   "cooking_recipe",
+   "play_game"
+  ],
+  [
+   "cooking_recipe",
+   "play_music"
+  ],
+  [
+   "cooking_recipe",
+   "play_podcasts"
+  ],
+  [
+   "cooking_recipe",
+   "play_radio"
+  ],
+  [
+   "cooking_recipe",
+   "qa_currency"
+  ],
+  [
+   "cooking_recipe",
+   "qa_definition"
+  ],
+  [
+   "cooking_recipe",
+   "qa_factoid"
+  ],
+  [
+   "cooking_recipe",
+   "qa_stock"
+  ],
+  [
+   "cooking_recipe",
+   "social_post"
+  ],
+  [
+   "cooking_recipe",
+   "takeaway_order"
+  ],
+  [
+   "cooking_recipe",
+   "takeaway_query"
+  ],
+  [
+   "cooking_recipe",
+   "transport_query"
+  ],
+  [
+   "cooking_recipe",
+   "transport_taxi"
+  ],
+  [
+   "cooking_recipe",
+   "transport_ticket"
+  ],
+  [
+   "cooking_recipe",
+   "weather_query"
+  ],
+  [
+   "datetime_query",
+   "email_query"
+  ],
+  [
+   "datetime_query",
+   "email_sendemail"
+  ],
+  [
+   "datetime_query",
+   "iot_coffee"
+  ],
+  [
+   "datetime_query",
+   "iot_hue_lightchange"
+  ],
+  [
+   "datetime_query",
+   "iot_hue_lightoff"
+  ],
+  [
+   "datetime_query",
+   "iot_hue_lightup"
+  ],
+  [
+   "datetime_query",
+   "lists_createoradd"
+  ],
+  [
+   "datetime_query",
+   "lists_remove"
+  ],
+  [
+   "datetime_query",
+   "news_query"
+  ],
+  [
+   "datetime_query",
+   "play_audiobook"
+  ],
+  [
+   "datetime_query",
+   "play_game"
+  ],
+  [
+   "datetime_query",
+   "play_music"
+  ],
+  [
+   "datetime_query",
+   "play_podcasts"
+  ],
+  [
+   "datetime_query",
+   "play_radio"
+  ],
+  [
+   "datetime_query",
+   "qa_currency"
+  ],
+  [
+   "datetime_query",
+   "qa_definition"
+  ],
+  [
+   "datetime_query",
+   "qa_factoid"
+  ],
+  [
+   "datetime_query",
+   "qa_stock"
+  ],
+  [
+   "datetime_query",
+   "social_post"
+  ],
+  [
+   "datetime_query",
+   "takeaway_order"
+  ],
+  [
+   "datetime_query",
+   "takeaway_query"
+  ],
+  [
+   "datetime_query",
+   "transport_query"
+  ],
+  [
+   "datetime_query",
+   "transport_taxi"
+  ],
+  [
+   "datetime_query",
+   "transport_ticket"
+  ],
+  [
+   "datetime_query",
+   "weather_query"
+  ],
+  [
+   "email_query",
+   "email_sendemail"
+  ],
+  [
+   "email_query",
+   "iot_coffee"
+  ],
+  [
+   "email_query",
+   "iot_hue_lightchange"
+  ],
+  [
+   "email_query",
+   "iot_hue_lightoff"
+  ],
+  [
+   "email_query",
+   "iot_hue_lightup"
+  ],
+  [
+   "email_query",
+   "lists_createoradd"
+  ],
+  [
+   "email_query",
+   "lists_remove"
+  ],
+  [
+   "email_query",
+   "news_query"
+  ],
+  [
+   "email_query",
+   "play_audiobook"
+  ],
+  [
+   "email_query",
+   "play_game"
+  ],
+  [
+   "email_query",
+   "play_music"
+  ],
+  [
+   "email_query",
+   "play_podcasts"
+  ],
+  [
+   "email_query",
+   "play_radio"
+  ],
+  [
+   "email_query",
+   "qa_currency"
+  ],
+  [
+   "email_query",
+   "qa_definition"
+  ],
+  [
+   "email_query",
+   "qa_factoid"
+  ],
+  [
+   "email_query",
+   "qa_stock"
+  ],
+  [
+   "email_query",
+   "social_post"
+  ],
+  [
+   "email_query",
+   "takeaway_order"
+  ],
+  [
+   "email_query",
+   "takeaway_query"
+  ],
+  [
+   "email_query",
+   "transport_query"
+  ],
+  [
+   "email_query",
+   "transport_taxi"
+  ],
+  [
+   "email_query",
+   "transport_ticket"
+  ],
+  [
+   "email_query",
+   "weather_query"
+  ],
+  [
+   "email_sendemail",
+   "iot_coffee"
+  ],
+  [
+   "email_sendemail",
+   "iot_hue_lightchange"
+  ],
+  [
+   "email_sendemail",
+   "iot_hue_lightoff"
+  ],
+  [
+   "email_sendemail",
+   "iot_hue_lightup"
+  ],
+  [
+   "email_sendemail",
+   "lists_createoradd"
+  ],
+  [
+   "email_sendemail",
+   "lists_remove"
+  ],
+  [
+   "email_sendemail",
+   "news_query"
+  ],
+  [
+   "email_sendemail",
+   "play_audiobook"
+  ],
+  [
+   "email_sendemail",
+   "play_game"
+  ],
+  [
+   "email_sendemail",
+   "play_music"
+  ],
+  [
+   "email_sendemail",
+   "play_podcasts"
+  ],
+  [
+   "email_sendemail",
+   "play_radio"
+  ],
+  [
+   "email_sendemail",
+   "qa_currency"
+  ],
+  [
+   "email_sendemail",
+   "qa_definition"
+  ],
+  [
+   "email_sendemail",
+   "qa_factoid"
+  ],
+  [
+   "email_sendemail",
+   "qa_stock"
+  ],
+  [
+   "email_sendemail",
+   "social_post"
+  ],
+  [
+   "email_sendemail",
+   "takeaway_order"
+  ],
+  [
+   "email_sendemail",
+   "takeaway_query"
+  ],
+  [
+   "email_sendemail",
+   "transport_query"
+  ],
+  [
+   "email_sendemail",
+   "transport_taxi"
+  ],
+  [
+   "email_sendemail",
+   "transport_ticket"
+  ],
+  [
+   "email_sendemail",
+   "weather_query"
+  ],
+  [
+   "iot_coffee",
+   "iot_hue_lightchange"
+  ],
+  [
+   "iot_coffee",
+   "iot_hue_lightoff"
+  ],
+  [
+   "iot_coffee",
+   "iot_hue_lightup"
+  ],
+  [
+   "iot_coffee",
+   "lists_createoradd"
+  ],
+  [
+   "iot_coffee",
+   "lists_remove"
+  ],
+  [
+   "iot_coffee",
+   "news_query"
+  ],
+  [
+   "iot_coffee",
+   "play_audiobook"
+  ],
+  [
+   "iot_coffee",
+   "play_game"
+  ],
+  [
+   "iot_coffee",
+   "play_music"
+  ],
+  [
+   "iot_coffee",
+   "play_podcasts"
+  ],
+  [
+   "iot_coffee",
+   "play_radio"
+  ],
+  [
+   "iot_coffee",
+   "qa_currency"
+  ],
+  [
+   "iot_coffee",
+   "qa_definition"
+  ],
+  [
+   "iot_coffee",
+   "qa_factoid"
+  ],
+  [
+   "iot_coffee",
+   "qa_stock"
+  ],
+  [
+   "iot_coffee",
+   "social_post"
+  ],
+  [
+   "iot_coffee",
+   "takeaway_order"
+  ],
+  [
+   "iot_coffee",
+   "takeaway_query"
+  ],
+  [
+   "iot_coffee",
+   "transport_query"
+  ],
+  [
+   "iot_coffee",
+   "transport_taxi"
+  ],
+  [
+   "iot_coffee",
+   "transport_ticket"
+  ],
+  [
+   "iot_coffee",
+   "weather_query"
+  ],
+  [
+   "iot_hue_lightchange",
+   "iot_hue_lightoff"
+  ],
+  [
+   "iot_hue_lightchange",
+   "iot_hue_lightup"
+  ],
+  [
+   "iot_hue_lightchange",
+   "lists_createoradd"
+  ],
+  [
+   "iot_hue_lightchange",
+   "lists_remove"
+  ],
+  [
+   "iot_hue_lightchange",
+   "news_query"
+  ],
+  [
+   "iot_hue_lightchange",
+   "play_audiobook"
+  ],
+  [
+   "iot_hue_lightchange",
+   "play_game"
+  ],
+  [
+   "iot_hue_lightchange",
+   "play_music"
+  ],
+  [
+   "iot_hue_lightchange",
+   "play_podcasts"
+  ],
+  [
+   "iot_hue_lightchange",
+   "play_radio"
+  ],
+  [
+   "iot_hue_lightchange",
+   "qa_currency"
+  ],
+  [
+   "iot_hue_lightchange",
+   "qa_definition"
+  ],
+  [
+   "iot_hue_lightchange",
+   "qa_factoid"
+  ],
+  [
+   "iot_hue_lightchange",
+   "qa_stock"
+  ],
+  [
+   "iot_hue_lightchange",
+   "social_post"
+  ],
+  [
+   "iot_hue_lightchange",
+   "takeaway_order"
+  ],
+  [
+   "iot_hue_lightchange",
+   "takeaway_query"
+  ],
+  [
+   "iot_hue_lightchange",
+   "transport_query"
+  ],
+  [
+   "iot_hue_lightchange",
+   "transport_taxi"
+  ],
+  [
+   "iot_hue_lightchange",
+   "transport_ticket"
+  ],
+  [
+   "iot_hue_lightchange",
+   "weather_query"
+  ],
+  [
+   "iot_hue_lightoff",
+   "iot_hue_lightup"
+  ],
+  [
+   "iot_hue_lightoff",
+   "lists_createoradd"
+  ],
+  [
+   "iot_hue_lightoff",
+   "lists_remove"
+  ],
+  [
+   "iot_hue_lightoff",
+   "news_query"
+  ],
+  [
+   "iot_hue_lightoff",
+   "play_audiobook"
+  ],
+  [
+   "iot_hue_lightoff",
+   "play_game"
+  ],
+  [
+   "iot_hue_lightoff",
+   "play_music"
+  ],
+  [
+   "iot_hue_lightoff",
+   "play_podcasts"
+  ],
+  [
+   "iot_hue_lightoff",
+   "play_radio"
+  ],
+  [
+   "iot_hue_lightoff",
+   "qa_currency"
+  ],
+  [
+   "iot_hue_lightoff",
+   "qa_definition"
+  ],
+  [
+   "iot_hue_lightoff",
+   "qa_factoid"
+  ],
+  [
+   "iot_hue_lightoff",
+   "qa_stock"
+  ],
+  [
+   "iot_hue_lightoff",
+   "social_post"
+  ],
+  [
+   "iot_hue_lightoff",
+   "takeaway_order"
+  ],
+  [
+   "iot_hue_lightoff",
+   "takeaway_query"
+  ],
+  [
+   "iot_hue_lightoff",
+   "transport_query"
+  ],
+  [
+   "iot_hue_lightoff",
+   "transport_taxi"
+  ],
+  [
+   "iot_hue_lightoff",
+   "transport_ticket"
+  ],
+  [
+   "iot_hue_lightoff",
+   "weather_query"
+  ],
+  [
+   "iot_hue_lightup",
+   "lists_createoradd"
+  ],
+  [
+   "iot_hue_lightup",
+   "lists_remove"
+  ],
+  [
+   "iot_hue_lightup",
+   "news_query"
+  ],
+  [
+   "iot_hue_lightup",
+   "play_audiobook"
+  ],
+  [
+   "iot_hue_lightup",
+   "play_game"
+  ],
+  [
+   "iot_hue_lightup",
+   "play_music"
+  ],
+  [
+   "iot_hue_lightup",
+   "play_podcasts"
+  ],
+  [
+   "iot_hue_lightup",
+   "play_radio"
+  ],
+  [
+   "iot_hue_lightup",
+   "qa_currency"
+  ],
+  [
+   "iot_hue_lightup",
+   "qa_definition"
+  ],
+  [
+   "iot_hue_lightup",
+   "qa_factoid"
+  ],
+  [
+   "iot_hue_lightup",
+   "qa_stock"
+  ],
+  [
+   "iot_hue_lightup",
+   "social_post"
+  ],
+  [
+   "iot_hue_lightup",
+   "takeaway_order"
+  ],
+  [
+   "iot_hue_lightup",
+   "takeaway_query"
+  ],
+  [
+   "iot_hue_lightup",
+   "transport_query"
+  ],
+  [
+   "iot_hue_lightup",
+   "transport_taxi"
+  ],
+  [
+   "iot_hue_lightup",
+   "transport_ticket"
+  ],
+  [
+   "iot_hue_lightup",
+   "weather_query"
+  ],
+  [
+   "lists_createoradd",
+   "lists_remove"
+  ],
+  [
+   "lists_createoradd",
+   "news_query"
+  ],
+  [
+   "lists_createoradd",
+   "play_audiobook"
+  ],
+  [
+   "lists_createoradd",
+   "play_game"
+  ],
+  [
+   "lists_createoradd",
+   "play_music"
+  ],
+  [
+   "lists_createoradd",
+   "play_podcasts"
+  ],
+  [
+   "lists_createoradd",
+   "play_radio"
+  ],
+  [
+   "lists_createoradd",
+   "qa_currency"
+  ],
+  [
+   "lists_createoradd",
+   "qa_definition"
+  ],
+  [
+   "lists_createoradd",
+   "qa_factoid"
+  ],
+  [
+   "lists_createoradd",
+   "qa_stock"
+  ],
+  [
+   "lists_createoradd",
+   "social_post"
+  ],
+  [
+   "lists_createoradd",
+   "takeaway_order"
+  ],
+  [
+   "lists_createoradd",
+   "takeaway_query"
+  ],
+  [
+   "lists_createoradd",
+   "transport_query"
+  ],
+  [
+   "lists_createoradd",
+   "transport_taxi"
+  ],
+  [
+   "lists_createoradd",
+   "transport_ticket"
+  ],
+  [
+   "lists_createoradd",
+   "weather_query"
+  ],
+  [
+   "lists_remove",
+   "news_query"
+  ],
+  [
+   "lists_remove",
+   "play_audiobook"
+  ],
+  [
+   "lists_remove",
+   "play_game"
+  ],
+  [
+   "lists_remove",
+   "play_music"
+  ],
+  [
+   "lists_remove",
+   "play_podcasts"
+  ],
+  [
+   "lists_remove",
+   "play_radio"
+  ],
+  [
+   "lists_remove",
+   "qa_currency"
+  ],
+  [
+   "lists_remove",
+   "qa_definition"
+  ],
+  [
+   "lists_remove",
+   "qa_factoid"
+  ],
+  [
+   "lists_remove",
+   "qa_stock"
+  ],
+  [
+   "lists_remove",
+   "social_post"
+  ],
+  [
+   "lists_remove",
+   "takeaway_order"
+  ],
+  [
+   "lists_remove",
+   "takeaway_query"
+  ],
+  [
+   "lists_remove",
+   "transport_query"
+  ],
+  [
+   "lists_remove",
+   "transport_taxi"
+  ],
+  [
+   "lists_remove",
+   "transport_ticket"
+  ],
+  [
+   "lists_remove",
+   "weather_query"
+  ],
+  [
+   "news_query",
+   "play_audiobook"
+  ],
+  [
+   "news_query",
+   "play_game"
+  ],
+  [
+   "news_query",
+   "play_music"
+  ],
+  [
+   "news_query",
+   "play_podcasts"
+  ],
+  [
+   "news_query",
+   "play_radio"
+  ],
+  [
+   "news_query",
+   "qa_currency"
+  ],
+  [
+   "news_query",
+   "qa_definition"
+  ],
+  [
+   "news_query",
+   "qa_factoid"
+  ],
+  [
+   "news_query",
+   "qa_stock"
+  ],
+  [
+   "news_query",
+   "social_post"
+  ],
+  [
+   "news_query",
+   "takeaway_order"
+  ],
+  [
+   "news_query",
+   "takeaway_query"
+  ],
+  [
+   "news_query",
+   "transport_query"
+  ],
+  [
+   "news_query",
+   "transport_taxi"
+  ],
+  [
+   "news_query",
+   "transport_ticket"
+  ],
+  [
+   "news_query",
+   "weather_query"
+  ],
+  [
+   "play_audiobook",
+   "play_game"
+  ],
+  [
+   "play_audiobook",
+   "play_music"
+  ],
+  [
+   "play_audiobook",
+   "play_podcasts"
+  ],
+  [
+   "play_audiobook",
+   "play_radio"
+  ],
+  [
+   "play_audiobook",
+   "qa_currency"
+  ],
+  [
+   "play_audiobook",
+   "qa_definition"
+  ],
+  [
+   "play_audiobook",
+   "qa_factoid"
+  ],
+  [
+   "play_audiobook",
+   "qa_stock"
+  ],
+  [
+   "play_audiobook",
+   "social_post"
+  ],
+  [
+   "play_audiobook",
+   "takeaway_order"
+  ],
+  [
+   "play_audiobook",
+   "takeaway_query"
+  ],
+  [
+   "play_audiobook",
+   "transport_query"
+  ],
+  [
+   "play_audiobook",
+   "transport_taxi"
+  ],
+  [
+   "play_audiobook",
+   "transport_ticket"
+  ],
+  [
+   "play_audiobook",
+   "weather_query"
+  ],
+  [
+   "play_game",
+   "play_music"
+  ],
+  [
+   "play_game",
+   "play_podcasts"
+  ],
+  [
+   "play_game",
+   "play_radio"
+  ],
+  [
+   "play_game",
+   "qa_currency"
+  ],
+  [
+   "play_game",
+   "qa_definition"
+  ],
+  [
+   "play_game",
+   "qa_factoid"
+  ],
+  [
+   "play_game",
+   "qa_stock"
+  ],
+  [
+   "play_game",
+   "social_post"
+  ],
+  [
+   "play_game",
+   "takeaway_order"
+  ],
+  [
+   "play_game",
+   "takeaway_query"
+  ],
+  [
+   "play_game",
+   "transport_query"
+  ],
+  [
+   "play_game",
+   "transport_taxi"
+  ],
+  [
+   "play_game",
+   "transport_ticket"
+  ],
+  [
+   "play_game",
+   "weather_query"
+  ],
+  [
+   "play_music",
+   "play_podcasts"
+  ],
+  [
+   "play_music",
+   "play_radio"
+  ],
+  [
+   "play_music",
+   "qa_currency"
+  ],
+  [
+   "play_music",
+   "qa_definition"
+  ],
+  [
+   "play_music",
+   "qa_factoid"
+  ],
+  [
+   "play_music",
+   "qa_stock"
+  ],
+  [
+   "play_music",
+   "social_post"
+  ],
+  [
+   "play_music",
+   "takeaway_order"
+  ],
+  [
+   "play_music",
+   "takeaway_query"
+  ],
+  [
+   "play_music",
+   "transport_query"
+  ],
+  [
+   "play_music",
+   "transport_taxi"
+  ],
+  [
+   "play_music",
+   "transport_ticket"
+  ],
+  [
+   "play_music",
+   "weather_query"
+  ],
+  [
+   "play_podcasts",
+   "play_radio"
+  ],
+  [
+   "play_podcasts",
+   "qa_currency"
+  ],
+  [
+   "play_podcasts",
+   "qa_definition"
+  ],
+  [
+   "play_podcasts",
+   "qa_factoid"
+  ],
+  [
+   "play_podcasts",
+   "qa_stock"
+  ],
+  [
+   "play_podcasts",
+   "social_post"
+  ],
+  [
+   "play_podcasts",
+   "takeaway_order"
+  ],
+  [
+   "play_podcasts",
+   "takeaway_query"
+  ],
+  [
+   "play_podcasts",
+   "transport_query"
+  ],
+  [
+   "play_podcasts",
+   "transport_taxi"
+  ],
+  [
+   "play_podcasts",
+   "transport_ticket"
+  ],
+  [
+   "play_podcasts",
+   "weather_query"
+  ],
+  [
+   "play_radio",
+   "qa_currency"
+  ],
+  [
+   "play_radio",
+   "qa_definition"
+  ],
+  [
+   "play_radio",
+   "qa_factoid"
+  ],
+  [
+   "play_radio",
+   "qa_stock"
+  ],
+  [
+   "play_radio",
+   "social_post"
+  ],
+  [
+   "play_radio",
+   "takeaway_order"
+  ],
+  [
+   "play_radio",
+   "takeaway_query"
+  ],
+  [
+   "play_radio",
+   "transport_query"
+  ],
+  [
+   "play_radio",
+   "transport_taxi"
+  ],
+  [
+   "play_radio",
+   "transport_ticket"
+  ],
+  [
+   "play_radio",
+   "weather_query"
+  ],
+  [
+   "qa_currency",
+   "qa_definition"
+  ],
+  [
+   "qa_currency",
+   "qa_factoid"
+  ],
+  [
+   "qa_currency",
+   "qa_stock"
+  ],
+  [
+   "qa_currency",
+   "social_post"
+  ],
+  [
+   "qa_currency",
+   "takeaway_order"
+  ],
+  [
+   "qa_currency",
+   "takeaway_query"
+  ],
+  [
+   "qa_currency",
+   "transport_query"
+  ],
+  [
+   "qa_currency",
+   "transport_taxi"
+  ],
+  [
+   "qa_currency",
+   "transport_ticket"
+  ],
+  [
+   "qa_currency",
+   "weather_query"
+  ],
+  [
+   "qa_definition",
+   "qa_factoid"
+  ],
+  [
+   "qa_definition",
+   "qa_stock"
+  ],
+  [
+   "qa_definition",
+   "social_post"
+  ],
+  [
+   "qa_definition",
+   "takeaway_order"
+  ],
+  [
+   "qa_definition",
+   "takeaway_query"
+  ],
+  [
+   "qa_definition",
+   "transport_query"
+  ],
+  [
+   "qa_definition",
+   "transport_taxi"
+  ],
+  [
+   "qa_definition",
+   "transport_ticket"
+  ],
+  [
+   "qa_definition",
+   "weather_query"
+  ],
+  [
+   "qa_factoid",
+   "qa_stock"
+  ],
+  [
+   "qa_factoid",
+   "social_post"
+  ],
+  [
+   "qa_factoid",
+   "takeaway_order"
+  ],
+  [
+   "qa_factoid",
+   "takeaway_query"
+  ],
+  [
+   "qa_factoid",
+   "transport_query"
+  ],
+  [
+   "qa_factoid",
+   "transport_taxi"
+  ],
+  [
+   "qa_factoid",
+   "transport_ticket"
+  ],
+  [
+   "qa_factoid",
+   "weather_query"
+  ],
+  [
+   "qa_stock",
+   "social_post"
+  ],
+  [
+   "qa_stock",
+   "takeaway_order"
+  ],
+  [
+   "qa_stock",
+   "takeaway_query"
+  ],
+  [
+   "qa_stock",
+   "transport_query"
+  ],
+  [
+   "qa_stock",
+   "transport_taxi"
+  ],
+  [
+   "qa_stock",
+   "transport_ticket"
+  ],
+  [
+   "qa_stock",
+   "weather_query"
+  ],
+  [
+   "social_post",
+   "takeaway_order"
+  ],
+  [
+   "social_post",
+   "takeaway_query"
+  ],
+  [
+   "social_post",
+   "transport_query"
+  ],
+  [
+   "social_post",
+   "transport_taxi"
+  ],
+  [
+   "social_post",
+   "transport_ticket"
+  ],
+  [
+   "social_post",
+   "weather_query"
+  ],
+  [
+   "takeaway_order",
+   "takeaway_query"
+  ],
+  [
+   "takeaway_order",
+   "transport_query"
+  ],
+  [
+   "takeaway_order",
+   "transport_taxi"
+  ],
+  [
+   "takeaway_order",
+   "transport_ticket"
+  ],
+  [
+   "takeaway_order",
+   "weather_query"
+  ],
+  [
+   "takeaway_query",
+   "transport_query"
+  ],
+  [
+   "takeaway_query",
+   "transport_taxi"
+  ],
+  [
+   "takeaway_query",
+   "transport_ticket"
+  ],
+  [
+   "takeaway_query",
+   "weather_query"
+  ],
+  [
+   "transport_query",
+   "transport_taxi"
+  ],
+  [
+   "transport_query",
+   "transport_ticket"
+  ],
+  [
+   "transport_query",
+   "weather_query"
+  ],
+  [
+   "transport_taxi",
+   "transport_ticket"
+  ],
+  [
+   "transport_taxi",
+   "weather_query"
+  ],
+  [
+   "transport_ticket",
+   "weather_query"
+  ]
+ ],
+ "separability": {
+  "general_quirky | qa_factoid": 0.8347,
+  "calendar_query | general_quirky": 0.862,
+  "recommendation_events | recommendation_movies": 0.8754,
+  "music_likeness | music_query": 0.8774,
+  "general_quirky | news_query": 0.8875,
+  "news_query | social_query": 0.8884,
+  "alarm_remove | alarm_set": 0.8896,
+  "calendar_query | recommendation_events": 0.8957,
+  "email_query | email_querycontact": 0.8996,
+  "iot_hue_lightchange | iot_hue_lightup": 0.9007,
+  "alarm_remove | calendar_remove": 0.9023,
+  "takeaway_order | takeaway_query": 0.9026,
+  "general_quirky | weather_query": 0.903,
+  "music_likeness | play_music": 0.9033,
+  "email_query | social_query": 0.9054,
+  "iot_hue_lightoff | iot_hue_lightup": 0.9057,
+  "transport_query | transport_ticket": 0.9065,
+  "email_querycontact | qa_factoid": 0.9085,
+  "music_query | recommendation_movies": 0.9085,
+  "play_audiobook | play_podcasts": 0.9091,
+  "cooking_recipe | general_quirky": 0.9094,
+  "general_quirky | qa_definition": 0.9107,
+  "recommendation_locations | recommendation_movies": 0.9107,
+  "recommendation_events | recommendation_locations": 0.9138,
+  "general_quirky | recommendation_locations": 0.9168,
+  "calendar_query | qa_factoid": 0.9178,
+  "play_game | play_radio": 0.9186,
+  "play_music | play_radio": 0.9189,
+  "calendar_query | calendar_set": 0.9201,
+  "calendar_set | general_quirky": 0.9213,
+  "email_querycontact | general_quirky": 0.9213,
+  "social_query | transport_traffic": 0.9228,
+  "calendar_query | email_querycontact": 0.9232,
+  "calendar_query | lists_query": 0.9232,
+  "alarm_query | alarm_remove": 0.9251,
+  "email_querycontact | recommendation_movies": 0.9257,
+  "general_quirky | recommendation_events": 0.9257,
+  "general_joke | recommendation_movies": 0.9261,
+  "lists_createoradd | lists_query": 0.9269,
+  "calendar_query | datetime_query": 0.9279,
+  "datetime_query | general_quirky": 0.9287,
+  "alarm_query | calendar_query": 0.9288,
+  "general_joke | general_quirky": 0.9288,
+  "general_quirky | lists_query": 0.9288,
+  "email_querycontact | news_query": 0.929,
+  "email_querycontact | transport_query": 0.929,
+  "news_query | qa_factoid": 0.9292,
+  "email_querycontact | lists_query": 0.9294,
+  "play_podcasts | play_radio": 0.9295,
+  "music_query | social_query": 0.9298,
+  "recommendation_events | transport_traffic": 0.9298,
+  "alarm_remove | lists_remove": 0.93,
+  "music_query | recommendation_events": 0.93,
+  "audio_volume_mute | iot_hue_lightoff": 0.9301,
+  "qa_definition | qa_factoid": 0.9307,
+  "email_querycontact | social_query": 0.931,
+  "lists_query | social_query": 0.9312,
+  "music_query | recommendation_locations": 0.9318,
+  "play_audiobook | play_radio": 0.9319,
+  "general_quirky | recommendation_movies": 0.932,
+  "recommendation_movies | transport_query": 0.932,
+  "calendar_query | news_query": 0.9322,
+  "play_audiobook | play_music": 0.9322,
+  "general_quirky | social_query": 0.9324,
+  "calendar_query | social_query": 0.9325,
+  "recommendation_movies | social_query": 0.9325,
+  "cooking_recipe | recommendation_locations": 0.9327,
+  "recommendation_events | social_query": 0.933,
+  "cooking_recipe | qa_definition": 0.9334,
+  "email_querycontact | email_sendemail": 0.9336,
+  "email_querycontact | qa_definition": 0.9338,
+  "cooking_recipe | qa_factoid": 0.9343,
+  "lists_query | lists_remove": 0.9345,
+  "recommendation_movies | transport_taxi": 0.9347,
+  "audio_volume_mute | audio_volume_up": 0.935,
+  "lists_query | recommendation_movies": 0.9352,
+  "play_audiobook | play_game": 0.9357,
+  "email_query | general_quirky": 0.9364,
+  "transport_query | transport_traffic": 0.9367,
+  "calendar_remove | lists_remove": 0.9372,
+  "email_querycontact | qa_stock": 0.9375,
+  "general_quirky | music_query": 0.938,
+  "alarm_remove | recommendation_movies": 0.9381,
+  "alarm_query | recommendation_movies": 0.9382,
+  "alarm_set | calendar_set": 0.9389,
+  "datetime_query | recommendation_movies": 0.9389,
+  "play_music | play_podcasts": 0.9396,
+  "email_querycontact | transport_traffic": 0.9397,
+  "cooking_recipe | recommendation_movies": 0.9399,
+  "alarm_query | alarm_set": 0.9401,
+  "qa_stock | recommendation_movies": 0.9402,
+  "music_query | qa_factoid": 0.9403,
+  "play_game | play_podcasts": 0.9406,
+  "recommendation_movies | takeaway_order": 0.941,
+  "lists_query | transport_traffic": 0.9421,
+  "datetime_query | qa_maths": 0.9424,
+  "iot_hue_lightchange | iot_hue_lightoff": 0.9426,
+  "music_query | play_music": 0.9428,
+  "email_querycontact | recommendation_events": 0.9429,
+  "lists_query | music_query": 0.9429,
+  "email_querycontact | qa_maths": 0.9435,
+  "iot_cleaning | play_game": 0.9436,
+  "email_querycontact | music_query": 0.9437,
+  "cooking_recipe | email_querycontact": 0.9441,
+  "iot_cleaning | play_audiobook": 0.9443,
+  "general_quirky | play_music": 0.9444,
+  "social_post | social_query": 0.9444,
+  "email_query | lists_query": 0.9451,
+  "email_querycontact | recommendation_locations": 0.9454,
+  "email_querycontact | music_likeness": 0.9455,
+  "qa_factoid | recommendation_movies": 0.9459,
+  "music_likeness | play_radio": 0.9462,
+  "lists_createoradd | lists_remove": 0.9467,
+  "email_query | news_query": 0.9469,
+  "calendar_query | recommendation_locations": 0.947,
+  "calendar_query | cooking_recipe": 0.9472,
+  "cooking_recipe | general_joke": 0.9472,
+  "alarm_query | transport_traffic": 0.9475,
+  "datetime_query | email_querycontact": 0.9475,
+  "recommendation_locations | transport_traffic": 0.9476,
+  "calendar_query | recommendation_movies": 0.948,
+  "music_likeness | play_podcasts": 0.948,
+  "news_query | recommendation_events": 0.948,
+  "cooking_recipe | music_query": 0.9481,
+  "lists_query | recommendation_locations": 0.9481,
+  "recommendation_locations | takeaway_order": 0.9481,
+  "qa_currency | recommendation_movies": 0.9484,
+  "general_quirky | music_likeness": 0.9486,
+  "email_querycontact | play_radio": 0.9487,
+  "music_query | news_query": 0.9487,
+  "qa_stock | social_query": 0.9487,
+  "audio_volume_up | play_audiobook": 0.9488,
+  "play_game | play_music": 0.949,
+  "qa_definition | qa_maths": 0.9491,
+  "qa_maths | recommendation_movies": 0.9491,
+  "qa_factoid | weather_query": 0.9492,
+  "lists_createoradd | recommendation_movies": 0.9494,
+  "news_query | recommendation_movies": 0.9495,
+  "general_joke | recommendation_locations": 0.9496,
+  "lists_createoradd | music_likeness": 0.9496,
+  "music_likeness | recommendation_locations": 0.9496,
+  "music_query | transport_query": 0.9496,
+  "lists_query | recommendation_events": 0.9497,
+  "general_quirky | transport_traffic": 0.9499,
+  "play_podcasts | recommendation_movies": 0.9501,
+  "cooking_recipe | transport_query": 0.9505,
+  "general_quirky | qa_stock": 0.9505,
+  "email_query | recommendation_movies": 0.9507,
+  "email_querycontact | weather_query": 0.9508,
+  "transport_traffic | weather_query": 0.9508,
+  "alarm_remove | iot_hue_lightoff": 0.9511,
+  "iot_cleaning | iot_coffee": 0.9511,
+  "recommendation_movies | transport_traffic": 0.9516,
+  "cooking_recipe | lists_query": 0.9517,
+  "alarm_query | datetime_query": 0.9518,
+  "lists_query | news_query": 0.9518,
+  "qa_definition | recommendation_movies": 0.9518,
+  "email_querycontact | transport_taxi": 0.9519,
+  "qa_factoid | transport_query": 0.9519,
+  "email_query | general_joke": 0.9522,
+  "email_query | transport_traffic": 0.9524,
+  "recommendation_locations | transport_query": 0.9524,
+  "email_querycontact | takeaway_order": 0.9527,
+  "iot_cleaning | play_radio": 0.9528,
+  "email_query | email_sendemail": 0.9533,
+  "calendar_query | music_query": 0.9534,
+  "cooking_recipe | qa_maths": 0.9535,
+  "iot_cleaning | play_podcasts": 0.9536,
+  "iot_coffee | recommendation_movies": 0.9537,
+  "qa_currency | qa_maths": 0.9537,
+  "alarm_remove | iot_cleaning": 0.9539,
+  "recommendation_movies | transport_ticket": 0.9539,
+  "datetime_query | qa_factoid": 0.954,
+  "qa_stock | recommendation_locations": 0.954,
+  "news_query | qa_definition": 0.9541,
+  "qa_factoid | recommendation_events": 0.9541,
+  "play_radio | recommendation_movies": 0.9542,
+  "calendar_query | qa_definition": 0.9543,
+  "lists_query | qa_stock": 0.9546,
+  "calendar_query | transport_traffic": 0.9548,
+  "qa_factoid | qa_maths": 0.9549,
+  "calendar_remove | calendar_set": 0.955,
+  "qa_stock | transport_query": 0.955,
+  "qa_maths | transport_query": 0.9554,
+  "general_quirky | play_game": 0.9556,
+  "alarm_remove | audio_volume_up": 0.9558,
+  "email_query | qa_factoid": 0.9559,
+  "general_joke | qa_definition": 0.9561,
+  "general_joke | social_query": 0.9565,
+  "recommendation_locations | takeaway_query": 0.9565,
+  "datetime_query | recommendation_events": 0.957,
+  "email_querycontact | transport_ticket": 0.957,
+  "news_query | transport_traffic": 0.957,
+  "alarm_query | email_querycontact": 0.9571,
+  "general_joke | news_query": 0.9571,
+  "recommendation_movies | takeaway_query": 0.9571,
+  "alarm_query | email_query": 0.9572,
+  "recommendation_events | transport_query": 0.9574,
+  "play_game | recommendation_movies": 0.9575,
+  "general_quirky | takeaway_query": 0.9576,
+  "music_likeness | play_audiobook": 0.9576,
+  "cooking_recipe | recommendation_events": 0.9577,
+  "general_joke | iot_coffee": 0.9577,
+  "music_likeness | social_post": 0.9578,
+  "qa_factoid | social_query": 0.9578,
+  "general_quirky | qa_maths": 0.9579,
+  "general_joke | play_podcasts": 0.9581,
+  "audio_volume_mute | iot_coffee": 0.9582,
+  "alarm_set | play_game": 0.9583,
+  "email_querycontact | social_post": 0.9583,
+  "iot_cleaning | iot_hue_lightup": 0.9583,
+  "calendar_query | takeaway_query": 0.9584,
+  "calendar_set | email_querycontact": 0.9585,
+  "iot_cleaning | iot_hue_lightoff": 0.9585,
+  "qa_stock | weather_query": 0.9586,
+  "qa_maths | qa_stock": 0.9587,
+  "general_joke | transport_query": 0.9588,
+  "audio_volume_mute | play_radio": 0.9589,
+  "general_quirky | social_post": 0.9589,
+  "news_query | recommendation_locations": 0.959,
+  "cooking_recipe | news_query": 0.9592,
+  "cooking_recipe | social_query": 0.9592,
+  "iot_cleaning | lists_createoradd": 0.9592,
+  "audio_volume_mute | play_audiobook": 0.9593,
+  "cooking_recipe | datetime_query": 0.9593,
+  "email_sendemail | qa_maths": 0.9594,
+  "music_likeness | play_game": 0.9594,
+  "qa_factoid | recommendation_locations": 0.9594,
+  "qa_maths | transport_ticket": 0.9595,
+  "audio_volume_mute | general_quirky": 0.9596,
+  "play_game | qa_maths": 0.9597,
+  "alarm_remove | qa_maths": 0.9598,
+  "calendar_query | transport_query": 0.9598,
+  "audio_volume_mute | takeaway_order": 0.9599,
+  "datetime_query | social_query": 0.9599,
+  "qa_maths | recommendation_locations": 0.96,
+  "email_sendemail | recommendation_movies": 0.9601,
+  "iot_hue_lightoff | takeaway_order": 0.9602,
+  "news_query | qa_stock": 0.9607,
+  "general_joke | music_query": 0.9609,
+  "music_query | play_radio": 0.9609,
+  "music_query | weather_query": 0.9609,
+  "calendar_query | qa_maths": 0.961,
+  "alarm_query | social_query": 0.9612,
+  "qa_factoid | takeaway_query": 0.9612,
+  "calendar_query | qa_stock": 0.9613,
+  "iot_hue_lightchange | music_likeness": 0.9613,
+  "alarm_query | music_query": 0.9614,
+  "lists_query | qa_factoid": 0.9614,
+  "qa_maths | transport_taxi": 0.9614,
+  "general_quirky | transport_query": 0.9617,
+  "iot_cleaning | recommendation_movies": 0.9617,
+  "play_game | transport_ticket": 0.9617,
+  "qa_maths | transport_traffic": 0.9618,
+  "iot_hue_lightoff | play_game": 0.9619,
+  "music_query | play_audiobook": 0.9619,
+  "audio_volume_mute | datetime_query": 0.962,
+  "lists_query | music_likeness": 0.962,
+  "music_likeness | recommendation_movies": 0.962,
+  "qa_definition | social_query": 0.962,
+  "cooking_recipe | weather_query": 0.9621,
+  "music_likeness | transport_ticket": 0.9621,
+  "music_query | qa_definition": 0.9621,
+  "cooking_recipe | music_likeness": 0.9623,
+  "general_joke | qa_factoid": 0.9624,
+  "iot_hue_lightoff | music_likeness": 0.9624,
+  "music_query | qa_maths": 0.9625,
+  "email_sendemail | general_quirky": 0.9626,
+  "general_joke | social_post": 0.9627,
+  "calendar_remove | iot_cleaning": 0.9628,
+  "email_querycontact | general_joke": 0.963,
+  "cooking_recipe | qa_stock": 0.9631,
+  "recommendation_movies | weather_query": 0.9631,
+  "datetime_query | transport_query": 0.9632,
+  "datetime_query | transport_traffic": 0.9632,
+  "email_query | qa_stock": 0.9632,
+  "audio_volume_mute | play_podcasts": 0.9633,
+  "audio_volume_up | recommendation_movies": 0.9633,
+  "qa_currency | qa_stock": 0.9633,
+  "alarm_set | audio_volume_mute": 0.9634,
+  "datetime_query | music_query": 0.9634,
+  "iot_hue_lightchange | recommendation_movies": 0.9636,
+  "qa_maths | social_post": 0.9636,
+  "music_likeness | takeaway_order": 0.9639,
+  "iot_cleaning | takeaway_order": 0.964,
+  "qa_definition | recommendation_locations": 0.964,
+  "music_likeness | qa_stock": 0.9641,
+  "audio_volume_up | play_radio": 0.9642,
+  "lists_remove | recommendation_movies": 0.9642,
+  "audio_volume_mute | social_query": 0.9643,
+  "calendar_remove | recommendation_movies": 0.9643,
+  "email_querycontact | play_podcasts": 0.9643,
+  "news_query | weather_query": 0.9643,
+  "qa_factoid | transport_traffic": 0.9643,
+  "alarm_remove | qa_stock": 0.9644,
+  "alarm_remove | transport_taxi": 0.9644,
+  "qa_stock | recommendation_events": 0.9646,
+  "alarm_remove | iot_hue_lightchange": 0.9647,
+  "audio_volume_mute | play_music": 0.9647,
+  "datetime_query | weather_query": 0.9647,
+  "email_query | music_query": 0.9647,
+  "recommendation_events | weather_query": 0.9647,
+  "email_sendemail | general_joke": 0.9649,
+  "iot_cleaning | lists_remove": 0.9649,
+  "music_query | play_podcasts": 0.9649,
+  "qa_maths | takeaway_order": 0.9649,
+  "calendar_query | general_joke": 0.965,
+  "lists_query | qa_maths": 0.965,
+  "qa_definition | recommendation_events": 0.965,
+  "alarm_query | iot_hue_lightoff": 0.9651,
+  "iot_hue_lightoff | recommendation_movies": 0.9651,
+  "audio_volume_mute | recommendation_movies": 0.9652,
+  "iot_coffee | play_game": 0.9652,
+  "news_query | qa_maths": 0.9653,
+  "email_querycontact | takeaway_query": 0.9654,
+  "qa_stock | transport_traffic": 0.9654,
+  "social_query | transport_query": 0.9654,
+  "alarm_remove | transport_ticket": 0.9655,
+  "cooking_recipe | takeaway_query": 0.9656,
+  "lists_remove | qa_maths": 0.9656,
+  "transport_taxi | transport_traffic": 0.9656,
+  "qa_stock | takeaway_query": 0.9657,
+  "alarm_query | news_query": 0.9658,
+  "general_quirky | play_radio": 0.9658,
+  "alarm_query | general_quirky": 0.9659,
+  "alarm_query | transport_query": 0.9659,
+  "music_query | transport_traffic": 0.9659,
+  "email_query | recommendation_locations": 0.966,
+  "qa_maths | weather_query": 0.966,
+  "alarm_query | iot_cleaning": 0.9662,
+  "alarm_remove | datetime_query": 0.9662,
+  "music_likeness | recommendation_events": 0.9662,
+  "alarm_remove | iot_coffee": 0.9663,
+  "audio_volume_mute | email_querycontact": 0.9663,
+  "datetime_query | qa_stock": 0.9663,
+  "qa_factoid | qa_stock": 0.9663,
+  "recommendation_locations | social_query": 0.9663,
+  "alarm_remove | audio_volume_mute": 0.9664,
+  "alarm_set | recommendation_movies": 0.9664,
+  "email_sendemail | music_likeness": 0.9665,
+  "iot_hue_lightup | recommendation_movies": 0.9665,
+  "transport_ticket | transport_traffic": 0.9665,
+  "email_sendemail | social_post": 0.9667,
+  "alarm_remove | music_likeness": 0.9668,
+  "iot_hue_lightoff | lists_remove": 0.9668,
+  "lists_query | social_post": 0.9668,
+  "lists_createoradd | play_game": 0.9669,
+  "play_game | transport_taxi": 0.9669,
+  "cooking_recipe | takeaway_order": 0.967,
+  "email_querycontact | play_music": 0.967,
+  "iot_cleaning | play_music": 0.967,
+  "iot_coffee | qa_maths": 0.967,
+  "calendar_query | weather_query": 0.9671,
+  "lists_remove | music_likeness": 0.9672,
+  "audio_volume_up | play_game": 0.9673,
+  "email_query | qa_maths": 0.9673,
+  "lists_query | play_radio": 0.9673,
+  "social_query | weather_query": 0.9673,
+  "takeaway_query | transport_query": 0.9673,
+  "email_querycontact | iot_cleaning": 0.9674,
+  "general_joke | lists_createoradd": 0.9674,
+  "datetime_query | lists_query": 0.9675,
+  "news_query | play_radio": 0.9676,
+  "alarm_remove | iot_hue_lightup": 0.9677,
+  "email_querycontact | lists_remove": 0.9677,
+  "email_sendemail | play_game": 0.9678,
+  "alarm_remove | play_radio": 0.9679,
+  "calendar_set | transport_taxi": 0.9679,
+  "iot_hue_lightup | lists_createoradd": 0.9679,
+  "calendar_query | calendar_remove": 0.968,
+  "general_joke | takeaway_query": 0.968,
+  "music_query | takeaway_order": 0.968,
+  "datetime_query | recommendation_locations": 0.9681,
+  "iot_cleaning | iot_hue_lightchange": 0.9681,
+  "lists_query | play_podcasts": 0.9681,
+  "audio_volume_mute | transport_query": 0.9682,
+  "audio_volume_mute | calendar_set": 0.9683,
+  "audio_volume_mute | news_query": 0.9683,
+  "audio_volume_up | play_music": 0.9683,
+  "iot_cleaning | transport_taxi": 0.9683,
+  "music_likeness | transport_query": 0.9683,
+  "alarm_query | lists_query": 0.9684,
+  "calendar_set | datetime_query": 0.9685,
+  "general_joke | play_audiobook": 0.9685,
+  "takeaway_order | transport_traffic": 0.9685,
+  "datetime_query | news_query": 0.9686,
+  "iot_cleaning | qa_maths": 0.9686,
+  "calendar_set | qa_maths": 0.9687,
+  "qa_stock | social_post": 0.9687,
+  "alarm_remove | transport_traffic": 0.9688,
+  "audio_volume_up | iot_cleaning": 0.9689,
+  "general_joke | play_music": 0.9689,
+  "general_joke | recommendation_events": 0.9689,
+  "iot_hue_lightchange | qa_maths": 0.9689,
+  "qa_factoid | social_post": 0.9689,
+  "general_joke | lists_query": 0.969,
+  "alarm_set | music_likeness": 0.9691,
+  "calendar_remove | qa_maths": 0.9691,
+  "calendar_set | music_likeness": 0.9691,
+  "news_query | transport_query": 0.9691,
+  "iot_hue_lightoff | qa_stock": 0.9692,
+  "audio_volume_mute | email_query": 0.9694,
+  "general_quirky | lists_createoradd": 0.9694,
+  "iot_hue_lightoff | recommendation_locations": 0.9694,
+  "qa_maths | takeaway_query": 0.9694,
+  "alarm_remove | recommendation_events": 0.9695,
+  "alarm_set | general_joke": 0.9695,
+  "iot_cleaning | lists_query": 0.9695,
+  "general_joke | play_radio": 0.9696,
+  "general_joke | music_likeness": 0.9697,
+  "lists_query | qa_definition": 0.9697,
+  "play_audiobook | qa_maths": 0.9697,
+  "social_query | takeaway_query": 0.9697,
+  "audio_volume_up | play_podcasts": 0.9698,
+  "audio_volume_mute | calendar_remove": 0.9699,
+  "iot_coffee | iot_hue_lightup": 0.9699,
+  "alarm_set | iot_cleaning": 0.9701,
+  "calendar_query | email_query": 0.9701,
+  "general_joke | qa_stock": 0.9702,
+  "cooking_recipe | iot_hue_lightoff": 0.9703,
+  "email_query | recommendation_events": 0.9703,
+  "music_likeness | qa_definition": 0.9703,
+  "audio_volume_mute | iot_cleaning": 0.9705,
+  "lists_createoradd | music_query": 0.9705,
+  "recommendation_movies | social_post": 0.9705,
+  "qa_definition | social_post": 0.9706,
+  "alarm_set | qa_maths": 0.9707,
+  "audio_volume_mute | transport_taxi": 0.9707,
+  "email_query | music_likeness": 0.9707,
+  "general_quirky | play_podcasts": 0.9707,
+  "music_likeness | takeaway_query": 0.9707,
+  "calendar_set | general_joke": 0.9708,
+  "calendar_set | qa_factoid": 0.9708,
+  "iot_hue_lightchange | takeaway_order": 0.9709,
+  "iot_hue_lightoff | play_radio": 0.9709,
+  "music_likeness | transport_traffic": 0.9709,
+  "calendar_set | cooking_recipe": 0.971,
+  "alarm_remove | email_querycontact": 0.9711,
+  "general_joke | qa_currency": 0.9711,
+  "lists_remove | recommendation_events": 0.9712,
+  "transport_query | weather_query": 0.9712,
+  "alarm_remove | music_query": 0.9713,
+  "alarm_remove | takeaway_order": 0.9713,
+  "alarm_remove | transport_query": 0.9714,
+  "calendar_query | music_likeness": 0.9714,
+  "iot_coffee | iot_hue_lightoff": 0.9714,
+  "audio_volume_mute | calendar_query": 0.9715,
+  "general_joke | transport_taxi": 0.9715,
+  "play_audiobook | recommendation_movies": 0.9715,
+  "takeaway_order | transport_ticket": 0.9715,
+  "alarm_remove | email_sendemail": 0.9716,
+  "email_sendemail | iot_cleaning": 0.9716,
+  "recommendation_events | takeaway_order": 0.9716,
+  "alarm_remove | play_podcasts": 0.9717,
+  "play_game | social_post": 0.9717,
+  "datetime_query | takeaway_query": 0.9718,
+  "play_podcasts | recommendation_events": 0.9718,
+  "cooking_recipe | transport_traffic": 0.9719,
+  "general_joke | transport_traffic": 0.9719,
+  "music_likeness | news_query": 0.9719,
+  "audio_volume_up | music_query": 0.972,
+  "calendar_remove | email_querycontact": 0.972,
+  "alarm_query | audio_volume_mute": 0.9721,
+  "play_podcasts | qa_maths": 0.9722,
+  "recommendation_events | takeaway_query": 0.9722,
+  "cooking_recipe | email_query": 0.9723,
+  "cooking_recipe | social_post": 0.9723,
+  "play_game | transport_query": 0.9723,
+  "calendar_query | play_game": 0.9724,
+  "calendar_remove | lists_query": 0.9724,
+  "general_joke | qa_maths": 0.9724,
+  "iot_hue_lightoff | music_query": 0.9724,
+  "takeaway_query | transport_traffic": 0.9724,
+  "audio_volume_mute | email_sendemail": 0.9725,
+  "audio_volume_mute | recommendation_locations": 0.9725,
+  "email_sendemail | qa_factoid": 0.9725,
+  "iot_cleaning | transport_traffic": 0.9725,
+  "play_radio | qa_maths": 0.9725,
+  "audio_volume_mute | qa_stock": 0.9726,
+  "lists_remove | play_music": 0.9726,
+  "play_game | takeaway_order": 0.9726,
+  "cooking_recipe | lists_createoradd": 0.9727,
+  "lists_createoradd | play_music": 0.9727,
+  "alarm_set | play_audiobook": 0.9728,
+  "calendar_remove | general_quirky": 0.9728,
+  "general_quirky | iot_cleaning": 0.9728,
+  "iot_cleaning | social_post": 0.9728,
+  "lists_remove | takeaway_order": 0.9728,
+  "qa_maths | recommendation_events": 0.9728,
+  "iot_hue_lightoff | lists_query": 0.9729,
+  "news_query | play_game": 0.9729,
+  "play_podcasts | qa_stock": 0.9729,
+  "qa_definition | weather_query": 0.9729,
+  "iot_cleaning | social_query": 0.973,
+  "lists_query | play_music": 0.973,
+  "music_likeness | qa_currency": 0.973,
+  "play_music | recommendation_movies": 0.973,
+  "qa_stock | takeaway_order": 0.973,
+  "takeaway_order | transport_query": 0.973,
+  "alarm_remove | calendar_query": 0.9731,
+  "alarm_remove | social_query": 0.9731,
+  "email_query | qa_definition": 0.9731,
+  "general_joke | play_game": 0.9731,
+  "iot_hue_lightoff | recommendation_events": 0.9731,
+  "calendar_set | lists_query": 0.9732,
+  "iot_hue_lightoff | takeaway_query": 0.9732,
+  "audio_volume_up | iot_hue_lightup": 0.9733,
+  "cooking_recipe | play_radio": 0.9733,
+  "email_sendemail | qa_definition": 0.9734,
+  "iot_hue_lightoff | transport_ticket": 0.9734,
+  "calendar_remove | music_likeness": 0.9735,
+  "email_querycontact | qa_currency": 0.9735,
+  "general_joke | weather_query": 0.9735,
+  "audio_volume_mute | iot_hue_lightchange": 0.9736,
+  "calendar_set | news_query": 0.9737,
+  "general_quirky | play_audiobook": 0.9737,
+  "qa_maths | social_query": 0.9737,
+  "alarm_remove | recommendation_locations": 0.9738,
+  "play_podcasts | social_post": 0.9738,
+  "qa_stock | transport_ticket": 0.9738,
+  "alarm_set | iot_hue_lightoff": 0.9739,
+  "music_query | social_post": 0.9739,
+  "play_music | qa_factoid": 0.9739,
+  "calendar_remove | recommendation_events": 0.974,
+  "calendar_set | recommendation_events": 0.974,
+  "calendar_set | recommendation_movies": 0.974,
+  "qa_definition | qa_stock": 0.974,
+  "audio_volume_up | general_quirky": 0.9741,
+  "recommendation_locations | weather_query": 0.9741,
+  "alarm_remove | calendar_set": 0.9742,
+  "audio_volume_mute | transport_ticket": 0.9742,
+  "iot_hue_lightup | play_radio": 0.9742,
+  "calendar_remove | general_joke": 0.9743,
+  "lists_query | weather_query": 0.9743,
+  "alarm_query | qa_maths": 0.9744,
+  "calendar_set | lists_createoradd": 0.9744,
+  "audio_volume_up | iot_hue_lightoff": 0.9745,
+  "iot_hue_lightoff | lists_createoradd": 0.9745,
+  "play_podcasts | social_query": 0.9745,
+  "audio_volume_mute | transport_traffic": 0.9746,
+  "calendar_query | play_radio": 0.9746,
+  "cooking_recipe | play_game": 0.9746,
+  "general_joke | iot_hue_lightchange": 0.9746,
+  "takeaway_query | weather_query": 0.9746,
+  "alarm_query | qa_factoid": 0.9747,
+  "lists_remove | qa_stock": 0.9747,
+  "music_likeness | qa_maths": 0.9747,
+  "qa_currency | transport_traffic": 0.9747,
+  "alarm_remove | social_post": 0.9748,
+  "alarm_query | qa_stock": 0.9749,
+  "alarm_remove | weather_query": 0.9749,
+  "play_game | qa_stock": 0.9749,
+  "alarm_query | music_likeness": 0.975,
+  "cooking_recipe | email_sendemail": 0.975,
+  "iot_coffee | music_likeness": 0.975,
+  "calendar_set | social_query": 0.9751,
+  "qa_definition | transport_traffic": 0.9751,
+  "audio_volume_mute | cooking_recipe": 0.9752,
+  "audio_volume_up | social_post": 0.9752,
+  "lists_query | play_game": 0.9752,
+  "alarm_remove | play_audiobook": 0.9753,
+  "calendar_set | music_query": 0.9753,
+  "email_query | takeaway_query": 0.9753,
+  "email_sendemail | music_query": 0.9753,
+  "music_query | qa_stock": 0.9753,
+  "news_query | play_podcasts": 0.9753,
+  "qa_definition | transport_query": 0.9753,
+  "audio_volume_mute | qa_maths": 0.9754,
+  "play_radio | recommendation_events": 0.9754,
+  "transport_taxi | transport_ticket": 0.9754,
+  "calendar_set | qa_definition": 0.9755,
+  "cooking_recipe | iot_hue_lightchange": 0.9755,
+  "email_querycontact | iot_coffee": 0.9755,
+  "email_querycontact | play_game": 0.9755,
+  "audio_volume_mute | play_game": 0.9756,
+  "alarm_remove | takeaway_query": 0.9757,
+  "news_query | play_audiobook": 0.9757,
+  "audio_volume_mute | lists_query": 0.9758,
+  "iot_cleaning | transport_ticket": 0.9758,
+  "iot_hue_lightoff | play_audiobook": 0.9758,
+  "play_game | qa_factoid": 0.9758,
+  "audio_volume_mute | music_likeness": 0.9759,
+  "datetime_query | play_game": 0.9759,
+  "music_likeness | qa_factoid": 0.9759,
+  "audio_volume_mute | music_query": 0.976,
+  "datetime_query | music_likeness": 0.9761,
+  "general_quirky | lists_remove": 0.9761,
+  "general_joke | iot_cleaning": 0.9762,
+  "iot_hue_lightup | transport_taxi": 0.9762,
+  "alarm_remove | general_joke": 0.9763,
+  "cooking_recipe | lists_remove": 0.9763,
+  "news_query | social_post": 0.9763,
+  "play_podcasts | transport_query": 0.9763,
+  "alarm_remove | cooking_recipe": 0.9764,
+  "calendar_remove | transport_traffic": 0.9764,
+  "play_audiobook | recommendation_events": 0.9764,
+  "play_radio | recommendation_locations": 0.9764,
+  "cooking_recipe | play_podcasts": 0.9765,
+  "lists_query | transport_query": 0.9765,
+  "calendar_set | social_post": 0.9766,
+  "general_quirky | takeaway_order": 0.9766,
+  "alarm_remove | lists_createoradd": 0.9767,
+  "cooking_recipe | iot_coffee": 0.9767,
+  "alarm_query | general_joke": 0.9769,
+  "audio_volume_up | cooking_recipe": 0.9769,
+  "audio_volume_up | transport_taxi": 0.977,
+  "iot_coffee | transport_traffic": 0.977,
+  "iot_hue_lightoff | play_podcasts": 0.9771,
+  "lists_createoradd | qa_maths": 0.9771,
+  "play_game | recommendation_locations": 0.9771,
+  "alarm_remove | general_quirky": 0.9772,
+  "alarm_remove | lists_query": 0.9772,
+  "alarm_set | email_querycontact": 0.9772,
+  "audio_volume_up | general_joke": 0.9772,
+  "recommendation_events | social_post": 0.9772,
+  "audio_volume_mute | takeaway_query": 0.9773,
+  "email_sendemail | play_radio": 0.9773,
+  "play_audiobook | transport_ticket": 0.9773,
+  "alarm_remove | play_game": 0.9775,
+  "calendar_set | play_game": 0.9775,
+  "play_game | qa_definition": 0.9775,
+  "social_post | takeaway_order": 0.9775,
+  "audio_volume_mute | social_post": 0.9776,
+  "email_query | play_audiobook": 0.9776,
+  "audio_volume_mute | weather_query": 0.9777,
+  "email_querycontact | lists_createoradd": 0.9777,
+  "email_sendemail | transport_traffic": 0.9777,
+  "iot_coffee | qa_stock": 0.9777,
+  "lists_createoradd | qa_factoid": 0.9777,
+  "lists_remove | play_audiobook": 0.9777,
+  "play_podcasts | qa_factoid": 0.9777,
+  "iot_cleaning | music_likeness": 0.9778,
+  "play_audiobook | recommendation_locations": 0.9778,
+  "play_podcasts | takeaway_order": 0.9778,
+  "play_radio | social_post": 0.9778,
+  "iot_hue_lightchange | lists_remove": 0.9779,
+  "iot_hue_lightoff | qa_maths": 0.9779,
+  "audio_volume_mute | lists_createoradd": 0.978,
+  "audio_volume_mute | lists_remove": 0.978,
+  "iot_hue_lightchange | transport_taxi": 0.978,
+  "music_query | play_game": 0.978,
+  "play_game | recommendation_events": 0.978,
+  "transport_query | transport_taxi": 0.978,
+  "email_query | play_podcasts": 0.9781,
+  "iot_hue_lightoff | qa_currency": 0.9781,
+  "audio_volume_mute | qa_definition": 0.9782,
+  "audio_volume_up | email_sendemail": 0.9782,
+  "play_radio | transport_traffic": 0.9782,
+  "recommendation_locations | social_post": 0.9782,
+  "social_query | takeaway_order": 0.9782,
+  "alarm_query | calendar_set": 0.9783,
+  "qa_factoid | takeaway_order": 0.9783,
+  "alarm_query | weather_query": 0.9784,
+  "alarm_set | transport_taxi": 0.9784,
+  "audio_volume_mute | qa_factoid": 0.9784,
+  "play_game | weather_query": 0.9784,
+  "play_radio | social_query": 0.9784,
+  "audio_volume_up | music_likeness": 0.9785,
+  "email_querycontact | iot_hue_lightoff": 0.9785,
+  "play_radio | qa_stock": 0.9785,
+  "alarm_set | transport_traffic": 0.9786,
+  "email_query | play_game": 0.9786,
+  "iot_hue_lightoff | transport_query": 0.9786,
+  "lists_remove | play_podcasts": 0.9786,
+  "play_podcasts | recommendation_locations": 0.9786,
+  "iot_hue_lightoff | social_post": 0.9787,
+  "cooking_recipe | play_music": 0.9788,
+  "audio_volume_up | email_querycontact": 0.9789,
+  "email_query | social_post": 0.9789,
+  "iot_coffee | iot_hue_lightchange": 0.9789,
+  "play_podcasts | transport_traffic": 0.9789,
+  "audio_volume_mute | recommendation_events": 0.979,
+  "datetime_query | general_joke": 0.979,
+  "play_music | qa_definition": 0.979,
+  "calendar_remove | cooking_recipe": 0.9791,
+  "email_querycontact | play_audiobook": 0.9791,
+  "iot_cleaning | takeaway_query": 0.9791,
+  "cooking_recipe | play_audiobook": 0.9792,
+  "general_joke | lists_remove": 0.9792,
+  "lists_remove | social_query": 0.9792,
+  "play_audiobook | takeaway_order": 0.9792,
+  "play_radio | qa_factoid": 0.9792,
+  "datetime_query | iot_hue_lightoff": 0.9793,
+  "music_query | transport_ticket": 0.9793,
+  "alarm_remove | qa_definition": 0.9794,
+  "calendar_query | lists_remove": 0.9794,
+  "email_query | lists_createoradd": 0.9794,
+  "general_quirky | iot_coffee": 0.9794,
+  "iot_coffee | transport_ticket": 0.9794,
+  "iot_hue_lightoff | qa_definition": 0.9794,
+  "lists_remove | music_query": 0.9795,
+  "alarm_query | recommendation_locations": 0.9796,
+  "iot_coffee | lists_createoradd": 0.9796,
+  "lists_remove | play_game": 0.9796,
+  "alarm_set | general_quirky": 0.9797,
+  "lists_remove | play_radio": 0.9797,
+  "qa_stock | transport_taxi": 0.9797,
+  "social_query | transport_taxi": 0.9797,
+  "lists_createoradd | social_post": 0.9798,
+  "alarm_remove | email_query": 0.9799,
+  "email_query | iot_cleaning": 0.9799,
+  "lists_createoradd | play_audiobook": 0.98,
+  "audio_volume_up | lists_query": 0.9801,
+  "audio_volume_up | lists_remove": 0.9801,
+  "iot_hue_lightoff | transport_taxi": 0.9801,
+  "social_post | transport_traffic": 0.9801,
+  "calendar_query | play_podcasts": 0.9802,
+  "calendar_remove | social_post": 0.9802,
+  "lists_createoradd | takeaway_order": 0.9802,
+  "lists_query | takeaway_order": 0.9802,
+  "qa_currency | qa_factoid": 0.9802,
+  "iot_hue_lightchange | transport_ticket": 0.9803,
+  "play_game | transport_traffic": 0.9803,
+  "calendar_remove | play_game": 0.9804,
+  "iot_cleaning | qa_stock": 0.9805,
+  "iot_coffee | recommendation_events": 0.9805,
+  "lists_remove | news_query": 0.9805,
+  "news_query | takeaway_query": 0.9805,
+  "play_podcasts | transport_ticket": 0.9805,
+  "lists_createoradd | play_podcasts": 0.9806,
+  "music_likeness | weather_query": 0.9806,
+  "qa_currency | social_query": 0.9806,
+  "email_sendemail | qa_stock": 0.9807,
+  "general_quirky | iot_hue_lightchange": 0.9807,
+  "lists_createoradd | transport_ticket": 0.9808,
+  "music_likeness | social_query": 0.9808,
+  "cooking_recipe | qa_currency": 0.9809,
+  "takeaway_order | transport_taxi": 0.9809,
+  "calendar_set | recommendation_locations": 0.981,
+  "general_joke | iot_hue_lightup": 0.981,
+  "play_audiobook | transport_query": 0.981,
+  "alarm_remove | qa_currency": 0.9811,
+  "calendar_query | takeaway_order": 0.9811,
+  "cooking_recipe | iot_cleaning": 0.9811,
+  "email_query | transport_query": 0.9811,
+  "email_sendemail | news_query": 0.9811,
+  "iot_cleaning | qa_currency": 0.9811,
+  "iot_hue_lightchange | social_post": 0.9811,
+  "play_radio | takeaway_order": 0.9811,
+  "alarm_remove | news_query": 0.9812,
+  "alarm_set | calendar_query": 0.9812,
+  "alarm_set | qa_stock": 0.9812,
+  "iot_hue_lightchange | play_radio": 0.9812,
+  "play_audiobook | qa_factoid": 0.9813,
+  "calendar_set | iot_coffee": 0.9814,
+  "email_sendemail | play_podcasts": 0.9814,
+  "iot_hue_lightup | play_music": 0.9814,
+  "play_audiobook | qa_definition": 0.9814,
+  "alarm_remove | play_music": 0.9815,
+  "calendar_set | iot_cleaning": 0.9815,
+  "datetime_query | takeaway_order": 0.9815,
+  "iot_hue_lightchange | news_query": 0.9815,
+  "lists_createoradd | play_radio": 0.9815,
+  "recommendation_locations | transport_taxi": 0.9815,
+  "calendar_set | takeaway_order": 0.9816,
+  "email_query | takeaway_order": 0.9816,
+  "email_sendemail | lists_remove": 0.9816,
+  "general_joke | takeaway_order": 0.9816,
+  "lists_createoradd | news_query": 0.9816,
+  "lists_createoradd | qa_stock": 0.9816,
+  "lists_remove | transport_traffic": 0.9816,
+  "play_music | qa_maths": 0.9816,
+  "alarm_query | play_podcasts": 0.9817,
+  "alarm_query | takeaway_order": 0.9817,
+  "iot_coffee | takeaway_order": 0.9817,
+  "lists_createoradd | transport_traffic": 0.9817,
+  "play_podcasts | qa_definition": 0.9817,
+  "calendar_remove | qa_stock": 0.9818,
+  "music_query | takeaway_query": 0.9818,
+  "cooking_recipe | transport_ticket": 0.9819,
+  "iot_hue_lightchange | play_game": 0.9819,
+  "play_music | social_post": 0.9819,
+  "alarm_set | iot_hue_lightup": 0.982,
+  "email_sendemail | recommendation_events": 0.982,
+  "iot_hue_lightchange | play_audiobook": 0.982,
+  "lists_createoradd | qa_definition": 0.982,
+  "lists_remove | qa_definition": 0.982,
+  "qa_currency | recommendation_locations": 0.982,
+  "iot_coffee | lists_remove": 0.9821,
+  "iot_hue_lightup | qa_maths": 0.9821,
+  "audio_volume_mute | qa_currency": 0.9822,
+  "datetime_query | email_query": 0.9822,
+  "email_sendemail | social_query": 0.9822,
+  "play_music | social_query": 0.9822,
+  "alarm_set | takeaway_order": 0.9823,
+  "general_joke | transport_ticket": 0.9823,
+  "play_audiobook | social_post": 0.9823,
+  "play_radio | qa_definition": 0.9823,
+  "alarm_set | lists_query": 0.9824,
+  "calendar_query | social_post": 0.9824,
+  "email_sendemail | play_audiobook": 0.9824,
+  "general_quirky | iot_hue_lightoff": 0.9824,
+  "alarm_set | audio_volume_up": 0.9825,
+  "datetime_query | qa_definition": 0.9825,
+  "email_querycontact | iot_hue_lightchange": 0.9825,
+  "iot_cleaning | qa_factoid": 0.9825,
+  "iot_cleaning | recommendation_locations": 0.9825,
+  "calendar_set | play_radio": 0.9826,
+  "iot_hue_lightchange | lists_query": 0.9826,
+  "news_query | takeaway_order": 0.9826,
+  "audio_volume_up | calendar_remove": 0.9827,
+  "audio_volume_up | news_query": 0.9827,
+  "calendar_remove | iot_hue_lightchange": 0.9827,
+  "email_sendemail | lists_query": 0.9827,
+  "iot_hue_lightup | transport_ticket": 0.9827,
+  "audio_volume_up | iot_hue_lightchange": 0.9828,
+  "audio_volume_up | qa_maths": 0.9828,
+  "lists_query | takeaway_query": 0.9828,
+  "lists_remove | social_post": 0.9828,
+  "alarm_query | recommendation_events": 0.9829,
+  "email_sendemail | recommendation_locations": 0.9829,
+  "iot_hue_lightchange | lists_createoradd": 0.9829,
+  "iot_hue_lightchange | recommendation_locations": 0.9829,
+  "lists_remove | recommendation_locations": 0.9829,
+  "audio_volume_up | lists_createoradd": 0.983,
+  "lists_createoradd | recommendation_locations": 0.983,
+  "lists_remove | weather_query": 0.983,
+  "social_post | weather_query": 0.983,
+  "alarm_query | cooking_recipe": 0.9831,
+  "alarm_query | qa_definition": 0.9831,
+  "calendar_set | email_sendemail": 0.9831,
+  "calendar_set | weather_query": 0.9831,
+  "email_query | play_radio": 0.9831,
+  "music_query | qa_currency": 0.9831,
+  "play_audiobook | qa_stock": 0.9831,
+  "calendar_query | iot_cleaning": 0.9832,
+  "datetime_query | lists_remove": 0.9833,
+  "iot_cleaning | recommendation_events": 0.9833,
+  "iot_cleaning | transport_query": 0.9833,
+  "iot_coffee | play_music": 0.9833,
+  "iot_coffee | transport_taxi": 0.9834,
+  "iot_cleaning | qa_definition": 0.9835,
+  "iot_hue_lightoff | news_query": 0.9835,
+  "lists_remove | transport_query": 0.9835,
+  "qa_definition | takeaway_order": 0.9835,
+  "calendar_remove | music_query": 0.9836,
+  "iot_hue_lightchange | qa_definition": 0.9836,
+  "iot_hue_lightoff | transport_traffic": 0.9836,
+  "play_radio | transport_query": 0.9836,
+  "audio_volume_up | recommendation_events": 0.9837,
+  "iot_cleaning | news_query": 0.9837,
+  "alarm_set | music_query": 0.9838,
+  "email_query | weather_query": 0.9838,
+  "iot_hue_lightchange | qa_factoid": 0.9838,
+  "qa_definition | takeaway_query": 0.9838,
+  "recommendation_events | transport_ticket": 0.9838,
+  "calendar_set | iot_hue_lightchange": 0.9839,
+  "email_query | iot_hue_lightoff": 0.9839,
+  "email_sendemail | iot_hue_lightoff": 0.9839,
+  "general_quirky | transport_ticket": 0.9839,
+  "iot_coffee | play_audiobook": 0.9839,
+  "alarm_query | calendar_remove": 0.984,
+  "iot_cleaning | music_query": 0.984,
+  "iot_cleaning | weather_query": 0.984,
+  "iot_coffee | play_podcasts": 0.984,
+  "lists_query | play_audiobook": 0.984,
+  "calendar_set | transport_query": 0.9841,
+  "lists_remove | transport_taxi": 0.9841,
+  "calendar_set | qa_stock": 0.9842,
+  "iot_hue_lightchange | music_query": 0.9842,
+  "general_quirky | qa_currency": 0.9843,
+  "qa_factoid | transport_taxi": 0.9843,
+  "audio_volume_up | email_query": 0.9844,
+  "calendar_query | transport_ticket": 0.9844,
+  "news_query | play_music": 0.9845,
+  "play_music | recommendation_locations": 0.9845,
+  "iot_hue_lightchange | play_music": 0.9846,
+  "iot_hue_lightchange | social_query": 0.9846,
+  "social_post | takeaway_query": 0.9846,
+  "iot_coffee | recommendation_locations": 0.9847,
+  "qa_currency | recommendation_events": 0.9848,
+  "calendar_query | transport_taxi": 0.9849,
+  "play_music | qa_stock": 0.9849,
+  "alarm_set | iot_hue_lightchange": 0.985,
+  "audio_volume_up | qa_factoid": 0.985,
+  "calendar_query | play_audiobook": 0.985,
+  "iot_hue_lightup | play_game": 0.985,
+  "lists_query | transport_ticket": 0.985,
+  "qa_factoid | transport_ticket": 0.985,
+  "audio_volume_up | social_query": 0.9851,
+  "calendar_set | transport_traffic": 0.9851,
+  "news_query | transport_ticket": 0.9851,
+  "takeaway_order | weather_query": 0.9851,
+  "alarm_query | takeaway_query": 0.9852,
+  "alarm_set | cooking_recipe": 0.9852,
+  "audio_volume_up | datetime_query": 0.9852,
+  "play_radio | transport_ticket": 0.9852,
+  "audio_volume_up | weather_query": 0.9853,
+  "calendar_remove | qa_factoid": 0.9853,
+  "calendar_remove | play_podcasts": 0.9854,
+  "calendar_set | lists_remove": 0.9854,
+  "audio_volume_up | iot_coffee": 0.9855,
+  "calendar_query | email_sendemail": 0.9855,
+  "calendar_set | email_query": 0.9855,
+  "email_sendemail | lists_createoradd": 0.9855,
+  "lists_remove | transport_ticket": 0.9855,
+  "calendar_remove | social_query": 0.9856,
+  "email_sendemail | takeaway_order": 0.9856,
+  "play_music | recommendation_events": 0.9856,
+  "qa_definition | transport_ticket": 0.9856,
+  "recommendation_locations | transport_ticket": 0.9856,
+  "alarm_set | qa_factoid": 0.9857,
+  "calendar_remove | iot_hue_lightoff": 0.9857,
+  "email_sendemail | iot_hue_lightchange": 0.9857,
+  "iot_hue_lightoff | qa_factoid": 0.9857,
+  "audio_volume_up | recommendation_locations": 0.9858,
+  "calendar_set | play_podcasts": 0.9858,
+  "email_sendemail | takeaway_query": 0.9858,
+  "lists_remove | qa_factoid": 0.9858,
+  "calendar_remove | lists_createoradd": 0.9859,
+  "calendar_remove | recommendation_locations": 0.9859,
+  "iot_hue_lightoff | weather_query": 0.9859,
+  "audio_volume_up | transport_query": 0.986,
+  "calendar_query | play_music": 0.986,
+  "calendar_remove | takeaway_order": 0.986,
+  "lists_query | transport_taxi": 0.986,
+  "audio_volume_up | takeaway_order": 0.9861,
+  "email_sendemail | weather_query": 0.9861,
+  "play_audiobook | transport_taxi": 0.9861,
+  "play_music | transport_traffic": 0.9861,
+  "play_radio | transport_taxi": 0.9861,
+  "social_post | transport_query": 0.9861,
+  "takeaway_query | transport_ticket": 0.9861,
+  "calendar_query | iot_hue_lightoff": 0.9862,
+  "play_audiobook | transport_traffic": 0.9862,
+  "audio_volume_up | calendar_set": 0.9864,
+  "calendar_query | iot_hue_lightchange": 0.9864,
+  "general_quirky | transport_taxi": 0.9864,
+  "play_game | qa_currency": 0.9864,
+  "play_music | takeaway_order": 0.9864,
+  "audio_volume_up | takeaway_query": 0.9865,
+  "audio_volume_up | transport_ticket": 0.9866,
+  "datetime_query | iot_hue_lightchange": 0.9866,
+  "email_query | iot_coffee": 0.9866,
+  "datetime_query | social_post": 0.9867,
+  "datetime_query | iot_cleaning": 0.9868,
+  "datetime_query | transport_ticket": 0.9868,
+  "music_likeness | transport_taxi": 0.9869,
+  "alarm_set | lists_remove": 0.987,
+  "alarm_set | recommendation_locations": 0.987,
+  "audio_volume_mute | general_joke": 0.987,
+  "lists_createoradd | social_query": 0.987,
+  "calendar_remove | play_audiobook": 0.9871,
+  "iot_coffee | social_query": 0.9871,
+  "play_game | social_query": 0.9871,
+  "alarm_remove | qa_factoid": 0.9872,
+  "calendar_query | lists_createoradd": 0.9872,
+  "calendar_remove | qa_definition": 0.9872,
+  "datetime_query | play_podcasts": 0.9872,
+  "datetime_query | play_radio": 0.9872,
+  "lists_createoradd | transport_query": 0.9872,
+  "audio_volume_mute | iot_hue_lightup": 0.9873,
+  "iot_hue_lightup | lists_query": 0.9873,
+  "social_post | transport_taxi": 0.9873,
+  "audio_volume_up | qa_stock": 0.9874,
+  "datetime_query | play_audiobook": 0.9875,
+  "iot_hue_lightchange | transport_traffic": 0.9875,
+  "iot_hue_lightup | play_audiobook": 0.9876,
+  "alarm_set | transport_ticket": 0.9877,
+  "lists_createoradd | recommendation_events": 0.9877,
+  "audio_volume_up | qa_definition": 0.9878,
+  "datetime_query | lists_createoradd": 0.9878,
+  "email_query | lists_remove": 0.9878,
+  "lists_createoradd | takeaway_query": 0.9879,
+  "alarm_set | play_radio": 0.988,
+  "calendar_set | play_music": 0.988,
+  "lists_createoradd | weather_query": 0.988,
+  "news_query | transport_taxi": 0.988,
+  "social_query | transport_ticket": 0.988,
+  "calendar_set | play_audiobook": 0.9881,
+  "play_game | takeaway_query": 0.9881,
+  "play_music | transport_query": 0.9881,
+  "alarm_query | transport_ticket": 0.9882,
+  "iot_hue_lightoff | play_music": 0.9882,
+  "play_podcasts | transport_taxi": 0.9882,
+  "calendar_query | iot_coffee": 0.9883,
+  "iot_hue_lightchange | recommendation_events": 0.9883,
+  "iot_hue_lightchange | weather_query": 0.9883,
+  "iot_hue_lightup | social_post": 0.9883,
+  "alarm_query | play_radio": 0.9884,
+  "general_joke | iot_hue_lightoff": 0.9884,
+  "iot_coffee | play_radio": 0.9884,
+  "qa_definition | transport_taxi": 0.9885,
+  "audio_volume_up | transport_traffic": 0.9886,
+  "iot_coffee | lists_query": 0.9887,
+  "calendar_remove | transport_query": 0.9888,
+  "iot_coffee | qa_definition": 0.9888,
+  "audio_volume_up | calendar_query": 0.9889,
+  "iot_hue_lightup | music_likeness": 0.9889,
+  "calendar_remove | transport_taxi": 0.989,
+  "iot_coffee | music_query": 0.989,
+  "iot_hue_lightchange | play_podcasts": 0.989,
+  "alarm_query | audio_volume_up": 0.9891,
+  "alarm_set | news_query": 0.9891,
+  "general_quirky | iot_hue_lightup": 0.9891,
+  "play_audiobook | social_query": 0.9891,
+  "alarm_set | datetime_query": 0.9892,
+  "iot_coffee | weather_query": 0.9892,
+  "iot_hue_lightup | takeaway_order": 0.9892,
+  "alarm_query | play_audiobook": 0.9893,
+  "iot_hue_lightchange | qa_stock": 0.9893,
+  "alarm_set | social_query": 0.9894,
+  "iot_coffee | social_post": 0.9894,
+  "qa_currency | takeaway_order": 0.9894,
+  "email_query | iot_hue_lightchange": 0.9895,
+  "iot_hue_lightup | takeaway_query": 0.9895,
+  "play_podcasts | weather_query": 0.9895,
+  "transport_ticket | weather_query": 0.9895,
+  "email_query | transport_ticket": 0.9896,
+  "calendar_remove | takeaway_query": 0.9897,
+  "calendar_remove | transport_ticket": 0.9897,
+  "iot_hue_lightchange | transport_query": 0.9897,
+  "iot_hue_lightup | play_podcasts": 0.9897,
+  "qa_currency | takeaway_query": 0.9897,
+  "qa_currency | transport_ticket": 0.9897,
+  "alarm_query | lists_createoradd": 0.9898,
+  "alarm_query | lists_remove": 0.9898,
+  "email_sendemail | iot_coffee": 0.9898,
+  "play_audiobook | takeaway_query": 0.9898,
+  "alarm_set | weather_query": 0.9899,
+  "calendar_query | qa_currency": 0.9899,
+  "recommendation_events | transport_taxi": 0.9899,
+  "news_query | qa_currency": 0.99,
+  "alarm_query | transport_taxi": 0.9901,
+  "alarm_set | play_podcasts": 0.9901,
+  "calendar_set | transport_ticket": 0.9901,
+  "iot_coffee | qa_factoid": 0.9901,
+  "calendar_remove | iot_hue_lightup": 0.9902,
+  "play_radio | weather_query": 0.9902,
+  "calendar_set | iot_hue_lightup": 0.9903,
+  "iot_hue_lightoff | social_query": 0.9903,
+  "iot_hue_lightup | qa_stock": 0.9903,
+  "lists_remove | takeaway_query": 0.9903,
+  "email_sendemail | transport_query": 0.9904,
+  "alarm_query | iot_coffee": 0.9905,
+  "alarm_query | play_game": 0.9905,
+  "cooking_recipe | iot_hue_lightup": 0.9905,
+  "datetime_query | email_sendemail": 0.9905,
+  "datetime_query | qa_currency": 0.9905,
+  "email_sendemail | iot_hue_lightup": 0.9905,
+  "iot_hue_lightup | transport_query": 0.9905,
+  "calendar_remove | weather_query": 0.9906,
+  "alarm_set | email_sendemail": 0.9907,
+  "alarm_set | transport_query": 0.9907,
+  "play_radio | takeaway_query": 0.9907,
+  "calendar_remove | play_radio": 0.9908,
+  "calendar_set | takeaway_query": 0.9908,
+  "play_audiobook | weather_query": 0.9908,
+  "play_music | weather_query": 0.9908,
+  "calendar_remove | email_query": 0.9909,
+  "alarm_query | iot_hue_lightchange": 0.991,
+  "email_sendemail | transport_taxi": 0.991,
+  "lists_remove | qa_currency": 0.991,
+  "iot_coffee | takeaway_query": 0.9911,
+  "email_query | qa_currency": 0.9912,
+  "iot_hue_lightup | lists_remove": 0.9912,
+  "iot_hue_lightup | news_query": 0.9912,
+  "play_radio | qa_currency": 0.9912,
+  "alarm_set | lists_createoradd": 0.9913,
+  "cooking_recipe | transport_taxi": 0.9913,
+  "music_query | transport_taxi": 0.9914,
+  "calendar_set | iot_hue_lightoff": 0.9915,
+  "email_sendemail | transport_ticket": 0.9915,
+  "social_post | transport_ticket": 0.9915,
+  "alarm_set | qa_definition": 0.9917,
+  "alarm_query | qa_currency": 0.9918,
+  "calendar_remove | news_query": 0.9918,
+  "email_query | transport_taxi": 0.9918,
+  "iot_coffee | news_query": 0.9918,
+  "iot_hue_lightup | qa_factoid": 0.9918,
+  "play_podcasts | qa_currency": 0.9918,
+  "calendar_query | iot_hue_lightup": 0.9921,
+  "calendar_remove | play_music": 0.9921,
+  "alarm_set | iot_coffee": 0.9922,
+  "iot_hue_lightchange | qa_currency": 0.9922,
+  "iot_hue_lightup | transport_traffic": 0.9922,
+  "qa_currency | transport_query": 0.9923,
+  "transport_taxi | weather_query": 0.9923,
+  "alarm_query | iot_hue_lightup": 0.9925,
+  "datetime_query | iot_hue_lightup": 0.9925,
+  "alarm_set | email_query": 0.9926,
+  "calendar_remove | datetime_query": 0.9927,
+  "email_query | iot_hue_lightup": 0.9928,
+  "email_querycontact | iot_hue_lightup": 0.9928,
+  "calendar_remove | iot_coffee": 0.9929,
+  "datetime_query | transport_taxi": 0.9929,
+  "play_music | transport_taxi": 0.993,
+  "datetime_query | iot_coffee": 0.9931,
+  "play_music | takeaway_query": 0.9933,
+  "calendar_remove | email_sendemail": 0.9935,
+  "alarm_set | calendar_remove": 0.9936,
+  "alarm_set | play_music": 0.9936,
+  "iot_coffee | transport_query": 0.9936,
+  "iot_hue_lightup | qa_currency": 0.9937,
+  "email_query | play_music": 0.9938,
+  "iot_hue_lightup | qa_definition": 0.9938,
+  "audio_volume_up | qa_currency": 0.9939,
+  "lists_query | qa_currency": 0.9939,
+  "qa_currency | weather_query": 0.9939,
+  "alarm_query | email_sendemail": 0.9941,
+  "iot_hue_lightup | recommendation_locations": 0.9942,
+  "iot_hue_lightup | weather_query": 0.9943,
+  "iot_hue_lightup | recommendation_events": 0.9944,
+  "alarm_query | social_post": 0.9947,
+  "lists_createoradd | transport_taxi": 0.9947,
+  "email_sendemail | play_music": 0.995,
+  "alarm_query | play_music": 0.9951,
+  "calendar_remove | qa_currency": 0.9951,
+  "play_music | transport_ticket": 0.9952,
+  "alarm_set | social_post": 0.9953,
+  "play_podcasts | takeaway_query": 0.9956,
+  "datetime_query | play_music": 0.9961,
+  "iot_hue_lightup | social_query": 0.9961,
+  "qa_currency | qa_definition": 0.9966,
+  "iot_hue_lightup | music_query": 0.9968,
+  "takeaway_query | transport_taxi": 0.9969,
+  "iot_hue_lightchange | takeaway_query": 0.9972,
+  "play_music | qa_currency": 0.9972,
+  "qa_currency | transport_taxi": 0.9972,
+  "iot_coffee | qa_currency": 0.9973,
+  "alarm_set | takeaway_query": 0.9975,
+  "play_audiobook | qa_currency": 0.9976,
+  "lists_createoradd | qa_currency": 0.9977,
+  "calendar_set | qa_currency": 0.9978,
+  "alarm_set | recommendation_events": 0.9979,
+  "qa_currency | social_post": 0.9984,
+  "email_sendemail | qa_currency": 0.9986,
+  "alarm_set | qa_currency": 1.0
+ }
+}

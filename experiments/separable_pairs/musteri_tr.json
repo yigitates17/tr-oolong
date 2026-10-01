@@ -1,0 +1,26 @@
+{
+ "dataset": "musteri_tr",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 36289,
+ "recall": {
+  "nötr": 0.7035,
+  "olumsuz": 0.7224,
+  "olumlu": 0.7684
+ },
+ "allowed_pairs": [
+  [
+   "nötr",
+   "olumlu"
+  ],
+  [
+   "olumlu",
+   "olumsuz"
+  ]
+ ],
+ "separability": {
+  "nötr | olumsuz": 0.7851,
+  "nötr | olumlu": 0.8095,
+  "olumlu | olumsuz": 0.8983
+ }
+}

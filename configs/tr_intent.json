@@ -26,5 +26,6 @@
   "text_provenance": "human_translated",
   "families_disabled": [
     "shift"
-  ]
+  ],
+  "close_allowed_pairs_file": "experiments/separable_pairs/intent_shared.json"
 }

@@ -1,8 +1,8 @@
 # TR-OOLONG datacard
 
-Covers **v0.9.0**: 11
-subsets, 353 documents, 2,521 questions, 7 question types, Turkish and English
-(1,746 / 775 questions). Every answer is computed
+Covers **v0.10.0**: 11
+subsets, 347 documents, 2,362 questions, 7 question types, Turkish and English
+(1,615 / 747 questions). Every answer is computed
 from the source dataset's labels, twice, by two independent pieces of code
 that must agree. No answer was written by hand.
 
@@ -16,6 +16,7 @@ For what the benchmark is and how to use it, see the [README](README.md).
 | 0.7.1 | 2026-09-20 | adds `uid`, `dataset`, `haystack_uid`. No question, answer, document or grade changed |
 | 0.8.0 | 2026-09-28 | adds 174 close comparisons (`core`); removes the 137 brand questions; adds `role` to every question; stops releasing difficulty grades. Documents and all other questions unchanged |
 | 0.9.0 | 2026-09-29 | adds 158 core documents with 244 close comparisons (418 core in total), 91 core questions identical in Turkish and English. All earlier documents and questions unchanged |
+| 0.10.0 | 2026-10-01 | cleaning (newspaper mastheads, reviews that write their score, HTML); close comparisons only between label pairs that can be told apart from the text; film ratings converted to sentiment. 309 core questions, 77 identical across languages. Six datasets' documents changed; the intent and complaint documents did not |
 
 ## Fields
 
@@ -56,11 +57,12 @@ and record counts, and the question-type counts.
 | `amazon_hpc_en` | McAuley-Lab/Amazon-Reviews-2023, Health & Personal Care | product reviews + brand | sentiment from the writer's own stars | 3 |
 | `musteri_tr` | turkish-nlp-suite/MusteriYorumlari (Hepsiburada, Trendyol) | shopping reviews | sentiment from the writer's own stars | 3 |
 | `marc_en` | SetFit/amazon_reviews_multi_en (MARC) | shopping reviews | sentiment from the writer's own stars | 3 |
-| `sinema_tr` | turkish-nlp-suite/BuyukSinema | film reviews | the writer's own 1-10 rating | 10 |
+| `sinema_tr` | turkish-nlp-suite/BuyukSinema | film reviews | sentiment from the writer's own 1-10 rating | 3 |
 | `sikayet_tr` | Kaggle savasy/multiclass-classification-data-for-turkish-tc32 | consumer complaints | product category, chosen by the person filing | 29 |
 | `interpress_tr` | Interpress Turkish news, 270k | news articles | newspaper section, set by the publisher | 16 |
 
-Star ratings map to sentiment as 1-2 negative, 3 neutral, 4-5 positive.
+Star ratings map to sentiment as 1-2 negative, 3 neutral, 4-5 positive; the
+film set's 10-point ratings as 1-4 negative, 5-6 neutral, 7-10 positive.
 
 Notes per source, only where something is not obvious:
 
@@ -78,14 +80,20 @@ Notes per source, only where something is not obvious:
   (`kargo-nakliyat` 84.7%, `cep-telefon-kategori` 73.4%, `anne-bebek` 36.9%).
   The build must run with `leak_label_words: true`. Kaggle needs an account, so
   the fetch script takes a path to a local copy of `ticaret-yorum.csv`.
-- **`interpress_tr`.** Records are full articles (median 1,650 characters), so a
+- **`interpress_tr`.** 2.1% of source records were a newspaper's masthead
+  (publisher, editors, printing house) rather than an article; from v0.10.0 a
+  record with 3 or more masthead job titles, or 2 plus an issue header ("Yıl: 3
+  Sayı: 1531"), is removed. Records are full articles (median 1,650 characters), so a
   100K-token document holds about 200 of them. 35.1% of articles were removed
   because they name their own section, so the shipped articles are a filtered
   subset of the corpus. `savunma` fell below the size floor, leaving 16 of 17
   sections. The source has daily publication dates (2010-2017); they are kept
   but not used by any question.
-- **`sinema_tr`.** Ratings are uneven (2.4% at 3 stars, 24.4% at 8 stars), so
-  some labels are naturally rare in a document.
+- **`sinema_tr`.** Used with all 10 ratings as labels until v0.9.0. An exact
+  rating cannot be read from the text ("loved it" can be a 7 or a 10), and every
+  question type depended on it, so from v0.10.0 the ratings are mapped to
+  sentiment. 11.2% of reviews wrote their score in the text ("6/10", "80/100")
+  and are removed.
 - **`vitamins_tr` / `amazon_hpc_en`.** The only pair with a brand per record,
   printed in the text as `[[Brand]]`. Questions about brands were removed in
   v0.8.0 because searching for the printed name answers them; the markers stay
@@ -95,7 +103,10 @@ Notes per source, only where something is not obvious:
   ordinary words. Questions use the printed marker, so answers are unaffected.
 
 Records removed for containing a label name: MASSIVE 0.0%, `sinema_tr` 0.3%,
-`sikayet_tr` 24.6%, `interpress_tr` 35.1%.
+`sikayet_tr` 24.6%, `interpress_tr` 35.1%. Reviews removed because they write
+their score ("7/10", "5 yıldız veriyorum", "1 star"), from v0.10.0: film 6,129,
+MARC 3,570, Amazon 1,488, shopping 639, supplements 449. HTML ("<br />", in
+12.7% of Amazon reviews) is replaced by a space.
 
 ## Licences
 
@@ -156,8 +167,8 @@ the data.
 7. Add **core documents** (v0.9.0). Random label mixes rarely put two large
    labels close together, so these documents are built from exact counts: one
    or two pairs of labels each get a set share of the document (40% each for
-   positive and negative on the review sets, 15% on complaints, news and
-   films, 7% on intent) with a gap inside the step 6 window; the other labels
+   positive and negative on the review sets, 35% on the film set, 15% on
+   complaints and news, 7% on intent) with a gap inside the step 6 window; the other labels
    share the rest. Sizes are in records (2,500 / 6,000 / 12,000 on the review
    sets, 3,000 on intent, 1,000 to 10,000 elsewhere, reaching about 1M tokens
    on complaints, news and films). The two counts differ by at least 5
@@ -169,6 +180,16 @@ the data.
    label more common in the source and the less common one, or between
    positive and negative), and whether the answer is the first-named label
    (every other question).
+8. **Only separable label pairs** (v0.10.0). A close comparison may only use two
+   labels that a word-count classifier tells apart at 0.8 or more AND that it
+   recognises among all labels at least 60% of the time
+   (`experiments/separable_pairs/`, one file per dataset; the Turkish and
+   English intent sets share the pairs allowed in both languages). This rules
+   out pairs decided by which box an editor, reviewer or filer ticked: news
+   "turizm" vs "seyahat", or complaints filed under "alışveriş" about a refund
+   with no product named. Labels kept for core pairs: 32 of 48 intents, 23 of 29
+   complaint categories, 5 of 16 news sections (health, technology, celebrity,
+   food, sport), and positive vs negative on every sentiment set.
 
 ## Label quality
 
@@ -200,7 +221,7 @@ label of each record they read. Full setup and examples:
 
 | role | questions | strongest shortcut found | reader of everything |
 |---|---:|---|---|
-| core: close comparisons | 418 | sampling half the document 0.63; top 10% by topic search 0.56; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.76 at 90% |
+| core: close comparisons | 309 | sampling half the document 0.62; top 10% by topic search 0.54; guessing 0.50 | 0.86 at 95% labelling accuracy, 0.76 at 90% |
 | retrieval: rare-label counts | 265 | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
 | control: counts, proportions, rankings, wide comparisons | 1,838 | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
 
@@ -209,14 +230,13 @@ label of each record they read. Full setup and examples:
   of reading. Under `relative`, a reader that opens nothing and divides the
   record count by the number of labels already scores 0.43 to 0.55 on counts,
   and longer documents are not harder.
-- Core questions come in two groups. The **244 from core documents**
+- Core questions come in two groups. The **214 from core documents**
   (`core_document: true`) are fully balanced: picking the first-named label
-  gets 0.50, the label more common in the source dataset 0.49, topic search
-  0.49, sampling half the document 0.64. The **174 from ordinary documents**
-  (v0.8.0) are slightly exposed: the label more common in the source dataset
-  wins 61% of the time, and on the paired intent sets, where the compared
-  categories hold about 60 records, topic search reaches 0.74 to 0.79. Report
-  the two groups separately.
+  gets 0.50, the label more common in the source dataset 0.50, topic search
+  0.49, sampling half the document 0.62. The **95 from ordinary documents** are
+  slightly exposed: the label more common in the source dataset wins 62% of the
+  time and topic search reaches 0.67, because the compared categories are
+  sometimes small. Report the two groups separately.
 - Core scores have a ceiling below 1.0: wrong labels in the source data decide
   some close comparisons. With 5% of labels wrong a perfect model scores about
   0.85. A native-speaker check of the Turkish core categories is prepared.
@@ -236,7 +256,7 @@ as the unit of evidence.
 
 | subset | missing types | why |
 |---|---|---|
-| `interpress_tr`, `sinema_tr` | `most_common`, `least_common`, `second_most` | section shares and adjacent ratings are too close to rank with the required 15% margin |
+| `interpress_tr` | `most_common`, `least_common`, `second_most` | section shares are too close to rank with the required 15% margin |
 | `vitamins_tr`, `musteri_tr`, `amazon_hpc_en`, `marc_en` | close comparisons on random-mix documents | with "neutral" excluded, the two remaining labels are rarely close; these sets' core questions come from core documents |
 
 **One flagged tier.** On `en_intent` at 100K tokens, a reader using only the

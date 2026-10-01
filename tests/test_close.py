@@ -100,6 +100,15 @@ def main():
     bal = [0]
     firsts = [close_comparisons(m, cfg(), random.Random(s), bal)[0] for s in range(10)]
     assert [q["answer"] == q["label_a"] for q in firsts] == [True, False] * 5, firsts
+    # only pairs listed in close_allowed_pairs_file are ever asked
+    import json, tempfile
+    tf = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+    json.dump({"allowed_pairs": [["c", "d"]]}, tf)
+    tf.close()
+    assert close_comparisons(m, cfg(close_allowed_pairs_file=tf.name), random.Random(1)) == []
+    both = meta({"a": 300, "b": 291, "c": 250, "d": 244})
+    got = close_comparisons(both, cfg(close_allowed_pairs_file=tf.name), random.Random(1))
+    assert [set(q["candidates"]) for q in got] == [{"c", "d"}], got
     print("CLOSE-COMPARISON TEST PASSED")
 
 

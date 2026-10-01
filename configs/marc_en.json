@@ -52,5 +52,11 @@
       "negative"
     ]
   ],
-  "core_seed_key": "musteri-marc"
+  "core_seed_key": "musteri-marc",
+  "drop_text_regex": [
+    "\\b\\d{1,3}([.,]\\d)?\\s*/\\s*(10|5|100)\\b",
+    "\\b(\\d|zero|one|two|three|four|five)[\\s-]+stars?\\b"
+  ],
+  "strip_html": true,
+  "close_allowed_pairs_file": "experiments/separable_pairs/marc_en.json"
 }

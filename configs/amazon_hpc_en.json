@@ -64,5 +64,11 @@
       "negative"
     ]
   ],
-  "core_seed_key": "vitamins-amazon"
+  "core_seed_key": "vitamins-amazon",
+  "drop_text_regex": [
+    "\\b\\d{1,3}([.,]\\d)?\\s*/\\s*(10|5|100)\\b",
+    "\\b(\\d|zero|one|two|three|four|five)[\\s-]+stars?\\b"
+  ],
+  "strip_html": true,
+  "close_allowed_pairs_file": "experiments/separable_pairs/amazon_hpc_en.json"
 }

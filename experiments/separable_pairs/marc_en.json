@@ -1,0 +1,22 @@
+{
+ "dataset": "marc_en",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 60000,
+ "recall": {
+  "neutral": 0.5455,
+  "negative": 0.6594,
+  "positive": 0.7048
+ },
+ "allowed_pairs": [
+  [
+   "negative",
+   "positive"
+  ]
+ ],
+ "separability": {
+  "negative | neutral": 0.6939,
+  "neutral | positive": 0.7586,
+  "negative | positive": 0.8534
+ }
+}

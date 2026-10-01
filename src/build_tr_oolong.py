@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.9.0"
+VERSION = "0.10.0"
 
 
 # ---------------------------------------------------------------------------
@@ -83,6 +83,26 @@ class Config:
     # and why a hyphenated topic label space needs it on.
     leak_label_words: bool = False
     min_class_support: int = 0            # drop classes with fewer than N rows (0 = keep all)
+    # --- v0.10.0: boilerplate records ---------------------------------------
+    # Drop records that are not content at all, such as a newspaper's masthead
+    # (publisher, editors, printing house). A record is dropped when it contains
+    # at least `boilerplate_min_keywords` of `boilerplate_keywords` (matched on
+    # the Turkish-casefolded text), or at least `boilerplate_weak_min` of them
+    # together with `boilerplate_regex`. Found in interpress_tr during the label
+    # check of 2026-09-30: 1.9% of its records were mastheads.
+    boilerplate_keywords: list[str] = dataclasses.field(default_factory=list)
+    boilerplate_min_keywords: int = 3
+    boilerplate_weak_min: int = 2
+    boilerplate_regex: str = ""
+    # Drop records whose text matches any of these patterns (on the casefolded
+    # text). Used for reviews that WRITE their score ("7/10", "5 yildiz
+    # veriyorum", "1 star"): on a rating-derived label that is the label itself,
+    # and the label-name filter cannot see it (11.2% of sinema_tr, 0.8-2.9% of
+    # the other review sets; found 2026-09-30).
+    drop_text_regex: list[str] = dataclasses.field(default_factory=list)
+    # Replace HTML tags with a space and unescape entities before anything else
+    # (amazon_hpc_en: 12.7% of reviews carried "<br />").
+    strip_html: bool = False
     # haystack construction
     seed: int = 42
     haystack_target_tokens: list[int] = dataclasses.field(
@@ -238,6 +258,13 @@ class Config:
     # For ordinal labels that start with a number ("7 yıldız"): the two labels
     # must be at least this many points apart (7 vs 8 stars is a judgement call).
     close_ordinal_gap: int = 0
+    # v0.10.0: only compare label pairs that can be told apart from the text.
+    # A JSON file written by experiments/label_separability.py; its
+    # "allowed_pairs" are the pairs a word-count classifier separates at 0.8 or
+    # more. Pairs such as news "turizm" vs "seyahat" or films 5 vs 6 stars are
+    # decided by which box the editor or reviewer ticked, not by reading, so
+    # they are never asked as close comparisons. Empty = no restriction.
+    close_allowed_pairs_file: str = ""
     # --- v0.9.0: core documents ---------------------------------------------
     # Extra documents built from EXACT label counts so that chosen pairs of
     # LARGE labels have close counts. Random label mixes rarely produce such
@@ -312,7 +339,21 @@ def make_token_counter(cfg: Config) -> Callable[[str], int]:
     if cfg.reference_tokenizer:
         from transformers import AutoTokenizer
         tok = AutoTokenizer.from_pretrained(cfg.reference_tokenizer)
-        return lambda s: len(tok.encode(s, add_special_tokens=False))
+        cache: dict[str, int] = {}
+
+        def count(s: str) -> int:
+            # Records are counted again and again while documents are fitted to
+            # their length; a whole document is counted once by the caller. Only
+            # record-sized strings are cached, so memory stays bounded. Pure
+            # function of the string, so outputs are unchanged.
+            if len(s) > 20000:
+                return len(tok.encode(s, add_special_tokens=False))
+            v = cache.get(s)
+            if v is None:
+                v = len(tok.encode(s, add_special_tokens=False))
+                cache[s] = v
+            return v
+        return count
     cpt = cfg.chars_per_token
     return lambda s: max(1, round(len(s) / cpt))
 
@@ -467,6 +508,11 @@ def load_source(cfg: Config) -> pl.DataFrame:
 
 def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFrame:
     stats = stats if stats is not None else {}
+    if cfg.strip_html:
+        import html as _html
+        df = df.with_columns(pl.col("text").cast(pl.Utf8).map_elements(
+            lambda t: _html.unescape(re.sub(r"<\s*/?\s*[a-zA-Z][^>]{0,40}>", " ", t or "")),
+            return_dtype=pl.Utf8).alias("text"))
     df = df.with_columns(
         pl.col("text").str.replace_all(r"\s+", " ").str.strip_chars().alias("text"),
         pl.col("label").str.strip_chars().str.to_lowercase().alias("label"),
@@ -490,6 +536,25 @@ def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFr
         & ~pl.col("text").str.contains(re.escape(cfg.separator.strip()), literal=False)
     )
     df = df.filter(~pl.col("label").str.contains(",") & ~pl.col("entity").str.contains(","))
+    if cfg.boilerplate_keywords:
+        kws = [tr_casefold(k) for k in cfg.boilerplate_keywords]
+        rx = re.compile(cfg.boilerplate_regex) if cfg.boilerplate_regex else None
+
+        def _boiler(t: str) -> bool:
+            c = tr_casefold(t)
+            n = sum(1 for k in kws if k in c)
+            return n >= cfg.boilerplate_min_keywords or (
+                rx is not None and n >= cfg.boilerplate_weak_min and rx.search(c) is not None)
+        before_b = df.height
+        df = df.filter(~pl.col("text").map_elements(_boiler, return_dtype=pl.Boolean))
+        stats["rows_dropped_boilerplate"] = before_b - df.height
+    if cfg.drop_text_regex:
+        rxs = [re.compile(p, re.IGNORECASE) for p in cfg.drop_text_regex]
+        fold = tr_casefold if cfg.language == "tr" else str.lower
+        before_r = df.height
+        df = df.filter(~pl.col("text").map_elements(
+            lambda t: any(r.search(fold(t)) for r in rxs), return_dtype=pl.Boolean))
+        stats["rows_dropped_text_regex"] = before_r - df.height
     df = df.unique(subset=["_norm"], keep="first", maintain_order=True).drop("_norm")
 
     if cfg.label_translation:
@@ -1418,6 +1483,20 @@ def _order_for_balance(a: str, b: str, gt: str, balance: list[int] | None,
     return (gt, b if gt == a else a) if first else (b if gt == a else a, gt)
 
 
+_ALLOWED_CACHE: dict[str, set] = {}
+
+
+def allowed_pairs(cfg: Config) -> set | None:
+    """Unordered label pairs allowed in close comparisons, or None for all."""
+    if not cfg.close_allowed_pairs_file:
+        return None
+    path = cfg.close_allowed_pairs_file
+    if path not in _ALLOWED_CACHE:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        _ALLOWED_CACHE[path] = {frozenset(p) for p in data["allowed_pairs"]}
+    return _ALLOWED_CACHE[path]
+
+
 def close_comparisons(meta, cfg: Config, rng: random.Random,
                       balance: list[int] | None = None) -> list[dict]:
     """v0.8.0. Up to `close_per_haystack` close comparisons for one haystack,
@@ -1428,9 +1507,12 @@ def close_comparisons(meta, cfg: Config, rng: random.Random,
     floor = max(cfg.close_min_count, cfg.close_min_share * n)
     excluded = set(cfg.close_exclude_labels)
     freq = sorted(l for l, c in counts.items() if c >= floor and l not in excluded)
+    allowed = allowed_pairs(cfg)
     pairs = []
     for i, a in enumerate(freq):
         for b in freq[i + 1:]:
+            if allowed is not None and frozenset((a, b)) not in allowed:
+                continue
             if cfg.close_ordinal_gap:
                 oa, ob = _ordinal(a), _ordinal(b)
                 if oa is None or ob is None or abs(oa - ob) < cfg.close_ordinal_gap:
@@ -1494,12 +1576,15 @@ def core_document_counts(pool_counts: dict[str, int], n: int, cfg: Config,
     else:
         eligible = sorted(l for l, k in pool_counts.items() if k >= c and l not in excluded)
         rng.shuffle(eligible)
+        allowed = allowed_pairs(cfg)
         pairs, used = [], set()
         for i, a in enumerate(eligible):
             for b in eligible[i + 1:]:
                 if len(pairs) >= cfg.core_pairs_per_doc:
                     break
                 if a in used or b in used:
+                    continue
+                if allowed is not None and frozenset((a, b)) not in allowed:
                     continue
                 if cfg.close_ordinal_gap:
                     oa, ob = _ordinal(a), _ordinal(b)
@@ -1971,12 +2056,13 @@ def build(cfg: Config) -> None:
                 for _q in questions:
                     tier_counter[_q["kind"]] += 1
                 meta.write_parquet(out / f"meta_{hs_id}.parquet")
+                hay_tokens = count_tokens(hay)
                 hf.write(json.dumps({
                     "uid": f"{ds_name}:{hs_id}", "dataset": ds_name,
                     "haystack_id": hs_id, "language": cfg.language,
-                    "target_tokens": target if not record_mode else count_tokens(hay),
+                    "target_tokens": target if not record_mode else hay_tokens,
                     "target_records": target if record_mode else None,
-                    "n_tokens": count_tokens(hay),
+                    "n_tokens": hay_tokens,
                     "n_examples": meta.height,
                     "drift_target": drift_target, "drift_ok": drift_ok,
                     "haystack": hay,
@@ -2002,7 +2088,7 @@ def build(cfg: Config) -> None:
                     n_q += 1
 
                 hs_summary.append({"haystack_id": hs_id, "n_examples": meta.height,
-                                   "n_tokens": count_tokens(hay),
+                                   "n_tokens": hay_tokens,
                                    # every length in this benchmark is measured with ONE
                                    # tokenizer; n_chars lets a reader re-derive lengths
                                    # for a model whose tokenizer differs (for Turkish the

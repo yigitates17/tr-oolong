@@ -1115,3 +1115,42 @@ cost. Core documents are sized in records, so within a review pair the English
 and Turkish documents have the same record counts but different token counts.
 The 174 v0.8.0 core questions keep a mild source-share exposure (0.61) and are
 reported as a separate group.
+
+## D25. Cleaning, identifiable labels, and film sentiment (v0.10.0)
+
+**The problems** (found during the native-speaker label check, REPORT
+experiment 11):
+
+1. 1.9% of news records in documents were newspaper mastheads, not articles.
+2. Reviews that write their score ("7/10", "5 yıldız veriyorum", "1 star") carry
+   the rating-derived label in the text: 11.2% of film reviews, 0.8-2.9% of the
+   other review sets. The label-name filter cannot see this.
+3. 12.7% of Amazon reviews carried HTML ("<br />").
+4. Some label pairs cannot be told apart from the text (news "turizm" vs
+   "seyahat", film 5 vs 6 stars), and some labels cannot be recognised among all
+   labels at all (news "aktuel", complaints filed as "alışveriş" about a refund
+   with no product named). A close comparison between them is decided by which
+   box the editor, reviewer or filer ticked.
+
+**What was changed.**
+
+- `boilerplate_keywords` / `boilerplate_regex` (news): drop records with 3 or
+  more masthead job titles, or 2 plus an issue header. 4,133 records.
+- `drop_text_regex` (review sets): drop reviews that write their score.
+- `strip_html` (review sets, news): replace tags by a space, unescape entities.
+- `close_allowed_pairs_file` (every set): close comparisons only between label
+  pairs that a word-count classifier separates at 0.8 or more AND whose labels
+  it identifies among all labels at least 60% of the time
+  (`experiments/label_separability.py`, results in
+  `experiments/separable_pairs/`).
+- The film set's 10-point ratings are mapped to sentiment (1-4 negative, 5-6
+  neutral, 7-10 positive) through `label_translation`: exact star ratings
+  cannot be read from text, and every question type on the set depended on
+  them.
+
+**What it cost.** The news set keeps only 5 identifiable sections for core
+questions (10 pairs); the film set loses its 10 labels and its rare-category
+counts; the intent sets keep 32 of 48 intents for core pairs. The classifier
+used for the rule is weak, so the lists are cautious. All documents of the six
+cleaned datasets changed, so v0.10.0 is not comparable question by question
+with v0.9.0 on those datasets.

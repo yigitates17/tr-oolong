@@ -332,7 +332,14 @@ def certify(sets: list[str], cfgs: dict, draws: int) -> None:
                 prior_ent.setdefault(l, {})[e] = c
         k = json.loads(Path(name, "manifest.json").read_text(encoding="utf-8")).get("top_k_k", 3)
         seen: dict = {}
+        # v0.10.0: core documents carry only close comparisons, so redrawing
+        # ranking or brand questions on them tests nothing that ships.
+        man = json.loads(Path(name, "manifest.json").read_text(encoding="utf-8"))
+        core_ids = {h["haystack_id"] for h in man["haystacks"] if h.get("core_document")}
+        not_shipped = set(cfg.families_disabled) | set(getattr(cfg, "families_withdrawn", []))
         for f in sorted(Path(name).glob("meta_*.parquet")):
+            if f.name[len("meta_"):-len(".parquet")] in core_ids:
+                continue
             meta = pl.read_parquet(f)
             labels = sorted(meta["label"].unique().to_list())
             askable = sorted(meta.group_by("entity").len().filter(
@@ -343,7 +350,7 @@ def certify(sets: list[str], cfgs: dict, draws: int) -> None:
             for _ in range(draws):
                 for kind in ("most_common", "least_common", "second_most",
                              "entity_argmax", "top_k", "pairwise"):
-                    if kind in set(cfg.families_disabled):
+                    if kind in not_shipped:
                         continue        # not shipped; reporting on it misleads
                     try:
                         q = B._make_one(kind, meta, cfg, rng, labels=labels, askable=askable,

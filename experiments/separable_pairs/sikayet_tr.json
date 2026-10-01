@@ -1,0 +1,1459 @@
+{
+ "dataset": "sikayet_tr",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 60000,
+ "recall": {
+  "alışveriş": 0.3528,
+  "kişisel bakım ve kozmetik": 0.4006,
+  "internet": 0.4626,
+  "emlak ve inşaat": 0.5534,
+  "bilgisayar": 0.5536,
+  "mobilya ve ev tekstili": 0.575,
+  "otomotiv": 0.6216,
+  "kamu hizmetleri": 0.6217,
+  "mutfak araç gereç": 0.6651,
+  "spor": 0.6832,
+  "eğitim": 0.6956,
+  "hizmet sektörü": 0.7186,
+  "medya": 0.7525,
+  "giyim": 0.759,
+  "temizlik": 0.7748,
+  "etkinlik ve organizasyon": 0.778,
+  "içecek": 0.7972,
+  "elektronik": 0.8041,
+  "mücevher saat gözlük": 0.8058,
+  "mekan ve eğlence": 0.8129,
+  "turizm": 0.8192,
+  "sigortacılık": 0.8269,
+  "gıda": 0.8463,
+  "sağlık": 0.8564,
+  "finans": 0.8627,
+  "beyaz eşya": 0.8638,
+  "küçük ev aletleri": 0.8943,
+  "enerji": 0.8962,
+  "ulaşım": 0.9021
+ },
+ "allowed_pairs": [
+  [
+   "beyaz eşya",
+   "elektronik"
+  ],
+  [
+   "beyaz eşya",
+   "enerji"
+  ],
+  [
+   "beyaz eşya",
+   "etkinlik ve organizasyon"
+  ],
+  [
+   "beyaz eşya",
+   "eğitim"
+  ],
+  [
+   "beyaz eşya",
+   "finans"
+  ],
+  [
+   "beyaz eşya",
+   "giyim"
+  ],
+  [
+   "beyaz eşya",
+   "gıda"
+  ],
+  [
+   "beyaz eşya",
+   "hizmet sektörü"
+  ],
+  [
+   "beyaz eşya",
+   "içecek"
+  ],
+  [
+   "beyaz eşya",
+   "kamu hizmetleri"
+  ],
+  [
+   "beyaz eşya",
+   "küçük ev aletleri"
+  ],
+  [
+   "beyaz eşya",
+   "medya"
+  ],
+  [
+   "beyaz eşya",
+   "mekan ve eğlence"
+  ],
+  [
+   "beyaz eşya",
+   "mutfak araç gereç"
+  ],
+  [
+   "beyaz eşya",
+   "mücevher saat gözlük"
+  ],
+  [
+   "beyaz eşya",
+   "otomotiv"
+  ],
+  [
+   "beyaz eşya",
+   "sağlık"
+  ],
+  [
+   "beyaz eşya",
+   "sigortacılık"
+  ],
+  [
+   "beyaz eşya",
+   "spor"
+  ],
+  [
+   "beyaz eşya",
+   "temizlik"
+  ],
+  [
+   "beyaz eşya",
+   "turizm"
+  ],
+  [
+   "beyaz eşya",
+   "ulaşım"
+  ],
+  [
+   "elektronik",
+   "enerji"
+  ],
+  [
+   "elektronik",
+   "etkinlik ve organizasyon"
+  ],
+  [
+   "elektronik",
+   "eğitim"
+  ],
+  [
+   "elektronik",
+   "finans"
+  ],
+  [
+   "elektronik",
+   "giyim"
+  ],
+  [
+   "elektronik",
+   "gıda"
+  ],
+  [
+   "elektronik",
+   "hizmet sektörü"
+  ],
+  [
+   "elektronik",
+   "içecek"
+  ],
+  [
+   "elektronik",
+   "kamu hizmetleri"
+  ],
+  [
+   "elektronik",
+   "küçük ev aletleri"
+  ],
+  [
+   "elektronik",
+   "medya"
+  ],
+  [
+   "elektronik",
+   "mekan ve eğlence"
+  ],
+  [
+   "elektronik",
+   "mutfak araç gereç"
+  ],
+  [
+   "elektronik",
+   "mücevher saat gözlük"
+  ],
+  [
+   "elektronik",
+   "otomotiv"
+  ],
+  [
+   "elektronik",
+   "sağlık"
+  ],
+  [
+   "elektronik",
+   "sigortacılık"
+  ],
+  [
+   "elektronik",
+   "spor"
+  ],
+  [
+   "elektronik",
+   "temizlik"
+  ],
+  [
+   "elektronik",
+   "turizm"
+  ],
+  [
+   "elektronik",
+   "ulaşım"
+  ],
+  [
+   "enerji",
+   "etkinlik ve organizasyon"
+  ],
+  [
+   "enerji",
+   "eğitim"
+  ],
+  [
+   "enerji",
+   "finans"
+  ],
+  [
+   "enerji",
+   "giyim"
+  ],
+  [
+   "enerji",
+   "gıda"
+  ],
+  [
+   "enerji",
+   "hizmet sektörü"
+  ],
+  [
+   "enerji",
+   "içecek"
+  ],
+  [
+   "enerji",
+   "kamu hizmetleri"
+  ],
+  [
+   "enerji",
+   "küçük ev aletleri"
+  ],
+  [
+   "enerji",
+   "medya"
+  ],
+  [
+   "enerji",
+   "mekan ve eğlence"
+  ],
+  [
+   "enerji",
+   "mutfak araç gereç"
+  ],
+  [
+   "enerji",
+   "mücevher saat gözlük"
+  ],
+  [
+   "enerji",
+   "otomotiv"
+  ],
+  [
+   "enerji",
+   "sağlık"
+  ],
+  [
+   "enerji",
+   "sigortacılık"
+  ],
+  [
+   "enerji",
+   "spor"
+  ],
+  [
+   "enerji",
+   "temizlik"
+  ],
+  [
+   "enerji",
+   "turizm"
+  ],
+  [
+   "enerji",
+   "ulaşım"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "eğitim"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "finans"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "giyim"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "gıda"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "hizmet sektörü"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "içecek"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "kamu hizmetleri"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "küçük ev aletleri"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "medya"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "mekan ve eğlence"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "mutfak araç gereç"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "mücevher saat gözlük"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "otomotiv"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "sağlık"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "sigortacılık"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "spor"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "temizlik"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "turizm"
+  ],
+  [
+   "etkinlik ve organizasyon",
+   "ulaşım"
+  ],
+  [
+   "eğitim",
+   "finans"
+  ],
+  [
+   "eğitim",
+   "giyim"
+  ],
+  [
+   "eğitim",
+   "gıda"
+  ],
+  [
+   "eğitim",
+   "hizmet sektörü"
+  ],
+  [
+   "eğitim",
+   "içecek"
+  ],
+  [
+   "eğitim",
+   "kamu hizmetleri"
+  ],
+  [
+   "eğitim",
+   "küçük ev aletleri"
+  ],
+  [
+   "eğitim",
+   "medya"
+  ],
+  [
+   "eğitim",
+   "mekan ve eğlence"
+  ],
+  [
+   "eğitim",
+   "mutfak araç gereç"
+  ],
+  [
+   "eğitim",
+   "mücevher saat gözlük"
+  ],
+  [
+   "eğitim",
+   "otomotiv"
+  ],
+  [
+   "eğitim",
+   "sağlık"
+  ],
+  [
+   "eğitim",
+   "sigortacılık"
+  ],
+  [
+   "eğitim",
+   "spor"
+  ],
+  [
+   "eğitim",
+   "temizlik"
+  ],
+  [
+   "eğitim",
+   "turizm"
+  ],
+  [
+   "eğitim",
+   "ulaşım"
+  ],
+  [
+   "finans",
+   "giyim"
+  ],
+  [
+   "finans",
+   "gıda"
+  ],
+  [
+   "finans",
+   "hizmet sektörü"
+  ],
+  [
+   "finans",
+   "içecek"
+  ],
+  [
+   "finans",
+   "kamu hizmetleri"
+  ],
+  [
+   "finans",
+   "küçük ev aletleri"
+  ],
+  [
+   "finans",
+   "medya"
+  ],
+  [
+   "finans",
+   "mekan ve eğlence"
+  ],
+  [
+   "finans",
+   "mutfak araç gereç"
+  ],
+  [
+   "finans",
+   "mücevher saat gözlük"
+  ],
+  [
+   "finans",
+   "otomotiv"
+  ],
+  [
+   "finans",
+   "sağlık"
+  ],
+  [
+   "finans",
+   "sigortacılık"
+  ],
+  [
+   "finans",
+   "spor"
+  ],
+  [
+   "finans",
+   "temizlik"
+  ],
+  [
+   "finans",
+   "turizm"
+  ],
+  [
+   "finans",
+   "ulaşım"
+  ],
+  [
+   "giyim",
+   "gıda"
+  ],
+  [
+   "giyim",
+   "hizmet sektörü"
+  ],
+  [
+   "giyim",
+   "içecek"
+  ],
+  [
+   "giyim",
+   "kamu hizmetleri"
+  ],
+  [
+   "giyim",
+   "küçük ev aletleri"
+  ],
+  [
+   "giyim",
+   "medya"
+  ],
+  [
+   "giyim",
+   "mekan ve eğlence"
+  ],
+  [
+   "giyim",
+   "mutfak araç gereç"
+  ],
+  [
+   "giyim",
+   "mücevher saat gözlük"
+  ],
+  [
+   "giyim",
+   "otomotiv"
+  ],
+  [
+   "giyim",
+   "sağlık"
+  ],
+  [
+   "giyim",
+   "sigortacılık"
+  ],
+  [
+   "giyim",
+   "spor"
+  ],
+  [
+   "giyim",
+   "temizlik"
+  ],
+  [
+   "giyim",
+   "turizm"
+  ],
+  [
+   "giyim",
+   "ulaşım"
+  ],
+  [
+   "gıda",
+   "hizmet sektörü"
+  ],
+  [
+   "gıda",
+   "içecek"
+  ],
+  [
+   "gıda",
+   "kamu hizmetleri"
+  ],
+  [
+   "gıda",
+   "küçük ev aletleri"
+  ],
+  [
+   "gıda",
+   "medya"
+  ],
+  [
+   "gıda",
+   "mekan ve eğlence"
+  ],
+  [
+   "gıda",
+   "mutfak araç gereç"
+  ],
+  [
+   "gıda",
+   "mücevher saat gözlük"
+  ],
+  [
+   "gıda",
+   "otomotiv"
+  ],
+  [
+   "gıda",
+   "sağlık"
+  ],
+  [
+   "gıda",
+   "sigortacılık"
+  ],
+  [
+   "gıda",
+   "spor"
+  ],
+  [
+   "gıda",
+   "temizlik"
+  ],
+  [
+   "gıda",
+   "turizm"
+  ],
+  [
+   "gıda",
+   "ulaşım"
+  ],
+  [
+   "hizmet sektörü",
+   "içecek"
+  ],
+  [
+   "hizmet sektörü",
+   "kamu hizmetleri"
+  ],
+  [
+   "hizmet sektörü",
+   "küçük ev aletleri"
+  ],
+  [
+   "hizmet sektörü",
+   "medya"
+  ],
+  [
+   "hizmet sektörü",
+   "mekan ve eğlence"
+  ],
+  [
+   "hizmet sektörü",
+   "mutfak araç gereç"
+  ],
+  [
+   "hizmet sektörü",
+   "mücevher saat gözlük"
+  ],
+  [
+   "hizmet sektörü",
+   "otomotiv"
+  ],
+  [
+   "hizmet sektörü",
+   "sağlık"
+  ],
+  [
+   "hizmet sektörü",
+   "sigortacılık"
+  ],
+  [
+   "hizmet sektörü",
+   "spor"
+  ],
+  [
+   "hizmet sektörü",
+   "temizlik"
+  ],
+  [
+   "hizmet sektörü",
+   "turizm"
+  ],
+  [
+   "hizmet sektörü",
+   "ulaşım"
+  ],
+  [
+   "içecek",
+   "kamu hizmetleri"
+  ],
+  [
+   "içecek",
+   "küçük ev aletleri"
+  ],
+  [
+   "içecek",
+   "medya"
+  ],
+  [
+   "içecek",
+   "mekan ve eğlence"
+  ],
+  [
+   "içecek",
+   "mutfak araç gereç"
+  ],
+  [
+   "içecek",
+   "mücevher saat gözlük"
+  ],
+  [
+   "içecek",
+   "otomotiv"
+  ],
+  [
+   "içecek",
+   "sağlık"
+  ],
+  [
+   "içecek",
+   "sigortacılık"
+  ],
+  [
+   "içecek",
+   "spor"
+  ],
+  [
+   "içecek",
+   "temizlik"
+  ],
+  [
+   "içecek",
+   "turizm"
+  ],
+  [
+   "içecek",
+   "ulaşım"
+  ],
+  [
+   "kamu hizmetleri",
+   "küçük ev aletleri"
+  ],
+  [
+   "kamu hizmetleri",
+   "medya"
+  ],
+  [
+   "kamu hizmetleri",
+   "mekan ve eğlence"
+  ],
+  [
+   "kamu hizmetleri",
+   "mutfak araç gereç"
+  ],
+  [
+   "kamu hizmetleri",
+   "mücevher saat gözlük"
+  ],
+  [
+   "kamu hizmetleri",
+   "otomotiv"
+  ],
+  [
+   "kamu hizmetleri",
+   "sağlık"
+  ],
+  [
+   "kamu hizmetleri",
+   "sigortacılık"
+  ],
+  [
+   "kamu hizmetleri",
+   "spor"
+  ],
+  [
+   "kamu hizmetleri",
+   "temizlik"
+  ],
+  [
+   "kamu hizmetleri",
+   "turizm"
+  ],
+  [
+   "kamu hizmetleri",
+   "ulaşım"
+  ],
+  [
+   "küçük ev aletleri",
+   "medya"
+  ],
+  [
+   "küçük ev aletleri",
+   "mekan ve eğlence"
+  ],
+  [
+   "küçük ev aletleri",
+   "mutfak araç gereç"
+  ],
+  [
+   "küçük ev aletleri",
+   "mücevher saat gözlük"
+  ],
+  [
+   "küçük ev aletleri",
+   "otomotiv"
+  ],
+  [
+   "küçük ev aletleri",
+   "sağlık"
+  ],
+  [
+   "küçük ev aletleri",
+   "sigortacılık"
+  ],
+  [
+   "küçük ev aletleri",
+   "spor"
+  ],
+  [
+   "küçük ev aletleri",
+   "temizlik"
+  ],
+  [
+   "küçük ev aletleri",
+   "turizm"
+  ],
+  [
+   "küçük ev aletleri",
+   "ulaşım"
+  ],
+  [
+   "medya",
+   "mekan ve eğlence"
+  ],
+  [
+   "medya",
+   "mutfak araç gereç"
+  ],
+  [
+   "medya",
+   "mücevher saat gözlük"
+  ],
+  [
+   "medya",
+   "otomotiv"
+  ],
+  [
+   "medya",
+   "sağlık"
+  ],
+  [
+   "medya",
+   "sigortacılık"
+  ],
+  [
+   "medya",
+   "spor"
+  ],
+  [
+   "medya",
+   "temizlik"
+  ],
+  [
+   "medya",
+   "turizm"
+  ],
+  [
+   "medya",
+   "ulaşım"
+  ],
+  [
+   "mekan ve eğlence",
+   "mutfak araç gereç"
+  ],
+  [
+   "mekan ve eğlence",
+   "mücevher saat gözlük"
+  ],
+  [
+   "mekan ve eğlence",
+   "otomotiv"
+  ],
+  [
+   "mekan ve eğlence",
+   "sağlık"
+  ],
+  [
+   "mekan ve eğlence",
+   "sigortacılık"
+  ],
+  [
+   "mekan ve eğlence",
+   "spor"
+  ],
+  [
+   "mekan ve eğlence",
+   "temizlik"
+  ],
+  [
+   "mekan ve eğlence",
+   "turizm"
+  ],
+  [
+   "mekan ve eğlence",
+   "ulaşım"
+  ],
+  [
+   "mutfak araç gereç",
+   "mücevher saat gözlük"
+  ],
+  [
+   "mutfak araç gereç",
+   "otomotiv"
+  ],
+  [
+   "mutfak araç gereç",
+   "sağlık"
+  ],
+  [
+   "mutfak araç gereç",
+   "sigortacılık"
+  ],
+  [
+   "mutfak araç gereç",
+   "spor"
+  ],
+  [
+   "mutfak araç gereç",
+   "temizlik"
+  ],
+  [
+   "mutfak araç gereç",
+   "turizm"
+  ],
+  [
+   "mutfak araç gereç",
+   "ulaşım"
+  ],
+  [
+   "mücevher saat gözlük",
+   "otomotiv"
+  ],
+  [
+   "mücevher saat gözlük",
+   "sağlık"
+  ],
+  [
+   "mücevher saat gözlük",
+   "sigortacılık"
+  ],
+  [
+   "mücevher saat gözlük",
+   "spor"
+  ],
+  [
+   "mücevher saat gözlük",
+   "temizlik"
+  ],
+  [
+   "mücevher saat gözlük",
+   "turizm"
+  ],
+  [
+   "mücevher saat gözlük",
+   "ulaşım"
+  ],
+  [
+   "otomotiv",
+   "sağlık"
+  ],
+  [
+   "otomotiv",
+   "sigortacılık"
+  ],
+  [
+   "otomotiv",
+   "spor"
+  ],
+  [
+   "otomotiv",
+   "temizlik"
+  ],
+  [
+   "otomotiv",
+   "turizm"
+  ],
+  [
+   "otomotiv",
+   "ulaşım"
+  ],
+  [
+   "sağlık",
+   "sigortacılık"
+  ],
+  [
+   "sağlık",
+   "spor"
+  ],
+  [
+   "sağlık",
+   "temizlik"
+  ],
+  [
+   "sağlık",
+   "turizm"
+  ],
+  [
+   "sağlık",
+   "ulaşım"
+  ],
+  [
+   "sigortacılık",
+   "spor"
+  ],
+  [
+   "sigortacılık",
+   "temizlik"
+  ],
+  [
+   "sigortacılık",
+   "turizm"
+  ],
+  [
+   "sigortacılık",
+   "ulaşım"
+  ],
+  [
+   "spor",
+   "temizlik"
+  ],
+  [
+   "spor",
+   "turizm"
+  ],
+  [
+   "spor",
+   "ulaşım"
+  ],
+  [
+   "temizlik",
+   "turizm"
+  ],
+  [
+   "temizlik",
+   "ulaşım"
+  ],
+  [
+   "turizm",
+   "ulaşım"
+  ]
+ ],
+ "separability": {
+  "giyim | internet": 0.8033,
+  "alışveriş | giyim": 0.8095,
+  "giyim | kişisel bakım ve kozmetik": 0.8129,
+  "internet | kişisel bakım ve kozmetik": 0.8207,
+  "alışveriş | kişisel bakım ve kozmetik": 0.8239,
+  "alışveriş | internet": 0.8328,
+  "eğitim | kişisel bakım ve kozmetik": 0.8429,
+  "internet | mobilya ve ev tekstili": 0.8433,
+  "alışveriş | mobilya ve ev tekstili": 0.8472,
+  "giyim | mobilya ve ev tekstili": 0.8506,
+  "eğitim | internet": 0.8754,
+  "alışveriş | mutfak araç gereç": 0.8793,
+  "bilgisayar | elektronik": 0.8825,
+  "mobilya ve ev tekstili | mutfak araç gereç": 0.8892,
+  "internet | mutfak araç gereç": 0.8943,
+  "eğitim | mobilya ve ev tekstili": 0.8963,
+  "enerji | kamu hizmetleri": 0.8967,
+  "giyim | mutfak araç gereç": 0.8969,
+  "bilgisayar | internet": 0.8997,
+  "kişisel bakım ve kozmetik | mobilya ve ev tekstili": 0.9008,
+  "beyaz eşya | emlak ve inşaat": 0.9025,
+  "emlak ve inşaat | hizmet sektörü": 0.9035,
+  "eğitim | giyim": 0.9035,
+  "alışveriş | mekan ve eğlence": 0.9063,
+  "kişisel bakım ve kozmetik | mutfak araç gereç": 0.9069,
+  "otomotiv | sigortacılık": 0.9122,
+  "alışveriş | gıda": 0.9125,
+  "giyim | mücevher saat gözlük": 0.9129,
+  "gıda | içecek": 0.915,
+  "alışveriş | eğitim": 0.9156,
+  "küçük ev aletleri | mutfak araç gereç": 0.917,
+  "alışveriş | mücevher saat gözlük": 0.9183,
+  "elektronik | medya": 0.9188,
+  "alışveriş | bilgisayar": 0.919,
+  "finans | kamu hizmetleri": 0.9208,
+  "alışveriş | temizlik": 0.9243,
+  "otomotiv | spor": 0.9253,
+  "bilgisayar | medya": 0.9265,
+  "internet | medya": 0.9291,
+  "kişisel bakım ve kozmetik | temizlik": 0.9293,
+  "emlak ve inşaat | otomotiv": 0.9318,
+  "internet | mücevher saat gözlük": 0.9319,
+  "bilgisayar | eğitim": 0.9334,
+  "eğitim | mutfak araç gereç": 0.9339,
+  "gıda | mekan ve eğlence": 0.9342,
+  "emlak ve inşaat | küçük ev aletleri": 0.9343,
+  "kişisel bakım ve kozmetik | sağlık": 0.9344,
+  "kişisel bakım ve kozmetik | mücevher saat gözlük": 0.9357,
+  "internet | mekan ve eğlence": 0.9372,
+  "elektronik | emlak ve inşaat": 0.9373,
+  "alışveriş | beyaz eşya": 0.9374,
+  "alışveriş | otomotiv": 0.9375,
+  "alışveriş | elektronik": 0.9377,
+  "alışveriş | içecek": 0.9378,
+  "bilgisayar | spor": 0.9378,
+  "eğitim | spor": 0.9391,
+  "bilgisayar | kişisel bakım ve kozmetik": 0.9397,
+  "bilgisayar | giyim": 0.9402,
+  "beyaz eşya | mutfak araç gereç": 0.9407,
+  "hizmet sektörü | kamu hizmetleri": 0.941,
+  "gıda | kişisel bakım ve kozmetik": 0.9411,
+  "emlak ve inşaat | kamu hizmetleri": 0.9419,
+  "elektronik | internet": 0.9421,
+  "eğitim | mücevher saat gözlük": 0.9421,
+  "alışveriş | küçük ev aletleri": 0.9423,
+  "alışveriş | emlak ve inşaat": 0.9425,
+  "finans | internet": 0.9425,
+  "internet | otomotiv": 0.9431,
+  "medya | spor": 0.9443,
+  "elektronik | otomotiv": 0.9446,
+  "emlak ve inşaat | spor": 0.9452,
+  "kamu hizmetleri | sağlık": 0.9455,
+  "hizmet sektörü | spor": 0.9456,
+  "internet | temizlik": 0.9456,
+  "hizmet sektörü | otomotiv": 0.9466,
+  "hizmet sektörü | medya": 0.9467,
+  "mobilya ve ev tekstili | mücevher saat gözlük": 0.9472,
+  "turizm | ulaşım": 0.9473,
+  "eğitim | kamu hizmetleri": 0.9478,
+  "eğitim | otomotiv": 0.9478,
+  "kişisel bakım ve kozmetik | otomotiv": 0.9479,
+  "elektronik | spor": 0.948,
+  "medya | otomotiv": 0.9485,
+  "etkinlik ve organizasyon | spor": 0.9486,
+  "kamu hizmetleri | otomotiv": 0.9487,
+  "hizmet sektörü | internet": 0.9489,
+  "hizmet sektörü | turizm": 0.9489,
+  "giyim | mekan ve eğlence": 0.949,
+  "bilgisayar | emlak ve inşaat": 0.9491,
+  "bilgisayar | mutfak araç gereç": 0.9491,
+  "etkinlik ve organizasyon | ulaşım": 0.9491,
+  "beyaz eşya | otomotiv": 0.9495,
+  "emlak ve inşaat | kişisel bakım ve kozmetik": 0.9495,
+  "kişisel bakım ve kozmetik | mekan ve eğlence": 0.9495,
+  "kişisel bakım ve kozmetik | spor": 0.9496,
+  "mobilya ve ev tekstili | temizlik": 0.9498,
+  "otomotiv | ulaşım": 0.95,
+  "etkinlik ve organizasyon | turizm": 0.9502,
+  "etkinlik ve organizasyon | hizmet sektörü": 0.9505,
+  "eğitim | hizmet sektörü": 0.9506,
+  "emlak ve inşaat | internet": 0.9507,
+  "giyim | temizlik": 0.9508,
+  "gıda | internet": 0.9508,
+  "bilgisayar | sigortacılık": 0.9512,
+  "eğitim | medya": 0.9515,
+  "emlak ve inşaat | temizlik": 0.9518,
+  "finans | sigortacılık": 0.9518,
+  "internet | spor": 0.9524,
+  "kamu hizmetleri | ulaşım": 0.9524,
+  "otomotiv | sağlık": 0.9528,
+  "mutfak araç gereç | mücevher saat gözlük": 0.953,
+  "sağlık | spor": 0.953,
+  "hizmet sektörü | sağlık": 0.9532,
+  "beyaz eşya | bilgisayar": 0.9536,
+  "beyaz eşya | temizlik": 0.9536,
+  "alışveriş | sağlık": 0.9537,
+  "beyaz eşya | elektronik": 0.9538,
+  "eğitim | mekan ve eğlence": 0.9538,
+  "mutfak araç gereç | temizlik": 0.9544,
+  "bilgisayar | mobilya ve ev tekstili": 0.9545,
+  "emlak ve inşaat | enerji": 0.9547,
+  "mobilya ve ev tekstili | otomotiv": 0.9547,
+  "beyaz eşya | mobilya ve ev tekstili": 0.9553,
+  "bilgisayar | finans": 0.9553,
+  "emlak ve inşaat | mobilya ve ev tekstili": 0.9553,
+  "bilgisayar | otomotiv": 0.9554,
+  "mutfak araç gereç | otomotiv": 0.9555,
+  "bilgisayar | küçük ev aletleri": 0.9556,
+  "kişisel bakım ve kozmetik | küçük ev aletleri": 0.9556,
+  "kamu hizmetleri | sigortacılık": 0.9559,
+  "emlak ve inşaat | mutfak araç gereç": 0.956,
+  "hizmet sektörü | sigortacılık": 0.956,
+  "finans | hizmet sektörü": 0.9562,
+  "küçük ev aletleri | otomotiv": 0.9563,
+  "elektronik | kişisel bakım ve kozmetik": 0.9565,
+  "hizmet sektörü | kişisel bakım ve kozmetik": 0.9565,
+  "emlak ve inşaat | medya": 0.9569,
+  "internet | kamu hizmetleri": 0.9573,
+  "sağlık | temizlik": 0.9573,
+  "mekan ve eğlence | otomotiv": 0.9574,
+  "finans | otomotiv": 0.9575,
+  "beyaz eşya | spor": 0.9578,
+  "kişisel bakım ve kozmetik | medya": 0.9578,
+  "gıda | temizlik": 0.9581,
+  "giyim | otomotiv": 0.9582,
+  "spor | temizlik": 0.9586,
+  "emlak ve inşaat | sigortacılık": 0.9587,
+  "eğitim | sağlık": 0.9587,
+  "otomotiv | turizm": 0.9588,
+  "giyim | gıda": 0.9589,
+  "içecek | otomotiv": 0.959,
+  "etkinlik ve organizasyon | eğitim": 0.9591,
+  "bilgisayar | temizlik": 0.9594,
+  "kamu hizmetleri | medya": 0.9596,
+  "internet | içecek": 0.9598,
+  "küçük ev aletleri | spor": 0.9598,
+  "alışveriş | spor": 0.9599,
+  "emlak ve inşaat | eğitim": 0.9599,
+  "gıda | mobilya ve ev tekstili": 0.96,
+  "beyaz eşya | küçük ev aletleri": 0.9601,
+  "beyaz eşya | internet": 0.9602,
+  "internet | küçük ev aletleri": 0.9602,
+  "internet | sağlık": 0.9603,
+  "sağlık | sigortacılık": 0.9603,
+  "emlak ve inşaat | sağlık": 0.9604,
+  "içecek | mekan ve eğlence": 0.9604,
+  "küçük ev aletleri | mobilya ve ev tekstili": 0.9604,
+  "mücevher saat gözlük | temizlik": 0.9605,
+  "spor | turizm": 0.9605,
+  "finans | medya": 0.9606,
+  "mücevher saat gözlük | otomotiv": 0.9606,
+  "beyaz eşya | kişisel bakım ve kozmetik": 0.9607,
+  "emlak ve inşaat | içecek": 0.9607,
+  "etkinlik ve organizasyon | mekan ve eğlence": 0.9608,
+  "gıda | mutfak araç gereç": 0.9608,
+  "bilgisayar | hizmet sektörü": 0.9609,
+  "etkinlik ve organizasyon | medya": 0.9609,
+  "etkinlik ve organizasyon | internet": 0.9617,
+  "mekan ve eğlence | temizlik": 0.9617,
+  "bilgisayar | etkinlik ve organizasyon": 0.9624,
+  "giyim | küçük ev aletleri": 0.9628,
+  "mekan ve eğlence | mobilya ve ev tekstili": 0.9628,
+  "alışveriş | etkinlik ve organizasyon": 0.9629,
+  "internet | sigortacılık": 0.9629,
+  "alışveriş | hizmet sektörü": 0.963,
+  "eğitim | turizm": 0.963,
+  "elektronik | eğitim": 0.9631,
+  "bilgisayar | sağlık": 0.9638,
+  "eğitim | gıda": 0.964,
+  "elektronik | hizmet sektörü": 0.9643,
+  "alışveriş | kamu hizmetleri": 0.9645,
+  "mekan ve eğlence | spor": 0.9645,
+  "emlak ve inşaat | mücevher saat gözlük": 0.9647,
+  "eğitim | temizlik": 0.9648,
+  "içecek | temizlik": 0.9648,
+  "bilgisayar | mücevher saat gözlük": 0.9652,
+  "emlak ve inşaat | giyim": 0.9653,
+  "emlak ve inşaat | turizm": 0.9653,
+  "kamu hizmetleri | spor": 0.9654,
+  "elektronik | mutfak araç gereç": 0.9656,
+  "mobilya ve ev tekstili | spor": 0.9657,
+  "otomotiv | temizlik": 0.9657,
+  "hizmet sektörü | temizlik": 0.9661,
+  "gıda | sağlık": 0.9662,
+  "enerji | hizmet sektörü": 0.9665,
+  "etkinlik ve organizasyon | kişisel bakım ve kozmetik": 0.9666,
+  "etkinlik ve organizasyon | kamu hizmetleri": 0.9672,
+  "emlak ve inşaat | gıda": 0.9676,
+  "giyim | spor": 0.9677,
+  "eğitim | finans": 0.9678,
+  "mekan ve eğlence | mücevher saat gözlük": 0.9678,
+  "medya | sağlık": 0.9679,
+  "elektronik | sigortacılık": 0.9682,
+  "internet | turizm": 0.9684,
+  "beyaz eşya | giyim": 0.9685,
+  "bilgisayar | ulaşım": 0.9685,
+  "mutfak araç gereç | spor": 0.9686,
+  "mücevher saat gözlük | spor": 0.9687,
+  "elektronik | giyim": 0.9688,
+  "etkinlik ve organizasyon | giyim": 0.9688,
+  "alışveriş | medya": 0.9689,
+  "bilgisayar | kamu hizmetleri": 0.9689,
+  "emlak ve inşaat | finans": 0.9689,
+  "internet | ulaşım": 0.9689,
+  "elektronik | mobilya ve ev tekstili": 0.969,
+  "elektronik | temizlik": 0.969,
+  "mekan ve eğlence | mutfak araç gereç": 0.9691,
+  "içecek | spor": 0.9693,
+  "emlak ve inşaat | etkinlik ve organizasyon": 0.9695,
+  "gıda | mücevher saat gözlük": 0.9695,
+  "gıda | otomotiv": 0.9695,
+  "mücevher saat gözlük | sağlık": 0.9696,
+  "eğitim | sigortacılık": 0.9697,
+  "etkinlik ve organizasyon | sigortacılık": 0.9699,
+  "emlak ve inşaat | mekan ve eğlence": 0.9701,
+  "enerji | otomotiv": 0.9701,
+  "eğitim | ulaşım": 0.9703,
+  "gıda | spor": 0.9705,
+  "hizmet sektörü | mobilya ve ev tekstili": 0.9706,
+  "içecek | kişisel bakım ve kozmetik": 0.9706,
+  "küçük ev aletleri | temizlik": 0.9707,
+  "mekan ve eğlence | sağlık": 0.9709,
+  "mobilya ve ev tekstili | sağlık": 0.9709,
+  "bilgisayar | mekan ve eğlence": 0.9711,
+  "kamu hizmetleri | kişisel bakım ve kozmetik": 0.9711,
+  "medya | temizlik": 0.9711,
+  "hizmet sektörü | içecek": 0.9714,
+  "etkinlik ve organizasyon | otomotiv": 0.9715,
+  "etkinlik ve organizasyon | sağlık": 0.9717,
+  "etkinlik ve organizasyon | temizlik": 0.9718,
+  "bilgisayar | gıda": 0.9719,
+  "gıda | kamu hizmetleri": 0.9722,
+  "beyaz eşya | eğitim": 0.9724,
+  "içecek | sağlık": 0.9724,
+  "elektronik | sağlık": 0.9725,
+  "giyim | içecek": 0.9725,
+  "giyim | sağlık": 0.9725,
+  "bilgisayar | içecek": 0.9726,
+  "hizmet sektörü | mekan ve eğlence": 0.9727,
+  "finans | spor": 0.9728,
+  "hizmet sektörü | ulaşım": 0.9728,
+  "etkinlik ve organizasyon | içecek": 0.9731,
+  "sağlık | turizm": 0.9732,
+  "alışveriş | finans": 0.9733,
+  "eğitim | küçük ev aletleri": 0.9737,
+  "beyaz eşya | sağlık": 0.9738,
+  "enerji | internet": 0.9738,
+  "elektronik | küçük ev aletleri": 0.9739,
+  "mekan ve eğlence | turizm": 0.9739,
+  "mutfak araç gereç | sağlık": 0.974,
+  "kamu hizmetleri | turizm": 0.9742,
+  "etkinlik ve organizasyon | finans": 0.9744,
+  "medya | sigortacılık": 0.9746,
+  "beyaz eşya | hizmet sektörü": 0.9747,
+  "kamu hizmetleri | mekan ve eğlence": 0.9749,
+  "medya | turizm": 0.9749,
+  "enerji | medya": 0.975,
+  "sigortacılık | spor": 0.9751,
+  "emlak ve inşaat | ulaşım": 0.9753,
+  "etkinlik ve organizasyon | mobilya ve ev tekstili": 0.9756,
+  "etkinlik ve organizasyon | mücevher saat gözlük": 0.9757,
+  "finans | kişisel bakım ve kozmetik": 0.9757,
+  "eğitim | içecek": 0.9759,
+  "elektronik | kamu hizmetleri": 0.9761,
+  "sigortacılık | turizm": 0.9761,
+  "spor | ulaşım": 0.9761,
+  "alışveriş | sigortacılık": 0.9762,
+  "kişisel bakım ve kozmetik | turizm": 0.9762,
+  "kişisel bakım ve kozmetik | sigortacılık": 0.9764,
+  "gıda | hizmet sektörü": 0.9765,
+  "kamu hizmetleri | temizlik": 0.9766,
+  "etkinlik ve organizasyon | mutfak araç gereç": 0.9767,
+  "elektronik | mücevher saat gözlük": 0.9768,
+  "temizlik | turizm": 0.9768,
+  "sağlık | ulaşım": 0.9769,
+  "küçük ev aletleri | sağlık": 0.977,
+  "elektronik | etkinlik ve organizasyon": 0.9772,
+  "kişisel bakım ve kozmetik | ulaşım": 0.9772,
+  "elektronik | gıda": 0.9773,
+  "finans | ulaşım": 0.9774,
+  "etkinlik ve organizasyon | gıda": 0.9777,
+  "alışveriş | turizm": 0.978,
+  "temizlik | ulaşım": 0.978,
+  "enerji | sigortacılık": 0.9781,
+  "gıda | medya": 0.9781,
+  "içecek | mutfak araç gereç": 0.9783,
+  "içecek | mobilya ve ev tekstili": 0.9784,
+  "medya | mekan ve eğlence": 0.9784,
+  "beyaz eşya | gıda": 0.9786,
+  "bilgisayar | enerji": 0.9789,
+  "finans | giyim": 0.9789,
+  "içecek | kamu hizmetleri": 0.9789,
+  "giyim | hizmet sektörü": 0.979,
+  "sigortacılık | temizlik": 0.9791,
+  "hizmet sektörü | mücevher saat gözlük": 0.9793,
+  "küçük ev aletleri | mücevher saat gözlük": 0.9793,
+  "medya | ulaşım": 0.9793,
+  "bilgisayar | turizm": 0.9796,
+  "beyaz eşya | medya": 0.9798,
+  "içecek | medya": 0.9798,
+  "içecek | mücevher saat gözlük": 0.9801,
+  "elektronik | enerji": 0.9802,
+  "elektronik | finans": 0.9807,
+  "finans | turizm": 0.9807,
+  "giyim | kamu hizmetleri": 0.9808,
+  "finans | sağlık": 0.9812,
+  "hizmet sektörü | mutfak araç gereç": 0.9812,
+  "enerji | eğitim": 0.9813,
+  "elektronik | ulaşım": 0.9815,
+  "gıda | turizm": 0.9816,
+  "kamu hizmetleri | mobilya ve ev tekstili": 0.9817,
+  "medya | mobilya ve ev tekstili": 0.9817,
+  "alışveriş | enerji": 0.9818,
+  "beyaz eşya | mücevher saat gözlük": 0.9818,
+  "enerji | finans": 0.9819,
+  "giyim | medya": 0.982,
+  "mekan ve eğlence | ulaşım": 0.982,
+  "sigortacılık | ulaşım": 0.982,
+  "gıda | ulaşım": 0.9821,
+  "alışveriş | ulaşım": 0.9825,
+  "elektronik | turizm": 0.9825,
+  "enerji | spor": 0.983,
+  "finans | temizlik": 0.9834,
+  "finans | mekan ve eğlence": 0.9835,
+  "elektronik | içecek": 0.9836,
+  "enerji | ulaşım": 0.9836,
+  "gıda | küçük ev aletleri": 0.9838,
+  "beyaz eşya | kamu hizmetleri": 0.9839,
+  "beyaz eşya | etkinlik ve organizasyon": 0.9841,
+  "enerji | kişisel bakım ve kozmetik": 0.9844,
+  "beyaz eşya | sigortacılık": 0.9847,
+  "beyaz eşya | enerji": 0.9848,
+  "beyaz eşya | mekan ve eğlence": 0.9848,
+  "elektronik | mekan ve eğlence": 0.9848,
+  "hizmet sektörü | küçük ev aletleri": 0.9848,
+  "beyaz eşya | içecek": 0.9849,
+  "giyim | turizm": 0.9849,
+  "finans | gıda": 0.9851,
+  "kamu hizmetleri | mücevher saat gözlük": 0.9853,
+  "enerji | sağlık": 0.9855,
+  "medya | mücevher saat gözlük": 0.9857,
+  "finans | mücevher saat gözlük": 0.9858,
+  "medya | mutfak araç gereç": 0.9858,
+  "küçük ev aletleri | sigortacılık": 0.9859,
+  "gıda | sigortacılık": 0.9861,
+  "içecek | sigortacılık": 0.9865,
+  "enerji | etkinlik ve organizasyon": 0.9868,
+  "içecek | ulaşım": 0.9868,
+  "küçük ev aletleri | mekan ve eğlence": 0.9868,
+  "etkinlik ve organizasyon | küçük ev aletleri": 0.9869,
+  "finans | mobilya ve ev tekstili": 0.9875,
+  "mobilya ve ev tekstili | ulaşım": 0.9875,
+  "beyaz eşya | ulaşım": 0.9877,
+  "mobilya ve ev tekstili | sigortacılık": 0.9877,
+  "kamu hizmetleri | mutfak araç gereç": 0.9878,
+  "mekan ve eğlence | sigortacılık": 0.9878,
+  "mücevher saat gözlük | ulaşım": 0.9882,
+  "finans | içecek": 0.9886,
+  "giyim | sigortacılık": 0.9886,
+  "giyim | ulaşım": 0.9887,
+  "içecek | turizm": 0.989,
+  "mücevher saat gözlük | sigortacılık": 0.9894,
+  "enerji | turizm": 0.9895,
+  "enerji | temizlik": 0.9896,
+  "küçük ev aletleri | medya": 0.9898,
+  "enerji | gıda": 0.9901,
+  "içecek | küçük ev aletleri": 0.9902,
+  "mobilya ve ev tekstili | turizm": 0.9903,
+  "mutfak araç gereç | sigortacılık": 0.9903,
+  "enerji | mobilya ve ev tekstili": 0.9907,
+  "kamu hizmetleri | küçük ev aletleri": 0.9907,
+  "küçük ev aletleri | ulaşım": 0.9908,
+  "beyaz eşya | finans": 0.991,
+  "enerji | giyim": 0.991,
+  "enerji | içecek": 0.991,
+  "finans | mutfak araç gereç": 0.9912,
+  "mutfak araç gereç | ulaşım": 0.9914,
+  "mücevher saat gözlük | turizm": 0.9916,
+  "beyaz eşya | turizm": 0.992,
+  "enerji | mekan ve eğlence": 0.992,
+  "mutfak araç gereç | turizm": 0.9921,
+  "finans | küçük ev aletleri": 0.9932,
+  "enerji | mutfak araç gereç": 0.9934,
+  "enerji | küçük ev aletleri": 0.9941,
+  "küçük ev aletleri | turizm": 0.9947,
+  "enerji | mücevher saat gözlük": 0.995
+ }
+}

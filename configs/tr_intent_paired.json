@@ -32,5 +32,6 @@
   ],
   "core_docs_per_tier": 10,
   "core_share": 0.07,
-  "core_pairs_per_doc": 2
+  "core_pairs_per_doc": 2,
+  "close_allowed_pairs_file": "experiments/separable_pairs/intent_paired_shared.json"
 }

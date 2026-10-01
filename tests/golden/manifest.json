@@ -1,6 +1,6 @@
 {
-  "version": "0.9.0",
-  "date": "2026-09-28",
+  "version": "0.10.0",
+  "date": "2026-09-30",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -17,6 +17,12 @@
     "drop_label_leakage": true,
     "leak_label_words": false,
     "min_class_support": 0,
+    "boilerplate_keywords": [],
+    "boilerplate_min_keywords": 3,
+    "boilerplate_weak_min": 2,
+    "boilerplate_regex": "",
+    "drop_text_regex": [],
+    "strip_html": false,
     "seed": 42,
     "haystack_target_tokens": [
       5000,
@@ -62,6 +68,7 @@
     "close_min_diff": 2,
     "close_exclude_labels": [],
     "close_ordinal_gap": 0,
+    "close_allowed_pairs_file": "",
     "core_doc_records": [],
     "core_docs_per_tier": 0,
     "core_share": 0.3,

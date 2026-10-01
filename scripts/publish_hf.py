@@ -46,7 +46,7 @@ POLICY = {
         license="cc-by-4.0", full_text=True,
         source="AmazonScience/massive (tr-TR), record-matched",
         note="Record-matched with en_intent_paired: the same utterances in the "
-             "same order, so all 175 questions (55 core) have the same answer in both "
+             "same order, so all 161 questions (41 core) have the same answer in both "
              "languages (word answers via answer_key)."),
     "en_intent_paired_out": dict(
         license="cc-by-4.0", full_text=True,
@@ -100,10 +100,10 @@ POLICY = {
     "sinema_tr_out": dict(
         license="cc-by-sa-4.0", full_text=True,
         source="turkish-nlp-suite/BuyukSinema",
-        note="Turkish film reviews labelled with the reviewer's own 10-point "
-             "rating. The only large-label-space Turkish source found with a "
-             "declared license, so unlike the other two v0.7.0 additions its text "
-             "ships. Share-alike: anything derived from this subset stays CC-BY-SA-4.0."),
+        note="Turkish film reviews; sentiment from the reviewer's own 10-point "
+             "rating (1-4 negative, 5-6 neutral, 7-10 positive; exact ratings cannot "
+             "be read from the text). Share-alike: anything derived from this "
+             "subset stays CC-BY-SA-4.0."),
 }
 
 CARD = """---
@@ -142,7 +142,7 @@ thesis work. Full details: `DATACARD.md` in this repository.
 
 ## At a glance
 
-**11 subsets · 353 documents · 2,521 questions · 106.4M tokens · 7 question types**
+**11 subsets · 347 documents · 2,362 questions · 102.5M tokens · 7 question types**
 
 {glance_table}
 
@@ -152,19 +152,19 @@ Lengths are tokens under `Qwen/Qwen3-8B`. `classes` is the number of labels.
 
 | role | question types | questions | what it shows |
 |---|---|---:|---|
-| `core` | `close_comparison`: which are there more of, A or B? (both frequent, counts very close) | 418 | that the model read and judged the whole document |
-| `retrieval` | `count` with `"rare": true` (answer 5 to 30) | 265 | that it can find a few records by meaning |
-| `control` | `count` 656, `proportion` 492, `label_vs_label` 292, `most_common` 138, `least_common` 132, `second_most` 128 | 1,838 | that it can classify the records at all |
+| `core` | `close_comparison`: which are there more of, A or B? (both frequent, told apart from the text, counts very close) | 309 | that the model read and judged the whole document |
+| `retrieval` | `count` with `"rare": true` (answer 5 to 30) | 237 | that it can find a few records by meaning |
+| `control` | `count` 587, `proportion` 483, `label_vs_label` 299, `most_common` 156, `least_common` 147, `second_most` 144 | 1,816 | that it can classify the records at all |
 
 **Turkish/English pairs.** Compare languages within a pair, never by totals
 (three subsets are Turkish only). `tr_intent_paired` and `en_intent_paired`
 contain the same utterances (MASSIVE is a human translation) in the same order,
-so all 175 questions, 55 of them core, are identical in both languages.
+so all 161 questions, 41 of them core, are identical in both languages.
 `tr_intent`/`en_intent` match on token budget instead. `musteri_tr`/`marc_en`
 and `vitamins_tr`/`amazon_hpc_en` are different corpora with the same task;
 their core documents are built with identical sizes and identical
 positive/negative counts, so their 18 core questions each are identical too.
-In total 91 core questions are identical across the two languages.
+In total 77 core questions are identical across the two languages.
 `sikayet_tr`, `interpress_tr` and `sinema_tr` are Turkish only.
 
 ### Why the Turkish intent questions use English label names
@@ -189,7 +189,7 @@ text being classified; the label only names the bucket.
 | questions over dates | yes, its hardest group | none yet (`interpress_tr` has dates) |
 | same question, same answer in two languages | no | yes (`*_intent_paired`) |
 | numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
-| questions that resist sampling and search | none found | 418 close comparisons |
+| questions that resist sampling and search | none found | 309 close comparisons |
 | published shortcut checks | none | yes, in the GitHub repository |
 
 OOLONG's construction code was not released; this is an independent
@@ -253,7 +253,7 @@ they read, so they show what a reading strategy can achieve.
 
 | role | strongest shortcut found | reader of everything |
 |---|---|---|
-| core | sampling half the document 0.63; the 10% most relevant records by topic search 0.56; guessing 0.50 | 0.85 at 95% labelling accuracy, 0.76 at 90% |
+| core | sampling half the document 0.62; the 10% most relevant records by topic search 0.54; guessing 0.50 | 0.86 at 95% labelling accuracy, 0.76 at 90% |
 | retrieval | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
 | control | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
 
@@ -264,13 +264,16 @@ they read, so they show what a reading strategy can achieve.
 - Control questions are not evidence of reading: a 5% sample answers them
   almost as well as the whole document, and under `relative` a longer document
   is not harder.
-- 418 questions are core (margin of error about ±0.05 on a model's core score).
-  The 244 from core documents (`core_document: true`), built from exact label
-  counts with which label is larger and which is named first balanced by
-  design, are the cleaner group: first-named 0.50, source-dataset shares 0.49,
-  topic search 0.49. The 174 from ordinary documents are slightly exposed
-  (source-dataset shares 0.61; topic search up to 0.79 on the paired intent
-  sets). Report the two groups separately.
+- 309 questions are core (margin of error about ±0.06 on a model's core score).
+  They only compare label pairs that can be told apart from the text (lists in
+  the GitHub repository). The 214 from core documents (`core_document: true`),
+  built from exact label counts with which label is larger and which is named
+  first balanced by design, are the cleaner group: first-named 0.50,
+  source-dataset shares 0.50, topic search 0.49. The 95 from ordinary
+  documents are slightly exposed (source-dataset shares 0.62, topic search
+  0.67). Report the two groups separately.
+- Cleaning (v0.10.0): newspaper mastheads, reviews that write their score
+  ("7/10", "5 stars") and HTML are removed.
 - Wrong labels in the source data decide some close comparisons, so even a
   perfect model scores below 1.0 on core questions (about 0.85 with 5% of
   labels wrong).

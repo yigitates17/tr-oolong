@@ -1,0 +1,22 @@
+{
+ "dataset": "amazon_hpc_en",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 53930,
+ "recall": {
+  "neutral": 0.5931,
+  "negative": 0.6679,
+  "positive": 0.7421
+ },
+ "allowed_pairs": [
+  [
+   "negative",
+   "positive"
+  ]
+ ],
+ "separability": {
+  "negative | neutral": 0.7087,
+  "neutral | positive": 0.7973,
+  "negative | positive": 0.871
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "dataset": "sinema_tr",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 44572,
+ "recall": {
+  "nötr": 0.2855,
+  "olumsuz": 0.6133,
+  "olumlu": 0.8733
+ },
+ "allowed_pairs": [
+  [
+   "olumlu",
+   "olumsuz"
+  ]
+ ],
+ "separability": {
+  "nötr | olumsuz": 0.74,
+  "nötr | olumlu": 0.7886,
+  "olumlu | olumsuz": 0.8828
+ }
+}

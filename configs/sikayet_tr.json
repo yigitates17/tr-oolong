@@ -44,5 +44,6 @@
   ],
   "core_docs_per_tier": 6,
   "core_share": 0.15,
-  "core_pairs_per_doc": 2
+  "core_pairs_per_doc": 2,
+  "close_allowed_pairs_file": "experiments/separable_pairs/sikayet_tr.json"
 }

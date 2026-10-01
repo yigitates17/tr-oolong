@@ -1,0 +1,22 @@
+{
+ "dataset": "vitamins_tr",
+ "threshold": 0.8,
+ "min_recall": 0.6,
+ "records": 38529,
+ "recall": {
+  "nötr": 0.4537,
+  "olumsuz": 0.7443,
+  "olumlu": 0.8726
+ },
+ "allowed_pairs": [
+  [
+   "olumlu",
+   "olumsuz"
+  ]
+ ],
+ "separability": {
+  "nötr | olumsuz": 0.7352,
+  "nötr | olumlu": 0.8308,
+  "olumlu | olumsuz": 0.9151
+ }
+}

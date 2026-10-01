@@ -590,3 +590,104 @@ than reading half the document (0.64). The older 174 core questions from v0.8.0
 keep a mild exposure to source-dataset shares (0.61) and are reported as a
 separate group. The remaining open item is the label check, which sets how far
 below 1.0 even a perfect model scores.
+
+## Experiment 11: cleaning the data, and which label pairs can be told apart (v0.10.0)
+
+**How it started.** During the native-speaker label check (30 September), three
+problems were spotted in the records themselves.
+
+**Problem 1: records that are not content.** 1.9% of news records in the
+documents were a newspaper's masthead (publisher, editors, printing house), not
+an article. *Example:* "İMTİYAZ SAHİBİ Ayşe OĞUZ YAZI İŞLERİ MÜDÜRÜ Hüseyin OĞUZ
+YÖNETİM YERİ ... KARAMAN". **Fix:** a record is dropped if it contains 3 or more
+masthead job titles, or 2 together with an issue header ("Yıl: 3 Sayı: 1531").
+Checked by hand on samples at each threshold: at 3 every sample was a masthead;
+at 2 some real articles appeared, hence the extra condition. Removed 4,133 news
+records (2.1%).
+
+**Problem 2: reviews that write their score.** On a rating-based label the
+score written in the text is the label itself, and the label-name filter cannot
+see it. *Examples:* "ben 6/10 veriyorum", "80/100", "1 yıldız veriyorum", "I give
+this a solid 4-stars". Share of reviews: film 11.2%, MARC 2.9%, Amazon 2.5%,
+shopping 1.3%, supplements 0.8%. **Fix:** such reviews are dropped (6,129 film,
+3,570 MARC, 1,488 Amazon, 639 shopping, 449 supplement).
+
+**Problem 3: web formatting.** 12.7% of Amazon reviews carried HTML such as
+"<br />". **Fix:** tags are replaced by a space and entities unescaped.
+
+**Problem 4: labels that cannot be inferred from the text.** A complaint about
+a cancelled order with no product named, filed under "mobilya ve ev tekstili",
+cannot be classified by anyone. The question is whether whole categories are
+like that.
+
+**What was done for problem 4.** A word-count classifier was trained on each
+dataset (5-fold, out-of-fold). For every pair of labels, only records of those
+two labels were taken, and the classifier chose the more likely of the two. The
+share it got right is the pair's *separability*
+(`experiments/label_separability.py`).
+
+**Result.**
+
+| dataset | label pairs | separable at 0.8 or more | weakest pairs |
+|---|---:|---:|---|
+| complaints | 406 | all | clothing vs internet 0.80; furniture vs shopping 0.85 |
+| intent (all four sets) | 1,128 | all | general_quirky vs qa_factoid 0.83 |
+| news | 120 | 108 | aktuel vs siyasi 0.69, bilisim vs teknoloji 0.71, ekonomi vs ticaret 0.75 |
+| film ratings | 45 | 20 | 5 vs 6 stars 0.59, 7 vs 8 stars 0.61 |
+| 3-label reviews | 3 each | positive vs negative only | neutral vs negative 0.69-0.79 |
+
+So the complaint set as a whole is fine: individual records can be
+unguessable, but any two categories are told apart at 0.80 or more. The weak
+spots are overlapping news sections, neighbouring star ratings, and "neutral".
+
+**A second condition, found the same night.** Pair separability looks only at
+records of A and B. But a close comparison counts A and B inside a document that
+also holds every other label, so each of them must also be recognised among
+*all* labels. *Example:* "more 2-star or more 8-star film reviews?" passed the
+pair test (2 vs 8 is easy), yet counting reviews that are *exactly* 2 stars
+means telling 2 from 1 and 3, which nobody can do from text ("loved it" can be a
+7 or a 10). So a label must also be identifiable on its own: the classifier
+finds at least 60% of its records with all labels competing.
+
+| dataset | labels identifiable on their own | allowed pairs |
+|---|---|---:|
+| intent (each set) | 32 of 48 | 496 of 1,128 |
+| complaints | 23 of 29 (not: shopping, personal care, internet, real estate, computers, furniture) | 253 of 406 |
+| news | 5 of 16 (health, technology, celebrity, food, sport) | 10 of 120 |
+| 3-label reviews, film sentiment | positive and negative (not neutral) | positive vs negative |
+
+The classifier is weak (about 300 examples per intent, for instance), so these
+lists are cautious: some excluded labels would be fine for a strong model.
+
+**Film ratings become film sentiment.** Every question on the film set depended
+on exact star ratings, which cannot be read from text. The set now uses the
+reviewer's rating mapped to sentiment (1-4 negative, 5-6 neutral, 7-10 positive).
+Positive vs negative separate at 0.88 and are identifiable (0.87 and 0.61). The
+set keeps its shareable text and gains core documents like the other review
+sets, but it no longer has 10 labels, so it loses its rare-category counts.
+
+**Fix.** Close comparisons (both kinds of documents) only use pairs that pass
+both conditions (`close_allowed_pairs_file` in each config, written by
+`experiments/label_separability.py`).
+
+**Result of the rebuild (v0.10.0).** 347 documents, 2,362 questions, 309 core
+(217 Turkish, 92 English), 77 core questions identical across languages, 102.5M
+tokens. The intent and complaint datasets' non-core questions are unchanged
+(780 of 780, checked one by one). No written scores or web formatting remain in
+the shipped records; about 3 masthead records remain in the news set (OCR
+variants the filter misses).
+
+| on the core questions | all 309 | 214 from core documents |
+|---|---:|---:|
+| always the first-named label | 0.51 | 0.50 |
+| more common in the source dataset | 0.53 | 0.50 |
+| skimmer reading 5% / 25% / 50% | 0.53 / 0.58 / 0.62 | 0.53 / 0.57 / 0.62 |
+| topic search, top 10% | 0.54 | 0.49 |
+| reads everything, 95% / 90% right | 0.86 / 0.76 | 0.85 / 0.76 |
+
+The 95 core questions from ordinary documents remain mildly exposed (source
+shares 0.62, topic search 0.67) and are reported as a separate group.
+
+**Remaining.** The native-speaker check measures the share of wrong or
+unguessable labels within the allowed pairs; that sets how far below 1.0 even a
+perfect model scores.
