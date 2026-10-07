@@ -258,7 +258,8 @@ No AI model has been run on the benchmark yet.
 
 **Checks every release passes.** Searching the text for the label name (0 of
 856,798 shipped records contain their label; such records are removed at build
-time), always giving the most common answer, answering from the source corpus's
+time. Eight news labels are written without Turkish letters and their Turkish
+spelling still appears: see Known issues in the datacard), always giving the most common answer, answering from the source corpus's
 overall label shares, and guessing labels from record length and punctuation.
 
 ## Building and adding a dataset

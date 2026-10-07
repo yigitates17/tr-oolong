@@ -213,6 +213,23 @@ the data.
 
 ## Known issues
 
+**Found after the v0.10.0 release (5 October), to be fixed in the next
+version.** Details and examples: Experiment 12 in `experiments/REPORT.md`.
+
+- Ranking questions on the intent and complaint sets list 5 labels but ask for
+  the most common label "in these records"; in 57 of 195 a label not on the
+  list is more common than the answer. Read them as "of these labels".
+- 19 "more, less or the same" questions are graded "the same" although the two
+  counts differ (by up to 2%).
+- 10 percentage questions land exactly on a half (2.5% is graded 3).
+- Some texts repeat in the source with different labels; one copy is kept, with
+  the first copy's label. 35 shipped records carry a minority label (21 of
+  them supplements).
+- Eight news labels are written without Turkish letters ('saglik', 'gida',
+  'yasam', 'egitim', 'iletisim', 'bilisim', 'aktuel', 'kultursanat'), so the
+  label-name filter missed their Turkish spelling: "sağlık" appears in 3,147
+  news records.
+
 **What each role measures.** Every question type was attacked by sampling
 (reading a random part of the document) and by search (finding the relevant
 records by a word or topic), using simulated readers that are told the true
@@ -222,8 +239,8 @@ label of each record they read. Full setup and examples:
 | role | questions | strongest shortcut found | reader of everything |
 |---|---:|---|---|
 | core: close comparisons | 309 | sampling half the document 0.62; top 10% by topic search 0.54; guessing 0.50 | 0.86 at 95% labelling accuracy, 0.76 at 90% |
-| retrieval: rare-label counts | 265 | topic search reading 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
-| control: counts, proportions, rankings, wide comparisons | 1,838 | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
+| retrieval: rare-label counts | 237 | topic search reading 5%: 0.53 under `partial` (measured on v0.8) | depends strongly on labelling accuracy |
+| control: counts, proportions, rankings, wide comparisons | 1,816 | sampling 5%: about 0.8 under `relative` (measured on v0.8) | about 0.9 or more |
 
 - Control questions show whether a model can classify the records; a 5% sample
   answers them almost as well as the whole document, so they are not evidence

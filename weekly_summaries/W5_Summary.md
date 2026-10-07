@@ -1,6 +1,6 @@
 # TR-OOLONG: Weeks 4 and 5
 
-*1 October 2026. There was no meeting in week 4, so this summary covers both
+*1 October 2026, updated 6 October. There was no meeting in week 4, so this summary covers both
 weeks. The main text is one page; the appendices hold the detail.*
 
 ## 1. Summary
@@ -10,7 +10,7 @@ reviews) and the benchmark was published on Hugging Face. In week 5 a review
 found that most questions could be answered **without reading the whole
 document**: for example, "which label is most common?" was answered correctly
 96% of the time from a random 5% of the records, and OOLONG turned out to have
-the same weakness. A new kind of question was built that cannot be answered that way,
+the same weakness. A new kind of question was built that the shortcuts tested do not answer,
 "are there more negative or more positive reviews?" when the document holds
 1,000 negative and 986 positive ones. A native-speaker check of the labels then
 led to a final cleaning round, and the benchmark was republished as version
@@ -53,7 +53,7 @@ models, told the correct label of each record they read):
 | reader | correct (guessing = 0.50) |
 |---|---:|
 | always pick the first-named label | 0.50 |
-| pick the label more common in the source dataset | 0.49 |
+| pick the label more common in the source dataset | 0.50 |
 | read a random 5% / 25% / 50% of the document | 0.53 / 0.57 / 0.62 |
 | read the 10% of records most related to the two labels | 0.49 |
 | **read everything, label 95% of records correctly** | **0.85** |
@@ -77,7 +77,7 @@ it" can be a 7 or a 10, and no reader can tell which.
 | documents | 110 | 347 |
 | questions | 1,254 | 2,362 |
 | total length | 28.3M tokens | 102.5M tokens |
-| questions that need the whole document | not measured | 309 |
+| questions no tested shortcut answers (core) | not measured | 309 |
 
 Every question now states what it shows:
 
@@ -87,40 +87,50 @@ Every question now states what it shows:
 | retrieval | 185 | 52 | that it can find a few records by meaning |
 | control | 1,213 | 603 | that it can classify the records at all |
 
+*Examples.* Core: "more positive or more negative reviews?" when the document
+holds 1,000 and 986; no shortcut tested scores above 0.62, against 0.50 for a
+coin toss. Retrieval: "how many complaints are about insurance?" with an answer
+between 5 and 30. Control: counts, percentages and rankings, which a 5% sample
+answers almost as well as the whole document.
+
+**How answers are scored.** For a true answer of 30 and a reply of 25: *exact*
+gives 0 (right or wrong; used for word answers, so for all core questions);
+*partial*, OOLONG's rule, gives 0.24 (each unit of error costs about a quarter;
+used for small counts); *relative*, added here, gives 0.83 (the error as a share
+of the answer; used for large numbers, where OOLONG's rule turns being 3 off
+890 into a near-zero score). Results always state the rule used. The answer key
+comes from the source datasets' labels, some of which are wrong, so even a
+perfect reader scores about 0.85 on core questions.
+
 **Cross-lingual:** comparisons are made inside each Turkish/English pair, never
 between totals. **77 core questions are the same question with the same answer
 in both languages**, from three different pairs of corpora (the RLM paper's
 OOLONG results rest on 50 questions).
 
-**No AI model has been run yet.** That is the next step.
+**No AI model has been run yet.** Model runs start once the dataset is final.
 
-## 5. Still open
-
-- **Model runs.** First each model's accuracy on single records, then whole
-  documents in one prompt, then code-using systems (RLM, RLM-Qwen3-8B, Claude
-  Code), recording the code each one writes.
-- **A check of the source labels.** Some source labels are wrong (3% to 9% on
-  the intent data), and when two counts differ by a few records a few wrong
-  labels can flip the answer, so even a perfect model scores below 1.0 on core
-  questions (about 0.85 with 5% of labels wrong). A native-speaker check of 200
-  Turkish records is under way: a model pre-judged every record and a native
-  speaker confirms or overrules each judgement. The pre-judgement found about
-  5% clearly wrong labels overall (news about 12%, shopping reviews 8%,
-  complaints 5%, film 3%, supplements 0%).
-
-## 6. Decisions required
+## 5. Decisions required
 
 1. **Thesis title.** Current: *Recursive Language Models for Turkish
    Long-Context Aggregation: A Matched-Twin Benchmark and a Cross-Lingual
    Study.* Three 2026 papers find that recursion itself is not what makes RLM
-   work (appendix D), so a title that does not rest on "recursive" is safer, for
+   work; working on the document through code is. Apple's SRLM reports that
+   "recursion itself is not the primary driver of performance" (choosing among
+   several candidate programs does as well or better, by up to 22%); λ-RLM
+   replaces free code with fixed building blocks and beats RLM in 29 of 36
+   comparisons; a reproduction (Wang) finds that deeper recursion lowers
+   accuracy. So a title that does not rest on "recursive" is safer, for
    example *Do Long-Context Models Read in Turkish? A Matched Turkish-English
    Aggregation Benchmark and a Cross-Lingual Study.*
-2. **Target venue.** On the current CORE ranking (ICORE2026), ACL, EMNLP,
-   NeurIPS (including its Datasets and Benchmarks track), ICLR and ICML are A*;
-   NAACL and EACL are A; COLING and LREC are B. With model results, NAACL or EACL
-   is realistic and ACL, EMNLP or NeurIPS Datasets and Benchmarks is the stretch.
-   Whether "Findings" papers count for graduation needs checking.
+2. **Target venue.** NeurIPS 2027, Evaluations & Datasets track (A*; deadline
+   around May 2027), with ACL, EMNLP (A*) or EACL (A) as fallback. Whether
+   "Findings" papers count for graduation needs checking. NeurIPS fits because:
+   - the track now explicitly covers audits of existing datasets;
+   - TR-OOLONG also shows that OOLONG's questions can be answered by sampling
+     or search, and its core questions show whether a method read the whole
+     document;
+   - RLM was accepted at NeurIPS 2026, and such methods are tested only in
+     English.
 
 ---
 
@@ -164,7 +174,7 @@ still stand; its other sections are replaced by this summary.
 | angle of attack | result |
 |---|---|
 | answers wrong | none: every answer recomputed by independent code |
-| label written in the text | none of the shipped records |
+| label written in the text | none as written; but 8 news labels are spelled without Turkish letters ('saglik'), and the Turkish spelling ('sağlık') still appears in the text. Found 6 October, to be fixed |
 | sampling 5% / 25% / 50% | 0.53 / 0.58 / 0.62 (all 309) |
 | searching the most related 10% | 0.54 (all), 0.49 (built documents) |
 | label more common in the source dataset | 0.53 (all), 0.50 (built), 0.62 (the 95 from ordinary documents) |
@@ -194,15 +204,42 @@ and 11.
 | same question and answer in two languages | no | yes (77 core questions) |
 | shortcut checks published | none | yes |
 
+**OOLONG's two shortcuts, in one line each.**
+- *Search:* OOLONG asks "which label is most common for user 41076?" and prints
+  the user on every record, so searching for "41076" finds the 15 relevant
+  records out of 1,772, and those give the answer. This is not one case: about
+  a third of OOLONG's questions are about one user or one month, and the same
+  search answers them exactly 99% of the time.
+- *Sampling:* when OOLONG asks which of two labels is more frequent, the counts
+  usually differ a lot, so a random 5% of the records picks the right label 78%
+  of the time.
+
+Others have noticed that code-using systems sometimes fall back on keyword
+search on OOLONG (the RLM paper, an agent paper), but no measurement of how
+much of OOLONG it answers was found.
+
 ## Appendix D. Literature (details in `LITERATURE_REVIEW.md`)
 
 - Three 2026 papers find that recursion itself is not what makes RLM work; the
   gains come from working on the document through code.
-- Several new code-using systems are tested on OOLONG, all in English only, and
-  none checks whether its system read the whole document.
+- Several new code-using systems are tested on OOLONG, all in English only.
+  None of those checked measures how much of the document was actually read. The RLM
+  paper describes it from example runs (RLM labels the records one by one; a
+  version without further model calls falls back on keyword searches), and one
+  agent paper notes that coding agents use keyword patterns instead of reading.
 - No other benchmark covers Turkish long-context aggregation.
 - The RLM authors released an 8-billion-parameter model trained to work this
-  way; it has not been tested in Turkish.
+  way, on English tasks only (not OOLONG); it has not been tested in Turkish.
+- **Venues (checked 6 October).** The RLM paper is accepted at NeurIPS 2026 and
+  OOLONG at COLM 2026. The RLM paper's OOLONG result rests on 50 questions from
+  one dataset at one length; TR-OOLONG has 77 hard questions identical in
+  Turkish and English. The only new multilingual long-context benchmark found
+  (MGAL, August 2026) has no Turkish and does not test aggregation.
+- **Why RLM was accepted although recursion is not what helps.** Its main idea
+  is that the model works on the long text through code instead of reading it
+  directly; the 2026 follow-ups keep that idea and question only the recursion.
+  For TR-OOLONG this changes nothing: the benchmark tests whether a method reads
+  the whole document, in Turkish and English, whatever the method is.
 
 ## Appendix E. Later: training data and further releases
 

@@ -12,10 +12,10 @@ the project notes or the thesis proposal.
   models on pieces. v3 adds **RLM-Qwen3-8B**, a Qwen3-8B post-trained to work
   this way, which beats its base model by 28.3% on average. *Why it matters:*
   an 8B RLM that fits the planned hardware already exists, and it has only been
-  tested in English. A blog post calls RLM accepted at NeurIPS 2026; the arXiv
-  page does not say so, so do not cite a venue until one is confirmed.
+  tested in English. The first author's blog states that the paper is accepted at NeurIPS
+  2026 (checked 2026-10-06); the arXiv page does not yet say so.
 - **OOLONG.** Bertsch, Pratapa, Mitamura, Neubig, Gormley. arXiv:2511.02817.
-  Long-context aggregation benchmark: classify many records, then count. Frontier
+  COLM 2026 (arXiv v2, 5 Oct 2026). Long-context aggregation benchmark: classify many records, then count. Frontier
   models stay under 50% at 128K tokens. TR-OOLONG follows its synthetic half.
 
 ## 2. Follow-ups to RLM (all English only)
@@ -44,6 +44,28 @@ with context length. None is Turkish, and none asks the model to classify
 records whose label is not in the text. The novelty claim, "first Turkish
 long-context aggregation benchmark, with latent labels", still holds.
 
+## 3b. Has anyone reported OOLONG's shortcuts? (checked 2026-10-06)
+
+- **OOLONG itself (v2, 5 Oct 2026).** Says tasks range "from only a handful of
+  instances or lines of dialogue to questions that require the use of every
+  line", so the authors intend some questions to need only a few records. It
+  does not say those records can be found by plain string search for the
+  printed user id or date, and does not discuss sampling.
+- **RLM** and **Recursive Agent Harnesses** describe agents falling back on
+  keyword or regex heuristics, as agent behaviour; neither measures how much of
+  an OOLONG question can be answered that way.
+- **New.** Arjmandi, *Distractor-Aware Truncation*, arXiv:2608.03297 (Aug 2026).
+  Uses OOLONG as a control because in aggregation "every item contributes to the
+  aggregate". Cutting OOLONG prompts to 25%, with the answer recomputed on what
+  remains, changed accuracy by -5.5 to +2.7 points (not significant).
+  Our measurement qualifies this: on the 36% of questions restricted to a user
+  or month, the other records are irrelevant and a search for the printed id
+  finds the relevant ones.
+- **Conclusion.** No earlier measurement found. Claim it as "we measure, for
+  the first time to our knowledge", and acknowledge that OOLONG intends some
+  questions as find-then-aggregate; the finding is that the finding step is
+  plain string search, so those questions do not test reading by meaning.
+
 ## 4. Turkish evaluation (none is long-context aggregation)
 
 - Cetvel, arXiv:2508.16431 (EACL 2026): 23 Turkish tasks, short context.
@@ -65,8 +87,13 @@ long-context aggregation benchmark, with latent labels", still holds.
    evaluates any language other than English. That is the thesis's strongest
    claim, and it does not depend on recursion.
 3. **Code-using systems can skim.** Every system above can write code that
-   reads a sample of the document. None of these papers reports whether their
-   systems actually read everything. TR-OOLONG's measurements of what sampling
+   reads a sample of the document. None of these papers measures how much of
+   the document their systems actually read (checked in full text, 6 Oct 2026,
+   for RLM and Recursive Agent Harnesses; abstracts only for the others). RLM
+   describes it qualitatively: RLM(Qwen3-Coder) "perform[s] the necessary
+   semantic transformation line-by-line through recursive sub-calls, while the
+   ablation without sub-calls is forced to use keyword heuristics"; RAH notes
+   coding agents "reduce per-entry reasoning to regex heuristics". TR-OOLONG's measurements of what sampling
    achieves (and the finding that difficulty grades can be gamed by guessing
    small numbers) can be turned into a question none of them asks: *do these
    systems read the whole document, and does that differ by language?* Logging

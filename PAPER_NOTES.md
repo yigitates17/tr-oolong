@@ -1155,3 +1155,33 @@ not. Every label except the drift target is exchangeable across the whole
 document, and the drift target is exchangeable within each half. The only
 protection measured so far is a **small answer** (`entity_count`, rare-label
 counts), and that is what v0.7 Task A builds on.
+
+---
+
+## 14. The OOLONG shortcut finding: how to claim it (checked 2026-10-06)
+
+**The claim.** About a third of OOLONG's questions (36%) ask about one user or
+one month, and both are printed on every record, so a plain text search finds
+the relevant records: a median 0.8% of the document gives the exact answer 99%
+of the time. Its whole-document "which is more frequent" questions have large
+gaps (median 38%), so a random 5% sample picks the right label 78% of the time
+(experiment 7, `experiments/REPORT.md`).
+
+**What others have said, and how to word ours.**
+
+- OOLONG (v2, 5 Oct 2026) says its tasks range "from only a handful of
+  instances ... to questions that require the use of every line". Some
+  find-then-count questions are intended. It does not note that the finding
+  step is plain string search, and it does not discuss sampling.
+- RLM (arXiv:2512.24601): its variant without sub-calls "is forced to use
+  keyword heuristics"; Recursive Agent Harnesses (arXiv:2606.13643): coding
+  agents "reduce per-entry reasoning to regex heuristics". Both describe agent
+  behaviour; neither measures how much of OOLONG a shortcut answers.
+- Arjmandi, *Distractor-Aware Truncation* (arXiv:2608.03297) assumes that in
+  OOLONG "every item contributes to the aggregate". Our measurement qualifies
+  this for the user- and month-restricted questions.
+
+Write: "to our knowledge, the first measurement of how much of OOLONG can be
+answered without reading the whole document". Do not write that OOLONG's
+authors missed it, or that OOLONG is broken. The point is narrower: on those
+questions the relevant records are found by string search, not by meaning.

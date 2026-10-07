@@ -25,3 +25,6 @@ baseline_report.json
 
 # filled annotation sheets (contain source text; keep local)
 noise_slices/
+
+# homework for the user (native-speaker checks); answers contain source text
+homework/

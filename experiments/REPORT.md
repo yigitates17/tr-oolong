@@ -311,7 +311,8 @@ that user id. Reading those fifteen gives the correct answer.
 user or a date, and both are printed in the text, so a model with code can find
 the relevant records by plain string search. Its whole-document questions have
 large gaps and large answers, so sampling works on them. **OOLONG has both
-weaknesses found in TR-OOLONG.** This has not been reported before, and it
+weaknesses found in TR-OOLONG.** No earlier measurement of this was found
+(checked 6 October 2026, including OOLONG's own v2 of 5 October), and it
 makes a TR-OOLONG built around close comparisons a real improvement over
 OOLONG, not only a Turkish version of it.
 
@@ -691,3 +692,72 @@ shares 0.62, topic search 0.67) and are reported as a separate group.
 **Remaining.** The native-speaker check measures the share of wrong or
 unguessable labels within the allowed pairs; that sets how far below 1.0 even a
 perfect model scores.
+
+## Experiment 12: reading every question as an honest reader would (5 October)
+
+**Question.** Every earlier check asked one of two things: does the builder
+compute its answers correctly, and can a cheater (a sampler or a searcher) get
+them right? Neither asks whether an honest reader who knows the true label of
+every record, and answers each question exactly as written, would be marked
+right. This experiment asks that.
+
+**What was done.** A new script (`scripts/logic_audit.py`, about 30 seconds)
+re-reads the 11 built subsets and checks them against the original source
+files rather than against the builder's own tables: is each record's label one
+the source gives that text; do identical texts carry different labels; are
+there ties or knife-edges; does each question's wording match how its answer
+is computed; do the Turkish and English twins line up.
+
+**What passed.** All 1.63 million record placements (a record counted once per
+document it appears in) carry a label the source gives that text. All 20
+paired Turkish/English documents have identical label sequences. No duplicate
+questions, no tied close comparisons, and every close comparison meets its
+size rules.
+
+**What failed: five problems.**
+
+1. **Ranking questions that list only some labels (195 questions).** On the
+   intent and complaint sets, "most / least / second most common" questions
+   list 5 of 48 or 29 labels but ask for the most common label "in these
+   records". *Example:* "Bu kayıtlarda en sık görülen etiket hangisi?
+   Etiketler: 'alışveriş', 'hizmet sektörü', 'sigortacılık', 'turizm',
+   'ulaşım'." In 57 of these questions a label that is not on the list is more
+   common than the answer, so the literal answer is marked wrong.
+2. **"The same" that is not the same (19 questions).** "More, less or the same
+   as?" is graded "the same" when two counts are within 2%. *Example:* 276
+   'saglik' against 271 'egitim' records is graded "eşit". Of 29 such answers,
+   19 have unequal counts.
+3. **Rounding halves (10 questions).** Five Turkish/English pairs of percentage
+   questions have a true value of exactly x.5. *Example:* 150 of 6,000 records
+   is 2.5%, graded 3. "Round to the nearest integer" does not say which way a
+   half goes.
+4. **Identical texts with different labels in the source.** Short reviews
+   repeat in the source with different ratings. *Example:* "güzel ürün" is 47
+   times positive, 17 neutral, 5 negative. The builder keeps one copy of each
+   text, the first one, so the shipped label can be the minority one ("works
+   as advertised." ships as neutral; the source says positive 9 times, neutral
+   3). Distinct shipped records affected: supplements 137 (21 with a minority
+   label), Amazon 40 (5), MARC 36 (9), customer reviews 10 (0), complaints 4
+   (0).
+5. **News labels written without Turkish letters escape the label-name
+   filter.** Records containing their own label name are removed, but the
+   filter searches the label as written. 'spor' and 'ekonomi' are gone from the
+   text completely; 'saglik' is not, and "sağlık" still appears in 3,147 news
+   records, finding a third of the health articles (35% of those hits are
+   health). Affects 8 labels: gida, saglik, yasam, egitim, iletisim, bilisim,
+   aktuel, kultursanat. The topic-search attack on core questions was already
+   at chance (0.49), so the practical effect looks small, but the documented
+   claim that label names never appear in the text is false for these labels.
+
+**What it means.** The benchmark's answers are computed correctly, and the
+data match the sources; the faults are in how some questions are worded and
+in rules that were never written down (what "the same" means, which way a half
+rounds, what happens to a repeated text). That is why each review kept finding
+something new: there was no fixed definition of a fair question to check
+against. Three steps follow. A written rule for every question type. A
+perfect-reader test in every release check: a program that knows each true
+label and reads each question literally must score 100%. A native-speaker
+review of every dataset's records, label by label and for odd cases (short
+records, score-like numbers, links, repeated openings, conflicting labels).
+Problems 1 to 3 change only question wording; problems 4 and 5 change the
+documents and need a rebuild. None is fixed yet.
