@@ -60,7 +60,9 @@ def ascii_fold(s: str) -> str:
 
 
 def parse_int(s: str) -> int | None:
-    m = re.search(r"-?\d+", str(s))
+    # The contract requires a single integer. Never silently turn "2.5" into
+    # 2, "1,000" into 1, or an explanation's first number into the answer.
+    m = re.fullmatch(r"[+-]?[0-9]+", str(s).strip())
     return int(m.group()) if m else None
 
 

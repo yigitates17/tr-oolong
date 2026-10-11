@@ -761,3 +761,58 @@ review of every dataset's records, label by label and for odd cases (short
 records, score-like numbers, links, repeated openings, conflicting labels).
 Problems 1 to 3 change only question wording; problems 4 and 5 change the
 documents and need a rebuild. None is fixed yet.
+
+## Experiment 13: how many wrong labels it takes to flip a close comparison (11 October)
+
+**Question.** A close comparison is decided by a small gap between two counts.
+Source labels are not perfect: in the first 23 records of the blind review the
+reviewer disagreed with the source on 9. How many wrong labels does it take to
+change a core answer, and how does that compare with OOLONG?
+
+**What was done.** For every whole-document "which is more common" question, the
+number of records that would have to carry the other label for the answer to
+tie or flip (half the gap, rounded up). OOLONG-synth: 184 questions from 9
+public shards (contexts 1K to 1M). TR-OOLONG: the 317 core questions of the
+v0.11.0-rc1 test split. Then a simulation: a reader that sees every record but
+gives a different label from the source on a fixed share of them, spread evenly
+over the other labels. Script: `experiments/flip_margin.py`.
+
+**Example.** A core document of 2,500 shopping reviews (`musteri_tr`) asks
+"Bu kayıtlarda hangisi daha çok: 'olumlu' etiketli kayıtlar mı, 'olumsuz'
+etiketli kayıtlar mı?" The counts are 1,000 positive and 984 negative, so the
+answer is olumlu. If 8 positive reviews were really negative, the counts tie at
+992; 9 reverse the answer. 8 records is 0.32% of the document.
+
+**Result.**
+
+| questions | records to flip, median | share of document, median |
+|---|---:|---:|
+| OOLONG-synth "most frequent" | 48 | 6.6% |
+| OOLONG-synth "A more or less common than B" | 27 | 7.4% |
+| TR-OOLONG core, core documents | 7 | 0.18% |
+| TR-OOLONG core, ordinary documents | 3 | 0.07% |
+
+A reader of everything, by share of records it labels differently from the
+source (core-document questions; the sentiment sets still included neutral):
+
+| subset group | 2% | 5% | 10% | 20% |
+|---|---:|---:|---:|---:|
+| sentiment sets | 0.90-0.92 | 0.78-0.80 | 0.70-0.72 | 0.63 |
+| intent, complaints, news | 0.97-0.98 | 0.89 | 0.80 | 0.71 |
+
+For comparison, a program that sees a random half of the records with their
+correct labels scores 0.63 (rc1 audit).
+
+**What it means.** TR-OOLONG's core answers depend on 0.1 to 0.2% of the records;
+OOLONG's on about 7%. So in TR-OOLONG the core score mixes two things: how much
+of the document a system read, and how often its label for a record agrees with
+the source. A system that reads everything but disagrees with the source on 10%
+of records scores 0.70 to 0.80, not far above a half-reader with perfect
+labels. The core questions still separate readers from skimmers on average
+over many questions, but under this simulation the expected score of a full
+reader is well below 1.0 and depends on label agreement. The simulation spreads
+errors evenly; real errors can be uneven or cancel out, so it illustrates the
+effect rather than measuring a limit. The OOLONG figures describe 184 sampled
+questions, not the whole benchmark. The blind review measures that agreement per subset; it is the
+number that decides how far each subset's core questions can separate readers
+from skimmers.

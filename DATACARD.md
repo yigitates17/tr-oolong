@@ -1,5 +1,10 @@
 # TR-OOLONG datacard
 
+**Working-tree note (7 October):** this card describes the public v0.10.0
+artifacts. The separate v0.11.0-rc1 review candidate and its checks are documented
+in [PREFREEZE.md](PREFREEZE.md); candidate counts must not be substituted into
+this historical release card until validation and publication.
+
 Covers **v0.10.0**: 11
 subsets, 347 documents, 2,362 questions, 7 question types, Turkish and English
 (1,615 / 747 questions). Every answer is computed
@@ -254,9 +259,10 @@ label of each record they read. Full setup and examples:
   slightly exposed: the label more common in the source dataset wins 62% of the
   time and topic search reaches 0.67, because the compared categories are
   sometimes small. Report the two groups separately.
-- Core scores have a ceiling below 1.0: wrong labels in the source data decide
-  some close comparisons. With 5% of labels wrong a perfect model scores about
-  0.85. A native-speaker check of the Turkish core categories is prepared.
+- Close comparisons may change winner under source-label disagreements. The
+  simulated reader scores about 0.85 under its particular symmetric 5% error
+  model; this is not an established human ceiling. Blind review and question
+  stability checks are required to measure the real effect.
 - The difficulty grades released in v0.7.x are withdrawn: they reflected which
   four skimming programs had been chosen, and on small answers a single lucky
   draw decided them.

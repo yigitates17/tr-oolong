@@ -1,5 +1,10 @@
 # TR-OOLONG
 
+**Working-tree status (7 October 2026):** the public release described below is
+v0.10.0. A separate v0.11.0-rc1 candidate is undergoing human label review;
+see [the pre-freeze checklist](PREFREEZE.md). Candidate data and annotations
+remain local, and are not a frozen release.
+
 A long-context **aggregation** benchmark for Turkish, with English counterparts
 built by the same pipeline.
 
@@ -10,11 +15,10 @@ tokens. Each question asks about the whole collection:
 > *Bu kayıtlarda hangisi daha çok: 'turizm' etiketli kayıtlar mı, 'magazin' etiketli kayıtlar mı?* → **magazin** (44 against 41, out of 266 articles)
 > *Bu kayıtlarda kaç tane 'ulaşım' etiketli kayıt var?* → **166**
 
-The label of a record is never written in the text, so a model has to decide
-what each record is about and then count. The core questions (the first
-example) compare two categories whose counts are so close that neither
-sampling part of the document nor searching for the relevant records answers
-them; see [What each question measures](#what-each-question-measures). Every answer is computed from the
+Source annotation fields are omitted from the input. The core questions
+compare two categories with close counts and are evaluated against specified
+sampling and search strategies; these tests do not prove complete reading.
+See [What each question measures](#what-each-question-measures). Every answer is computed from the
 source dataset's own labels, so no one writes an answer key by hand.
 
 The construction follows OOLONG (Bertsch et al., 2025, arXiv:2511.02817), whose
@@ -125,10 +129,10 @@ label is only the name of the bucket. The translated variants are kept in
 |---|---|---|
 | languages | English | Turkish, with English counterparts built the same way |
 | document length | 1K to 4M tokens (synthetic split) | 36K to 1M tokens |
-| labels per dataset | 2 to 10 | 3, 10, 16, 29, 48 |
+| labels per dataset | 2 to 10 | 3, 16, 29, 48 |
 | narrowing to a subset | to users or months printed on every record | none (brand questions removed, see below) |
 | questions over dates | yes, and reported as the hardest group | none yet (`interpress_tr` has dates) |
-| questions that resist sampling and search | none found | 309 close comparisons |
+| sampling/search audit | selected OOLONG-synth tasks audited here | 309 close comparisons tested; results depend on origin and strategy |
 | same question, same answer in two languages | no | yes: every question of the paired intent sets, and the review pairs' core questions (77 core in all) |
 | numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
 | published shortcut checks | none | yes, reports in `manifests/` and `experiments/` |

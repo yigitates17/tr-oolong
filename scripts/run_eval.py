@@ -5,15 +5,16 @@ endpoint and scores predictions with the FROZEN metric in src/scoring.py.
   Ollama:  --base-url http://localhost:11434/v1
   vLLM:    --base-url http://localhost:8000/v1
 Resumable: predictions append to <set>/predictions_<model>.jsonl; answered
-questions are skipped on rerun, keyed on `uid` so that pooling several subsets'
-predictions into one table cannot collapse rows (D22). Errors and timeouts are recorded as
-error rows, excluded from scores, and reported as a separate count.
+questions are skipped on rerun within an identical data/protocol fingerprint,
+keyed on `uid`. Errors and timeouts are reported separately and count as zero
+in all-eligible scores; successful-response scores are also reported.
 
 Usage:
     python scripts/run_eval.py --sets tr_intent_out --model qwen3:8b
 """
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -27,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from scoring import score
+from task_contract import instructions, PROTOCOL_VERSION
 
 PROMPT = {
     "tr": ("Aşağıda '{sep}' ile ayrılmış kayıtlar var. Tüm kayıtları oku ve "
@@ -65,7 +67,17 @@ def run_set(d: Path, args) -> dict:
         haystacks[h["haystack_id"]] = h["haystack"]
 
     safe_model = re.sub(r"[^\w.-]", "_", args.model)
-    pred_path = d / f"predictions_{safe_model}.jsonl"
+    run_spec = {"protocol": PROTOCOL_VERSION, "model": args.model,
+                "base_url": args.base_url, "max_tokens": args.max_tokens,
+                "manifest": hashlib.sha256((d / "manifest.json").read_bytes()).hexdigest(),
+                "questions": hashlib.sha256((d / "questions.jsonl").read_bytes()).hexdigest(),
+                "haystacks": hashlib.sha256((d / "haystacks.jsonl").read_bytes()).hexdigest(),
+                "scorer": hashlib.sha256((ROOT / "src/scoring.py").read_bytes()).hexdigest(),
+                "harness": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                "prompt": PROMPT, "instructions": instructions(man)}
+    run_id = hashlib.sha256(json.dumps(run_spec, sort_keys=True).encode()).hexdigest()[:16]
+    pred_path = d / f"predictions_{safe_model}_{run_id}.jsonl"
+    (d / f"run_{safe_model}_{run_id}.json").write_text(json.dumps(run_spec, indent=2, ensure_ascii=False))
     done = set()
     if pred_path.exists():
         for line in pred_path.read_text(encoding="utf-8").splitlines():
@@ -86,11 +98,11 @@ def run_set(d: Path, args) -> dict:
         for q in questions:
             if q["uid"] in done:
                 continue
-            prompt = PROMPT[q["language"]].format(
+            prompt = instructions(man) + "\n\n" + PROMPT[q["language"]].format(
                 sep=sep.strip(), haystack=haystacks[q["haystack_id"]], question=q["question"])
             t0 = time.time()
             row = {"uid": q["uid"], "dataset": q["dataset"], "id": q["id"],
-                   "model": args.model}
+                   "model": args.model, "run_id": run_id}
             try:
                 pred, usage = chat(args.base_url, args.api_key, args.model,
                                    prompt, args.max_tokens, args.timeout)
@@ -111,8 +123,11 @@ def run_set(d: Path, args) -> dict:
         preds[r.get("uid") or r["id"]] = r
     ex, pa, rl = defaultdict(list), defaultdict(list), defaultdict(list)
     by_role = defaultdict(list)
+    totals = defaultdict(int)
     errors = 0
     for q in questions:
+        group = ("core_document" if q.get("core_document") else "core_ordinary") if q.get("role") == "core" else q.get("role", "control")
+        totals[group] += 1
         r = preds.get(q["uid"]) or preds.get(q["id"])
         if r is None:
             continue
@@ -124,11 +139,15 @@ def run_set(d: Path, args) -> dict:
         rl[q["kind"]].append(r.get("relative", r["exact"]))
         # the primary score is recomputed rather than read from the row, so
         # prediction files written before v0.8.0 are reported the same way
-        by_role[q.get("role", "control")].append(score(q, r["prediction"])["primary"])
+        by_role[group].append(score(q, r["prediction"])["primary"])
     fam = {k: {"n": len(v), "exact": sum(v) / len(v),
                "partial": sum(pa[k]) / len(pa[k]), "relative": sum(rl[k]) / len(rl[k])}
            for k, v in sorted(ex.items())}
-    roles = {k: {"n": len(v), "primary": sum(v) / len(v)} for k, v in by_role.items() if v}
+    roles = {k: {"n": len(by_role[k]), "n_eligible": n,
+                 "coverage": len(by_role[k]) / n,
+                 "primary_all_eligible": sum(by_role[k]) / n,
+                 "primary_answered": sum(by_role[k]) / len(by_role[k]) if by_role[k] else None}
+             for k, n in totals.items()}
     return {"set": d.name, "model": args.model,
             "n_scored": sum(len(v) for v in ex.values()), "n_errors": errors,
             "roles": roles, "families": fam, "predictions": str(pred_path)}
@@ -142,7 +161,7 @@ def main():
     ap.add_argument("--api-key", default="")
     ap.add_argument("--max-questions", type=int, default=0, help="pilot cap, 0 = all")
     ap.add_argument("--max-tokens", type=int, default=2048,
-                    help="reasoning models need headroom; the answer is parsed from the tail")
+                    help="output budget; the answer must follow the strict response contract")
     ap.add_argument("--timeout", type=int, default=300, help="per-query ceiling, seconds")
     ap.add_argument("--out", default="eval_report.json")
     args = ap.parse_args()
@@ -153,10 +172,10 @@ def main():
     for r in report:
         print(f"\n== {r['set']}  scored={r['n_scored']} errors={r['n_errors']}")
         print("   --- by role (REPORT THESE; never pool the roles) ---")
-        for role in ("core", "retrieval", "control"):
+        for role in ("core_document", "core_ordinary", "retrieval", "control"):
             v = r["roles"].get(role)
             if v:
-                print(f"   {role:<10} n={v['n']:<4} primary={v['primary']:.3f}")
+                print(f"   {role:<14} n={v['n']}/{v['n_eligible']} primary_all={v['primary_all_eligible']:.3f} coverage={v['coverage']:.3f}")
         for k, v in r["families"].items():
             print(f"   {k:<16} n={v['n']:<4} exact={v['exact']:.3f} "
                   f"partial={v['partial']:.3f} relative={v['relative']:.3f}")

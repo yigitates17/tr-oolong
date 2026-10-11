@@ -162,7 +162,7 @@ def verify(name: str) -> list[str]:
     # for the same reason it exists in the builder.
     split_words = bool(man["config"].get("leak_label_words", False))
     forms = sorted({f for l in label_space
-                    for f in leak_surface_forms(l, lang, split_words)})
+                    for f in leak_surface_forms(l, lang, split_words)}) if man["config"].get("drop_label_leakage", True) else []
     leaked = 0
     for hid, h in hay_by_id.items():
         folded = fold_tr(h["haystack"]) if lang == "tr" else h["haystack"].casefold()
@@ -233,7 +233,8 @@ def verify_global_uids(sets: list[str]) -> list[str]:
                 if not uid:
                     problems.append(f"{name}/{fn}: row {row.get('id')!r} has no {key}")
                     continue
-                if not uid.startswith(f"{Path(name).name.removesuffix('_out')}:"):
+                ds = json.loads((d / "manifest.json").read_text())["config"].get("dataset") or Path(name).name.removesuffix('_out')
+                if not uid.startswith(f"{ds}:"):
                     problems.append(f"{name}/{fn}: {what} uid {uid!r} is not namespaced to its subset")
                 if uid in seen:
                     problems.append(f"duplicate {what} uid {uid!r}: {seen[uid]} and {name}")

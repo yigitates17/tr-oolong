@@ -14,7 +14,7 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from build_tr_oolong import (Config, close_comparisons, core_document_counts,  # noqa: E402
-                             question_role)
+                             question_role, BalancedChoices)
 
 
 def meta(counts):
@@ -79,27 +79,18 @@ def main():
                                   cfg(core_share=0.2, core_pairs_per_doc=2, close_exclude_labels=["x"]),
                                   random.Random(5))
     assert all("x" not in p for p in p4) and c4.get("x", 0) < 400, (c4, p4)
-    # with a counter, the larger label alternates in the rhythm big, big, small, small
-    # relative to the pool-larger label (automatic pairs) ...
-    bc, wins = [0], []
-    for s_ in range(8):
-        cc, pp = core_document_counts({"a": 900, "b": 800, "c": 900}, 1000,
-                                      cfg(core_share=0.2, core_pairs_per_doc=1), random.Random(s_), bc)
-        x, y = pp[0]
-        ref = x if {"a": 900, "b": 800, "c": 900}[x] >= {"a": 900, "b": 800, "c": 900}[y] else y
-        wins.append(cc[ref] > cc[x if ref == y else y])
-    assert wins == [True, True, False, False] * 2, wins
-    # ... and between the first and second listed label (explicit pairs)
-    bc, firsts = [0], []
-    for s_ in range(4):
-        cc, _ = core_document_counts(pool, 3000, cfg(core_pairs=[["pos", "neg"]], core_share=0.4),
-                                     random.Random(s_), bc)
-        firsts.append(cc["pos"] > cc["neg"])
-    assert firsts == [True, True, False, False], firsts
-    # with a balance counter the answer is first-named in alternating questions
-    bal = [0]
-    firsts = [close_comparisons(m, cfg(), random.Random(s), bal)[0] for s in range(10)]
-    assert [q["answer"] == q["label_a"] for q in firsts] == [True, False] * 5, firsts
+    # Global balance without a fixed periodic answer sequence.
+    from build_tr_oolong import _order_for_balance
+    schedule = BalancedChoices(40, "test-positions")
+    firsts = [_order_for_balance("a", "b", "a", schedule, random.Random(i))[0] == "a"
+              for i in range(40)]
+    assert sum(firsts) == 20
+    assert firsts != [True, False] * 20
+    assert firsts != [True, True, False, False] * 10
+    replica = BalancedChoices(40, "test-positions")
+    assert [replica.choose() for _ in range(40)] == firsts
+    winners = BalancedChoices(40, "independent-winners")
+    assert [winners.choose() for _ in range(40)] != firsts
     # only pairs listed in close_allowed_pairs_file are ever asked
     import json, tempfile
     tf = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
@@ -110,6 +101,10 @@ def main():
     got = close_comparisons(both, cfg(close_allowed_pairs_file=tf.name), random.Random(1))
     assert [set(q["candidates"]) for q in got] == [{"c", "d"}], got
     print("CLOSE-COMPARISON TEST PASSED")
+
+
+def test_close():
+    main()
 
 
 if __name__ == "__main__":

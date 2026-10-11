@@ -1,6 +1,6 @@
 {
-  "version": "0.10.0",
-  "date": "2026-09-30",
+  "version": "0.11.0-rc1",
+  "date": "2026-10-07",
   "environment": {
     "python": "3.12.9",
     "polars": "1.42.0",
@@ -15,6 +15,7 @@
     "min_words": 3,
     "max_words": 400,
     "drop_label_leakage": true,
+    "drop_conflicting_duplicates": true,
     "leak_label_words": false,
     "min_class_support": 0,
     "boilerplate_keywords": [],
@@ -36,7 +37,7 @@
     "label_provenance": "",
     "text_provenance": "",
     "label_translation": {},
-    "lvl_same_tol": 0.02,
+    "lvl_same_tol": 0.0,
     "lvl_min_margin": 0.1,
     "render_entity": true,
     "entity_render": "[[{entity}]] ",
@@ -87,8 +88,11 @@
     "dataset": "fixture"
   },
   "source_hash_first1000": "7e25adc6f1d56a61",
+  "source_sha256": "f795fedf24cc88d3298f649e96d7e5b41f5fea305e07169c7910d73a593283c6",
   "rows_after_cleaning": 800,
   "cleaning": {
+    "conflicting_text_groups": 0,
+    "rows_dropped_conflicting_labels": 0,
     "rows_dropped_label_leakage": 0,
     "label_leakage_rate": 0.0,
     "classes_dropped_low_support": [],
@@ -124,6 +128,14 @@
     }
   ],
   "label_space": 6,
+  "label_names": [
+    "mixed",
+    "negative",
+    "neutral",
+    "off_topic",
+    "positive",
+    "spam"
+  ],
   "proportion_unit": "percent",
   "top_k_k": 3,
   "tokenizer": "char_approx(3.4)",

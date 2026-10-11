@@ -59,7 +59,7 @@ from typing import Callable
 
 import polars as pl
 
-VERSION = "0.10.0"
+VERSION = "0.11.0-rc1"
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +78,7 @@ class Config:
     min_words: int = 1
     max_words: int = 400
     drop_label_leakage: bool = True       # drop rows whose text contains a label surface form
+    drop_conflicting_duplicates: bool = True
     # Also treat each WORD of a multi-part label as a surface form. Off by
     # default; see leak_surface_forms for why the intent axis must keep it off
     # and why a hyphenated topic label space needs it on.
@@ -160,7 +161,7 @@ class Config:
     # pass through unchanged, so a partial map is safe. See DATACARD/PAPER_NOTES
     # 5b for the measured cost (0.91%, 137/15,075 rows on the intent axis).
     label_translation: dict[str, str] = dataclasses.field(default_factory=dict)
-    lvl_same_tol: float = 0.02
+    lvl_same_tol: float = 0.0
     # label_vs_label needs a WIDER margin than the ranking families. It is a
     # 3-way call on a continuous quantity, so a pair just outside same_tol is a
     # knife-edge answer: at 48 classes a class holds ~125 records, 2% is 2.5
@@ -555,13 +556,22 @@ def clean(df: pl.DataFrame, cfg: Config, stats: dict | None = None) -> pl.DataFr
         df = df.filter(~pl.col("text").map_elements(
             lambda t: any(r.search(fold(t)) for r in rxs), return_dtype=pl.Boolean))
         stats["rows_dropped_text_regex"] = before_r - df.height
-    df = df.unique(subset=["_norm"], keep="first", maintain_order=True).drop("_norm")
-
     if cfg.label_translation:
         df = df.with_columns(
             pl.col("label").replace(cfg.label_translation).alias("label")
         )
         stats["label_translation_applied"] = True
+
+    # Conflicts are defined in the FINAL task label space (e.g. sentiment,
+    # not the original ten film ratings). Do not invent a majority gold label.
+    conflicts = df.group_by("_norm").agg(pl.col("label").n_unique().alias("n"))
+    conflict_keys = conflicts.filter(pl.col("n") > 1)["_norm"]
+    stats["conflicting_text_groups"] = len(conflict_keys)
+    before_conflicts = df.height
+    if cfg.drop_conflicting_duplicates:
+        df = df.filter(~pl.col("_norm").is_in(conflict_keys.implode()))
+    stats["rows_dropped_conflicting_labels"] = before_conflicts - df.height
+    df = df.unique(subset=["_norm"], keep="first", maintain_order=True).drop("_norm")
 
     # Grep-proofness: drop records whose text contains any label surface form.
     # The drop RATE is itself the label-leakage measurement (see DATACARD) --
@@ -1072,9 +1082,23 @@ def resolve_template(cfg: Config, kind: str, unit: str | None = None) -> str:
     lang = cfg.language
     if kind == "proportion":
         if unit == "percent":
-            return cfg.question_templates.get("proportion") or Q_TEMPLATES[lang]["proportion_percent"]
-        return Q_TEMPLATES[lang]["proportion_per_mille"]
-    return cfg.question_templates.get(kind) or Q_TEMPLATES[lang][kind]
+            template = cfg.question_templates.get("proportion") or Q_TEMPLATES[lang]["proportion_percent"]
+        else:
+            template = Q_TEMPLATES[lang]["proportion_per_mille"]
+        return template + (" Tam yarım değerleri yukarı yuvarla (2,5 → 3)." if lang == "tr"
+                           else " Round exact halves upward (2.5 → 3).")
+    if kind in ("most_common", "least_common", "second_most"):
+        rank = {"tr": {"most_common": "en sık", "least_common": "en az", "second_most": "ikinci en sık"},
+                "en": {"most_common": "most", "least_common": "least", "second_most": "second most"}}[lang][kind]
+        if lang == "tr":
+            return f"Yalnızca şu etiketler arasında, bu kayıtlarda {rank} görülen hangisi: {{labels}}? Sadece etiket adını yaz."
+        return f"Among only these labels, which is the {rank} common in the records: {{labels}}? Answer with the label name only."
+    template = cfg.question_templates.get(kind) or Q_TEMPLATES[lang][kind]
+    if kind == "label_vs_label" and cfg.lvl_same_tol:
+        tol = 100 * cfg.lvl_same_tol
+        template += (f" Fark büyük sayının %{tol:g}'ini aşmıyorsa 'eşit' kabul et." if lang == "tr"
+                     else f" Treat counts as the same when their difference is at most {tol:g}% of the larger count.")
+    return template
 
 
 # ---------------------------------------------------------------------------
@@ -1431,6 +1455,7 @@ def _make_one(kind, meta, cfg, rng, *, labels, askable, drift_target, unit, k,
                 # against 'more common'. v0.7.0.
                 return {"kind": kind, "label": None, "label_a": la, "label_b": lb,
                         "candidates": [la, lb], "answer": LVL_ANSWER[cfg.language][gt],
+                        "same_tol": cfg.lvl_same_tol,
                         "answer_key": gt,
                         "question": resolve_template(cfg, kind).format(
                             label_a=la, label_b=lb)}
@@ -1470,16 +1495,31 @@ def _ordinal(label: str):
     return int(m.group(1)) if m else None
 
 
-def _order_for_balance(a: str, b: str, gt: str, balance: list[int] | None,
+class BalancedChoices:
+    """A shuffled, globally balanced schedule; independent streams per purpose.
+
+    A public seed provides reproducibility, not secrecy. Evaluation must keep
+    build metadata out of solver inputs and use held-out constructions.
+    """
+    def __init__(self, size: int, seed: str):
+        rng = random.Random(seed)
+        self.values = [True] * (size // 2) + [False] * (size // 2)
+        if size % 2:
+            self.values.append(bool(rng.getrandbits(1)))
+        rng.shuffle(self.values)
+
+    def choose(self) -> bool:
+        if not self.values:
+            raise ValueError("balanced schedule exhausted")
+        return self.values.pop()
+
+
+def _order_for_balance(a: str, b: str, gt: str, balance: BalancedChoices | None,
                        rng: random.Random) -> tuple[str, str]:
-    """Which label is named first. With `balance` (a one-element counter shared
-    across a build), the answer is named first in alternating questions, so
-    "pick the first-named label" scores exactly 0.5 over the set instead of
-    whatever a coin toss happens to give. Without it, a coin toss (v0.8.0)."""
+    """Balance option positions without a deterministic alternating rhythm."""
     if balance is None:
         return (b, a) if rng.random() < 0.5 else (a, b)
-    first = balance[0] % 2 == 0
-    balance[0] += 1
+    first = balance.choose()
     return (gt, b if gt == a else a) if first else (b if gt == a else a, gt)
 
 
@@ -1555,7 +1595,7 @@ def close_comparisons(meta, cfg: Config, rng: random.Random,
 
 
 def core_document_counts(pool_counts: dict[str, int], n: int, cfg: Config,
-                         rng: random.Random, big_counter: list[int] | None = None
+                         rng: random.Random, big_counter: BalancedChoices | None = None
                          ) -> tuple[dict[str, int], list[tuple[str, str]]] | None:
     """v0.9.0. Exact per-label record counts for one core document of `n`
     records, and the designed pairs. The designed pairs get close counts inside
@@ -1565,8 +1605,8 @@ def core_document_counts(pool_counts: dict[str, int], n: int, cfg: Config,
     WHICH label of a pair is the larger one is not left to chance, because a
     coin toss on a few dozen pairs can line up with the source corpus's shares
     (it did: "pick the label rarer in the corpus" scored 0.70 on the intent core
-    documents). With `big_counter`, the larger label alternates in a fixed
-    rhythm: for listed `core_pairs`, between the first and second label of the
+    documents). With `big_counter`, a shuffled balanced schedule chooses
+    the larger label: for listed `core_pairs`, between the first and second label of the
     pair (so both halves of a cross-lingual pair agree); otherwise, between the
     label that is more common in the pool and the one that is less common."""
     c = max(cfg.close_min_count, round(cfg.core_share * n))
@@ -1609,13 +1649,11 @@ def core_document_counts(pool_counts: dict[str, int], n: int, cfg: Config,
         if big_counter is None:
             big = a if rng.random() < 0.5 else b
         else:
-            k = big_counter[0]
-            big_counter[0] += 1
             if cfg.core_pairs:
                 ref, other = a, b
             else:
                 ref, other = (a, b) if pool_counts.get(a, 0) >= pool_counts.get(b, 0) else (b, a)
-            big = ref if (k // 2) % 2 == 0 else other
+            big = ref if big_counter.choose() else other
         counts[a], counts[b] = (c, small) if big == a else (small, c)
         if pool_counts.get(a, 0) < counts[a] or pool_counts.get(b, 0) < counts[b]:
             return None
@@ -1641,7 +1679,7 @@ def core_document_counts(pool_counts: dict[str, int], n: int, cfg: Config,
 
 
 def designed_close_questions(meta, cfg: Config, rng: random.Random,
-                             balance: list[int] | None = None,
+                             balance: BalancedChoices | None = None,
                              pairs: list[tuple[str, str]] | None = None) -> list[dict]:
     """v0.9.0. Close comparisons for the pairs listed in `core_pairs`, asked in
     the listed order. The two configs of a cross-lingual pair list their pairs
@@ -2108,8 +2146,10 @@ def build(cfg: Config) -> None:
         if cfg.core_doc_records:
             for i, lab in enumerate(df["label"].to_list()):
                 rows_by_label.setdefault(lab, []).append(i)
-        core_balance = [0]
-        big_counter = [0]
+        key = cfg.core_seed_key or ("pair" if cfg.pair_seed else cfg.language)
+        schedule_size = len(cfg.core_doc_records) * cfg.core_docs_per_tier * cfg.core_pairs_per_doc
+        core_balance = BalancedChoices(schedule_size, f"{cfg.seed}-{key}-positions")
+        big_counter = BalancedChoices(schedule_size, f"{cfg.seed}-{key}-winners")
         cfg_core = dataclasses.replace(cfg, close_min_diff=max(cfg.close_min_diff, cfg.core_min_diff))
         for n_rec in cfg.core_doc_records:
             for ki in range(cfg.core_docs_per_tier):
@@ -2199,6 +2239,7 @@ def build(cfg: Config) -> None:
         },
         "config": dataclasses.asdict(cfg),
         "source_hash_first1000": source_hash,
+        "source_sha256": hashlib.sha256(Path(cfg.source_path).read_bytes()).hexdigest(),
         "rows_after_cleaning": df.height,
         "cleaning": clean_stats,
         "ranking_feasibility": ceiling_info,
@@ -2207,6 +2248,7 @@ def build(cfg: Config) -> None:
         "tiers_dropped_over_pool_cap": dropped_tiers,
         "tiers_built_over_pool_cap": overrun_tiers,
         "label_space": n_label_space,
+        "label_names": sorted(df["label"].unique().to_list()),
         "proportion_unit": unit,
         "top_k_k": k,
         "tokenizer": cfg.reference_tokenizer or f"char_approx({cfg.chars_per_token})",
