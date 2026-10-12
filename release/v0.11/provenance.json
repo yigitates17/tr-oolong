@@ -1,0 +1,63 @@
+{
+ "release": "TR-OOLONG v0.11.0 (provisional, data only)",
+ "built": "2026-10-12",
+ "code_release_commitment": "The generation code (adapted generator, answer verifier, label-review tools) will be published on GitHub together with the paper.",
+ "sources": {
+  "musteri_tr": {
+   "hub": "turkish-nlp-suite/MusteriYorumlari",
+   "revision": "7579c67929d30832253649fb21bab99185c8b9cd",
+   "split_used": "train",
+   "licence": "CC-BY-SA-4.0",
+   "text_included": true
+  },
+  "sinema_tr": {
+   "hub": "turkish-nlp-suite/BuyukSinema",
+   "revision": "137d0ff7d713cb773a22b38aaad4432d23d3950e",
+   "split_used": "train",
+   "licence": "CC-BY-SA-4.0",
+   "text_included": true
+  },
+  "vitamins_tr": {
+   "hub": "turkish-nlp-suite/vitamins-supplements-reviews",
+   "revision": "c4c0928ed0a5c60a08ef7205564967e3cde3ae9e",
+   "split_used": "train",
+   "licence": "CC-BY-SA-4.0",
+   "text_included": true
+  },
+  "massive": {
+   "hub": "AmazonScience/massive",
+   "revision": "ff6bd8e4b27c3543e4f8fe2108f32bb95a6f8740",
+   "locales": [
+    "tr-TR",
+    "en-US"
+   ],
+   "licence": "CC-BY-4.0",
+   "text_included": true
+  },
+  "marc_en": {
+   "hub": "SetFit/amazon_reviews_multi_en (copy of the English part of the Multilingual Amazon Reviews Corpus)",
+   "revision": "ec73b665e4be0f567b69d39425355401cfe0d29b",
+   "file": "train.jsonl",
+   "file_sha256": "52543b9175d517ec686ebc5bf76a05e22128fd184068b37c682486f109ca99f0",
+   "licence": "MARC licence terms (academic research only; no republication)",
+   "text_included": false
+  },
+  "amazon_hpc_en": {
+   "hub": "McAuley-Lab/Amazon-Reviews-2023",
+   "revision": "2b6d039ed471f2ba5fd2acb718bf33b0a7e5598e",
+   "file": "raw/review_categories/Health_and_Personal_Care.jsonl",
+   "file_sha256": "b532849dcf8e42910ce688ad423b3c1622ce860e7bf88a3641358bb89f345d02",
+   "licence": "none declared for the review text",
+   "text_included": false
+  }
+ },
+ "partition": "Each cleaned source is split 10% development / 90% test by a SHA-256 hash of its normalised text; exact duplicates (and, for MASSIVE, an utterance and its translation) always fall on the same side. No record is in both splits.",
+ "tokenizer": {
+  "name": "Qwen/Qwen3-8B",
+  "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "use": "document sizing and the n_tokens field only"
+ },
+ "seeds": "Every random choice of a document is seeded from a SHA-256 of its identifiers (source, split, length or record count, margin, document index, and for the main set the redraw number `attempt`). Each document records its `seed`; the main set also records the label-mix `temperature`. Rebuilding gives byte-identical files.",
+ "generator": "Documents and questions were built with an adapted version of the OOLONG-synth generator (Bertsch et al., 2025, MIT licence), with Turkish record lines and question templates. The adapted code is released with the paper.",
+ "verification": "recompute_answers.py recomputes every answer from the labelled records (0 disagreements on this release)."
+}

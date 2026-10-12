@@ -121,12 +121,12 @@ Each subset keeps its source's licence and is a separate Hugging Face config.
 |---|---|:---:|
 | `tr_intent`, `en_intent`, `tr_intent_paired`, `en_intent_paired` | CC-BY-4.0 | yes |
 | `vitamins_tr`, `musteri_tr`, `sinema_tr` | CC-BY-SA-4.0 (share-alike: derived data stays CC-BY-SA-4.0) | yes |
-| `marc_en` | Apache-2.0 | yes |
+| `marc_en` | MARC terms: academic research only, no republication (the Apache-2.0 tag on the SetFit copy is the re-uploader's) | no (withdrawn 12 Oct 2026) |
 | `amazon_hpc_en` | none declared; text under Amazon's Conditions of Use | no |
 | `sikayet_tr` | none declared; text scraped from a complaints website | no |
 | `interpress_tr` | none declared (the Apache header on the Hub loading script covers the script, not the data) | no |
 
-For the last three, the release contains questions, answers, grades and the
+For the sets without text, the release contains questions, answers, grades and the
 manifest. Counts over a dataset are facts, not copies of its text. The text is
 rebuilt locally with the fetch script and config; the build is deterministic.
 

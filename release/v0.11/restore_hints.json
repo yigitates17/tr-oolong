@@ -1,0 +1,11 @@
+{
+ "_note": "For records whose text occurs in the source file more than once with different ratings: the 0-based line number of the occurrence used.",
+ "amazon_hpc_en": {
+  "002746e5633a9081": 66682,
+  "08afcaf24665f346": 101766,
+  "81cf46ff7b4a17ff": 8482,
+  "da3db655ab131f42": 6411,
+  "f8e18ae7572e58b4": 46758
+ },
+ "marc_en": {}
+}

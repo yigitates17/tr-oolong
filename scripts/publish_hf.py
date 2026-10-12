@@ -66,10 +66,12 @@ POLICY = {
              "it must stay CC-BY-SA-4.0. Labels are the customer's own 1-5 star "
              "rating."),
     "marc_en_out": dict(
-        license="apache-2.0", full_text=True,
+        license="other", full_text=False,
         source="SetFit/amazon_reviews_multi_en (Multilingual Amazon Reviews Corpus)",
-        note="Apache-2.0: redistribution permitted. The English half of the "
-             "cleanest pair; labels are the reviewer's own 1-5 star rating."),
+        note="MARC is licensed by Amazon for academic research only and may not be "
+             "republished (licence checked 12 Oct 2026; the Apache-2.0 tag on the "
+             "SetFit copy is the re-uploader's, not Amazon's grant). Text withheld; "
+             "rebuild locally with scripts/marc_en.py + configs/marc_en.json."),
     "amazon_hpc_en_out": dict(
         license="other", full_text=False,
         source="McAuley-Lab/Amazon-Reviews-2023 (Health_and_Personal_Care)",

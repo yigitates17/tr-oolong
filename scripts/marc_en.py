@@ -3,8 +3,10 @@
 Chosen over sealuzh/app_reviews on licensing grounds. app_reviews is a closer
 length match (14.7 vs 13.8 mean words against MARC's 34.1) but is tagged
 license:unknown upstream, which is a declaration of no known grant rather than a
-missing field. MARC is Apache-2.0 and its text is redistributable, which matters
-for a benchmark meant to be downloaded and cited.
+missing field. Correction (12 Oct 2026): MARC itself is licensed by Amazon for
+academic research only and may not be republished; the Apache-2.0 tag belongs
+to the SetFit copy, not to Amazon's grant. Its text is therefore withheld and
+rebuilt locally with this script.
 
 Matched to MusteriYorumlari on the two things that decide comparability: both
 labels are the reviewer's own 1-5 star rating mapped by the same rule, and

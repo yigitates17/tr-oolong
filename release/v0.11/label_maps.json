@@ -1,0 +1,82 @@
+{
+ "_note": "Source label -> released label. null = records with this source label are not used.",
+ "musteri_tr": {
+  "source_field": "label (customer's 1-5 star rating; the Hub stores 0-4 for 1-5 stars)",
+  "map": {
+   "1": "olumsuz",
+   "2": "olumsuz",
+   "3": null,
+   "4": "olumlu",
+   "5": "olumlu"
+  }
+ },
+ "sinema_tr": {
+  "source_field": "label (reviewer's 10-point rating; the Hub stores 0-9 for 1-10)",
+  "map": {
+   "1": "olumsuz",
+   "2": "olumsuz",
+   "3": "olumsuz",
+   "4": "olumsuz",
+   "5": null,
+   "6": null,
+   "7": "olumlu",
+   "8": "olumlu",
+   "9": "olumlu",
+   "10": "olumlu"
+  }
+ },
+ "vitamins_tr": {
+  "source_field": "star (customer's 1-5 star rating)",
+  "map": {
+   "1": "olumsuz",
+   "2": "olumsuz",
+   "3": null,
+   "4": "olumlu",
+   "5": "olumlu"
+  }
+ },
+ "marc_en": {
+  "source_field": "label (reviewer's 1-5 star rating; the file stores 0-4 for 1-5 stars)",
+  "map": {
+   "1": "negative",
+   "2": "negative",
+   "3": null,
+   "4": "positive",
+   "5": "positive"
+  }
+ },
+ "amazon_hpc_en": {
+  "source_field": "rating (reviewer's 1-5 star rating)",
+  "map": {
+   "1": "negative",
+   "2": "negative",
+   "3": null,
+   "4": "positive",
+   "5": "positive"
+  }
+ },
+ "massive": {
+  "source_field": "scenario (MASSIVE's 18 scenarios; the intent's prefix)",
+  "map": {
+   "alarm": "time",
+   "calendar": "time",
+   "datetime": "time",
+   "play": "media",
+   "music": "media",
+   "audio": "media",
+   "cooking": "food",
+   "takeaway": "food",
+   "lists": "lists_recommendation",
+   "recommendation": "lists_recommendation",
+   "email": "email",
+   "iot": "iot",
+   "news": "news",
+   "qa": "qa",
+   "social": "social",
+   "transport": "transport",
+   "weather": "weather",
+   "general": null
+  },
+  "note": "The same English group names are used as labels in the Turkish and English documents."
+ }
+}

@@ -1,9 +1,14 @@
 # TR-OOLONG
 
-**Working-tree status (7 October 2026):** the public release described below is
-v0.10.0. A separate v0.11.0-rc1 candidate is undergoing human label review;
-see [the pre-freeze checklist](PREFREEZE.md). Candidate data and annotations
-remain local, and are not a frozen release.
+**Status (12 October 2026): v0.11 is out as a provisional, data-only
+release** on [Hugging Face](https://huggingface.co/datasets/yigitates17/tr-oolong)
+(tag `v0.11.0-provisional`). It follows OOLONG-synth's design and was built
+with an adapted version of OOLONG's generator, whose code will be published
+here with the paper. Construction rules, label
+maps, provenance, hashes and a standalone answer-recomputation script are in
+[`release/v0.11/`](release/v0.11/). **The rest of this README and the code in
+this repository describe v0.10.0**, which is kept for reference; v0.10's MARC
+text is withdrawn (see the v0.11 dataset card).
 
 A long-context **aggregation** benchmark for Turkish, with English counterparts
 built by the same pipeline.
