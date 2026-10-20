@@ -1,0 +1,1115 @@
+{
+ "@context": {
+  "@language": "en",
+  "@vocab": "https://schema.org/",
+  "sc": "https://schema.org/",
+  "cr": "http://mlcommons.org/croissant/",
+  "rai": "http://mlcommons.org/croissant/RAI/",
+  "prov": "http://www.w3.org/ns/prov#",
+  "dct": "http://purl.org/dc/terms/",
+  "citeAs": "cr:citeAs",
+  "column": "cr:column",
+  "conformsTo": "dct:conformsTo",
+  "data": {
+   "@id": "cr:data",
+   "@type": "@json"
+  },
+  "dataType": {
+   "@id": "cr:dataType",
+   "@type": "@vocab"
+  },
+  "examples": {
+   "@id": "cr:examples",
+   "@type": "@json"
+  },
+  "extract": "cr:extract",
+  "field": "cr:field",
+  "fileProperty": "cr:fileProperty",
+  "fileObject": "cr:fileObject",
+  "fileSet": "cr:fileSet",
+  "format": "cr:format",
+  "includes": "cr:includes",
+  "isLiveDataset": "cr:isLiveDataset",
+  "jsonPath": "cr:jsonPath",
+  "key": "cr:key",
+  "md5": "cr:md5",
+  "parentField": "cr:parentField",
+  "path": "cr:path",
+  "recordSet": "cr:recordSet",
+  "references": "cr:references",
+  "regex": "cr:regex",
+  "repeated": "cr:repeated",
+  "samplingRate": "cr:samplingRate",
+  "equivalentProperty": "cr:equivalentProperty",
+  "replace": "cr:replace",
+  "separator": "cr:separator",
+  "source": "cr:source",
+  "subField": "cr:subField",
+  "transform": "cr:transform"
+ },
+ "@type": "sc:Dataset",
+ "name": "TR-OOLONG",
+ "description": "A long-context aggregation benchmark for Turkish with English counterparts: documents of thousands of labelled records (up to 16M tokens, no record repeated within a document) and questions about label counts over the whole document, some users or some dates. Turkish sets, Turkish-English parallel and same-task pairs, English sets, and a close-comparison extension. Licences per set and who declared them: provenance.json.",
+ "conformsTo": [
+  "http://mlcommons.org/croissant/1.0",
+  "http://mlcommons.org/croissant/RAI/1.0"
+ ],
+ "url": "https://huggingface.co/datasets/yigitates17/tr-oolong",
+ "version": "0.13.0",
+ "license": [
+  "https://creativecommons.org/licenses/by-nc/4.0/",
+  "https://creativecommons.org/licenses/by-sa/4.0/",
+  "https://creativecommons.org/licenses/by/2.5/",
+  "https://creativecommons.org/licenses/by/4.0/"
+ ],
+ "inLanguage": [
+  "tr",
+  "en"
+ ],
+ "datePublished": "2026-10-21",
+ "isLiveDataset": false,
+ "creator": {
+  "@type": "sc:Person",
+  "name": "Yiğit Ateş",
+  "affiliation": "Institute for Data Science & Artificial Intelligence, Boğaziçi University"
+ },
+ "citeAs": "TR-OOLONG v0.13 (provisional), https://huggingface.co/datasets/yigitates17/tr-oolong",
+ "keywords": [
+  "long-context",
+  "aggregation",
+  "Turkish",
+  "cross-lingual",
+  "benchmark"
+ ],
+ "distribution": [
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_hpc_en/dev/documents.jsonl.gz",
+   "name": "data/extension/amazon_hpc_en/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/amazon_hpc_en/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "0fa0146483cc09a0f96a45db5ba648f42d34a093fe6d6ad2cba6c531fad6fcfb"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_hpc_en/dev/questions.jsonl.gz",
+   "name": "data/extension/amazon_hpc_en/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/amazon_hpc_en/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "71684beb7f1022ab8a92e05c6e85d771678028ad71ee02e6a18e05893be331e5"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_hpc_en/test/documents.jsonl.gz",
+   "name": "data/extension/amazon_hpc_en/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/amazon_hpc_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "4cbc6b6c26bef69d180a7de141d9c622c39ca9a8d432f20441c2697c304b03db"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_hpc_en/test/questions.jsonl.gz",
+   "name": "data/extension/amazon_hpc_en/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/amazon_hpc_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "8fb1cdf76c61635cb6b83e7bdd5fa2c366d0609c6338110534152f689aa1d910"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_movies_en/dev/documents.jsonl.gz",
+   "name": "data/extension/amazon_movies_en/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/amazon_movies_en/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "ebae57d63fb6e833357f4650375ca3334ede2167c6cbaefc8e0e5609ff206839"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_movies_en/dev/questions.jsonl.gz",
+   "name": "data/extension/amazon_movies_en/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/amazon_movies_en/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "1712c175dfa6b7c5a41d32ac7e9a14edf5ac0ab4161071981052722787388ab5"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_movies_en/test/documents.jsonl.gz",
+   "name": "data/extension/amazon_movies_en/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/amazon_movies_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "e626e2966304beff66790d53e99159f239e91c5f131c911257bf053a42c17485"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_movies_en/test/questions.jsonl.gz",
+   "name": "data/extension/amazon_movies_en/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/amazon_movies_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "d7c307c36942e785282c476adc1a2dfef89d7895c2f09b243766b5b471e8b3ab"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_shop_en/dev/documents.jsonl.gz",
+   "name": "data/extension/amazon_shop_en/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/amazon_shop_en/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "8dd1751ca6e25a9401a91b68a40183118813a46f16dcaca64d753d1baac13bce"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_shop_en/dev/questions.jsonl.gz",
+   "name": "data/extension/amazon_shop_en/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/amazon_shop_en/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "a181ee0bec089901f0df4f23b4925d2ea2d0a3c1b87efe202a1669ddd272d792"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_shop_en/test/documents.jsonl.gz",
+   "name": "data/extension/amazon_shop_en/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/amazon_shop_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "f8a11c996073777987587f6eca227222ca08c76cd9a84f88e84a929812ba9537"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/amazon_shop_en/test/questions.jsonl.gz",
+   "name": "data/extension/amazon_shop_en/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/amazon_shop_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "a80d2a91575c0ca7573e4b930a038f7b4ac131654950c236b948831e4c6ee710"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/doktor_tr/dev/documents.jsonl.gz",
+   "name": "data/extension/doktor_tr/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/doktor_tr/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "93ab107fb48038ea5c3bd5b0591820c4542335e6e66c05b74c5ceeb4bbcd4f81"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/doktor_tr/dev/questions.jsonl.gz",
+   "name": "data/extension/doktor_tr/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/doktor_tr/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "a7188e0204d460d7c0edce9719bea792e4c39e5d8dfc2e3b731da0a8c5478f42"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/doktor_tr/test/documents.jsonl.gz",
+   "name": "data/extension/doktor_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/doktor_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "db8b4278eb041de14dd8953f83ffc2c24e7deba228474e9c61265db71a933d11"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/doktor_tr/test/questions.jsonl.gz",
+   "name": "data/extension/doktor_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/doktor_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "b14f69678f25a1e1d3e97def6fe7f76a3220b858093a54be33ad7dd90d570ae4"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/massive_en/test/documents.jsonl.gz",
+   "name": "data/extension/massive_en/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/massive_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "d95fd46a36a089b61bfe53b739a0811f9e224baeba86f400999eef098d131078"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/massive_en/test/questions.jsonl.gz",
+   "name": "data/extension/massive_en/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/massive_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "624b74419cc7c0c06249f79dd49e0d03aeb19c732449fc91eb5772660cbea834"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/massive_tr/test/documents.jsonl.gz",
+   "name": "data/extension/massive_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/massive_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "e6f2ee1477ace23b62311a0b29f61f90608a1afb1645c3a842b2f7d0089a5197"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/massive_tr/test/questions.jsonl.gz",
+   "name": "data/extension/massive_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/massive_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "e69723b9554940e0a4bdefb9ed5c6178579859f3c01620efcc524d0f38cda703"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/musteri_tr/dev/documents.jsonl.gz",
+   "name": "data/extension/musteri_tr/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/musteri_tr/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "39600412273732dbb09faa1e21d9378d31c6e54cde865f64ac9acf725f1ea0eb"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/musteri_tr/dev/questions.jsonl.gz",
+   "name": "data/extension/musteri_tr/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/musteri_tr/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "bd2233f0a68abf594b64ae786e6b88c332b5640c2ff302ae547de9d8433ae24b"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/musteri_tr/test/documents.jsonl.gz",
+   "name": "data/extension/musteri_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/musteri_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "7ff494d082b8b7f9817652fa72f91b737862cfe6450a56a96c8eab6e11bd6307"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/musteri_tr/test/questions.jsonl.gz",
+   "name": "data/extension/musteri_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/musteri_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "31493bfd74071c591b181430a63defa03417f7d2b9adc732eb8749dfb88ba156"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/sinema_tr/test/documents.jsonl.gz",
+   "name": "data/extension/sinema_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/sinema_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "4e5e54683f5a97328ed6216e1d5dfcb1c7b0ed14ec1b8bd23b47d90cc5ae1764"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/sinema_tr/test/questions.jsonl.gz",
+   "name": "data/extension/sinema_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/sinema_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "1b60090dfede1e99aba3ef8f0cd06b479edd603a8409dd33a8fd8995e5a3661b"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_en/dev/documents.jsonl.gz",
+   "name": "data/extension/tez_en/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/tez_en/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "6eed63d250b1106ac062ac80755c369be08bb643208877cd63dc43ad66cdc138"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_en/dev/questions.jsonl.gz",
+   "name": "data/extension/tez_en/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/tez_en/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "05cc36877adb0839852ce9797836b2099852c66f0b0819aecace04341383d9ff"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_en/test/documents.jsonl.gz",
+   "name": "data/extension/tez_en/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/tez_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "cdb715cdbd19e9586f63f4cb1760f331bc50f8b787621d583793fcbb513ffc3a"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_en/test/questions.jsonl.gz",
+   "name": "data/extension/tez_en/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/tez_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "fd8f1645f37b80a96ee994fa6276ad208d55de644bec9efd86e97a6f5eac3fe2"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_tr/dev/documents.jsonl.gz",
+   "name": "data/extension/tez_tr/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/tez_tr/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "93977201bb83144aead9f25f9d39fe7b4eb01ccfd755d8e2d46a07ffdd5868e4"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_tr/dev/questions.jsonl.gz",
+   "name": "data/extension/tez_tr/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/tez_tr/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "9a3d00e42ce6738b0588fcee697029094362fb5d0b307ebfe8b76bab0a79c68a"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_tr/test/documents.jsonl.gz",
+   "name": "data/extension/tez_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/tez_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "994f7bf95fd4bc6d4d5ac2cfcc9a0766e238f4242750e1cfe106d4f6c0ebfbf8"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/tez_tr/test/questions.jsonl.gz",
+   "name": "data/extension/tez_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/tez_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "0bd848d019676a610bc672eb2fe5750b71f745d061d93db29c2b252d6add9724"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/trnews2025_tr/dev/documents.jsonl.gz",
+   "name": "data/extension/trnews2025_tr/dev/documents.jsonl.gz",
+   "contentUrl": "data/extension/trnews2025_tr/dev/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "0f4ffb719748c76bbce7b55b56ffe9513263670df2336488a95c9f2f65474e78"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/trnews2025_tr/dev/questions.jsonl.gz",
+   "name": "data/extension/trnews2025_tr/dev/questions.jsonl.gz",
+   "contentUrl": "data/extension/trnews2025_tr/dev/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "f5a51846d024c7fba41a78ae66fb4f1951f9f96da0c1be9af589f641a4eda29b"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/trnews2025_tr/test/documents.jsonl.gz",
+   "name": "data/extension/trnews2025_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/trnews2025_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "69576b0b83d5dac6be510119c3f12216cb844ead27ddbc3b3eb5c6211057acac"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/trnews2025_tr/test/questions.jsonl.gz",
+   "name": "data/extension/trnews2025_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/trnews2025_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "3254ee584b942ac91efce3da16be76d5daf3abbd13b16f9c51137b3a027ff971"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/wikinews_en/test/documents.jsonl.gz",
+   "name": "data/extension/wikinews_en/test/documents.jsonl.gz",
+   "contentUrl": "data/extension/wikinews_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "6d28f3d465b9ad354e1fd4fc2482d08841d6dd829ac42ff345de12504d6e40d2"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/extension/wikinews_en/test/questions.jsonl.gz",
+   "name": "data/extension/wikinews_en/test/questions.jsonl.gz",
+   "contentUrl": "data/extension/wikinews_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "1188c690e59e92e0a37b5b0071dfa5459454e782638f41c2a78b052ae2bf377f"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/amazon_hpc_en/test/documents.jsonl.gz",
+   "name": "data/main/amazon_hpc_en/test/documents.jsonl.gz",
+   "contentUrl": "data/main/amazon_hpc_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "5113b494c828c3ee20ba9f4ee7e983b9109c3560f8291baddc361eca3c3e3048"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/amazon_hpc_en/test/questions.jsonl.gz",
+   "name": "data/main/amazon_hpc_en/test/questions.jsonl.gz",
+   "contentUrl": "data/main/amazon_hpc_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "bf1a5c968d39418dbf099f932a3a79ac439e85b8a4e19be664aaf151fbb417d7"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/amazon_movies_en/test/documents.jsonl.gz",
+   "name": "data/main/amazon_movies_en/test/documents.jsonl.gz",
+   "contentUrl": "data/main/amazon_movies_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "00e3b64851a89118b7f6c883b59bd5963ec5bbdb8cd7859a57a4cc7db6ed5120"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/amazon_movies_en/test/questions.jsonl.gz",
+   "name": "data/main/amazon_movies_en/test/questions.jsonl.gz",
+   "contentUrl": "data/main/amazon_movies_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "fab6e99586836c65052fe93bbb69558ba0a7db167b692a160e99de1acdf3357c"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/amazon_shop_en/test/documents.jsonl.gz",
+   "name": "data/main/amazon_shop_en/test/documents.jsonl.gz",
+   "contentUrl": "data/main/amazon_shop_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "91bac90ad9f526b281a0fa8bb6606dabcadc05bcd1cd7d62103bcf08de400735"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/amazon_shop_en/test/questions.jsonl.gz",
+   "name": "data/main/amazon_shop_en/test/questions.jsonl.gz",
+   "contentUrl": "data/main/amazon_shop_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "ad51d0e3db96996c9dde4205489fcf3a77955893cb480f6181121bbc33a64b15"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/doktor_tr/test/documents.jsonl.gz",
+   "name": "data/main/doktor_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/doktor_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "285d41046c7dd3a3660c22608abae4412cb149e01470746f2958a850f217e570"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/doktor_tr/test/questions.jsonl.gz",
+   "name": "data/main/doktor_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/doktor_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "9a5bedcb5922d9beb9a8cea928258259526051b611177d9d358419661c924556"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/massive_en/test/documents.jsonl.gz",
+   "name": "data/main/massive_en/test/documents.jsonl.gz",
+   "contentUrl": "data/main/massive_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "44dc1335d8b4b4f6db9229d97680960f57b539919fc36f1b285f693456bcc0c0"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/massive_en/test/questions.jsonl.gz",
+   "name": "data/main/massive_en/test/questions.jsonl.gz",
+   "contentUrl": "data/main/massive_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "0e7b4e5752d713385176e7130d1190eeb648eb6af0a208f0db308f1f316c6334"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/massive_tr/test/documents.jsonl.gz",
+   "name": "data/main/massive_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/massive_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "ee7f741800ef5bd7aaaf72719523675456cb48f597bf74701c339b3ed920faf9"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/massive_tr/test/questions.jsonl.gz",
+   "name": "data/main/massive_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/massive_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "b456c2559b635e871e339e6eb69642d04a3725f90fe2da4245c4e815c192a461"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/musteri_tr/test/documents.jsonl.gz",
+   "name": "data/main/musteri_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/musteri_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "cb3af69c0106d0824272be73c7fc326f74756a9494586f84ec899e49c478d846"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/musteri_tr/test/questions.jsonl.gz",
+   "name": "data/main/musteri_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/musteri_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "1f7d28f6c2b2db7f0d5c3697a6a84a2827abf6b1878f890cd8565ac975643f94"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/sinema_tr/test/documents.jsonl.gz",
+   "name": "data/main/sinema_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/sinema_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "3ca11249b9f35ebfb85b4c3c13440e444006517113d7264f7af7312ccbcf1c1b"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/sinema_tr/test/questions.jsonl.gz",
+   "name": "data/main/sinema_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/sinema_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "ac16f9cee573722e29cb881f4d29be37a83ecf15689f6ca7a39ea9a06f141eb3"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/tez_en/test/documents.jsonl.gz",
+   "name": "data/main/tez_en/test/documents.jsonl.gz",
+   "contentUrl": "data/main/tez_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "ac5728c142269fecc88606ac6d9f3d67f2abfa9f4272d203c0ee245d6f4f5c6c"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/tez_en/test/questions.jsonl.gz",
+   "name": "data/main/tez_en/test/questions.jsonl.gz",
+   "contentUrl": "data/main/tez_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "dd9a345ab22f2be113209999fc9cdc13ffff4b6149a869ffd0545bda0b688eac"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/tez_tr/test/documents.jsonl.gz",
+   "name": "data/main/tez_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/tez_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "595b4e846088819bef9b98df368f914d30d3ea0bbbebf6bbd350aead4eda46db"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/tez_tr/test/questions.jsonl.gz",
+   "name": "data/main/tez_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/tez_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "f53f0a5fe515653189eb5cf01c38552487bd51e6a8618c53d3d4c5b6bb55f941"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/trnews2025_tr/test/documents.jsonl.gz",
+   "name": "data/main/trnews2025_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/trnews2025_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "e7de1ddc2d98807f948ea5efa458375141f198ed71ff592d9d5175f3aba9fe15"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/trnews2025_tr/test/questions.jsonl.gz",
+   "name": "data/main/trnews2025_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/trnews2025_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "0203f113422ed514b2ff8c5cdc13d128880e52f01b518af4b927e6b2157278e4"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/vitamins_tr/test/documents.jsonl.gz",
+   "name": "data/main/vitamins_tr/test/documents.jsonl.gz",
+   "contentUrl": "data/main/vitamins_tr/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "ecf6868896cd88913c41da420f16f08f9c3f5cacf1ef371f5f14e198aac2ab04"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/vitamins_tr/test/questions.jsonl.gz",
+   "name": "data/main/vitamins_tr/test/questions.jsonl.gz",
+   "contentUrl": "data/main/vitamins_tr/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "42cc5cc7d388f6bb21d7aa7bec40f07c789970d3bb6fa1972e9b400c84e992f2"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/wikinews_en/test/documents.jsonl.gz",
+   "name": "data/main/wikinews_en/test/documents.jsonl.gz",
+   "contentUrl": "data/main/wikinews_en/test/documents.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "790957bd0c18a3ab97e6fa0c1302a5236fa9dd07990c4a68d2a577b3a386a1bc"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "data/main/wikinews_en/test/questions.jsonl.gz",
+   "name": "data/main/wikinews_en/test/questions.jsonl.gz",
+   "contentUrl": "data/main/wikinews_en/test/questions.jsonl.gz",
+   "encodingFormat": "application/jsonlines",
+   "sha256": "d4015c963a0d9dd1df36a5216f0caec18ab0faade53fae07b6d18292b9cea38d"
+  },
+  {
+   "@type": "cr:FileSet",
+   "@id": "main-questions",
+   "name": "main-questions",
+   "encodingFormat": "application/jsonlines",
+   "includes": "data/main/*/test/questions.jsonl.gz"
+  },
+  {
+   "@type": "cr:FileSet",
+   "@id": "main-documents",
+   "name": "main-documents",
+   "encodingFormat": "application/jsonlines",
+   "includes": "data/main/*/test/documents.jsonl.gz"
+  },
+  {
+   "@type": "cr:FileSet",
+   "@id": "extension-questions",
+   "name": "extension-questions",
+   "encodingFormat": "application/jsonlines",
+   "includes": "data/extension/*/*/questions.jsonl.gz"
+  },
+  {
+   "@type": "cr:FileSet",
+   "@id": "extension-documents",
+   "name": "extension-documents",
+   "encodingFormat": "application/jsonlines",
+   "includes": "data/extension/*/*/documents.jsonl.gz"
+  }
+ ],
+ "recordSet": [
+  {
+   "@type": "cr:RecordSet",
+   "@id": "main_questions",
+   "name": "main_questions",
+   "description": "Main-set questions; answers are in the files' answer field (a list).",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "main_questions/uid",
+     "name": "uid",
+     "description": "question id (join with the release version)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-questions"
+      },
+      "extract": {
+       "column": "uid"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_questions/doc_id",
+     "name": "doc_id",
+     "description": "the document the question is about",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-questions"
+      },
+      "extract": {
+       "column": "doc_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_questions/language",
+     "name": "language",
+     "description": "tr or en",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-questions"
+      },
+      "extract": {
+       "column": "language"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_questions/question",
+     "name": "question",
+     "description": "the question, in the document's language",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-questions"
+      },
+      "extract": {
+       "column": "question"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_questions/question_en",
+     "name": "question_en",
+     "description": "the English original of the question",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-questions"
+      },
+      "extract": {
+       "column": "question_en"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "main_documents",
+   "name": "main_documents",
+   "description": "Main-set documents.",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/doc_id",
+     "name": "doc_id",
+     "description": "document id",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "doc_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/source",
+     "name": "source",
+     "description": "dataset",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "source"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/language",
+     "name": "language",
+     "description": "tr or en",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "language"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/split",
+     "name": "split",
+     "description": "test or dev",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "split"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/n_records",
+     "name": "n_records",
+     "description": "number of records (lines) in the document",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "n_records"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/n_tokens",
+     "name": "n_tokens",
+     "description": "length of text in Qwen3-8B tokens",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "n_tokens"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/text",
+     "name": "text",
+     "description": "the document with labels hidden (the model input)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "text"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "main_documents/text_with_labels",
+     "name": "text_with_labels",
+     "description": "the same document with every record's label",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "main-documents"
+      },
+      "extract": {
+       "column": "text_with_labels"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "extension_questions",
+   "name": "extension_questions",
+   "description": "Close-comparison questions.",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "extension_questions/uid",
+     "name": "uid",
+     "description": "question id (join with the release version)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-questions"
+      },
+      "extract": {
+       "column": "uid"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_questions/doc_id",
+     "name": "doc_id",
+     "description": "the document the question is about",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-questions"
+      },
+      "extract": {
+       "column": "doc_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_questions/language",
+     "name": "language",
+     "description": "tr or en",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-questions"
+      },
+      "extract": {
+       "column": "language"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_questions/question",
+     "name": "question",
+     "description": "the question, in the document's language",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-questions"
+      },
+      "extract": {
+       "column": "question"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_questions/question_en",
+     "name": "question_en",
+     "description": "the English original of the question",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-questions"
+      },
+      "extract": {
+       "column": "question_en"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "extension_documents",
+   "name": "extension_documents",
+   "description": "Close-comparison documents.",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/doc_id",
+     "name": "doc_id",
+     "description": "document id",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "doc_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/source",
+     "name": "source",
+     "description": "dataset",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "source"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/language",
+     "name": "language",
+     "description": "tr or en",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "language"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/split",
+     "name": "split",
+     "description": "test or dev",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "split"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/n_records",
+     "name": "n_records",
+     "description": "number of records (lines) in the document",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "n_records"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/n_tokens",
+     "name": "n_tokens",
+     "description": "length of text in Qwen3-8B tokens",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "n_tokens"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/text",
+     "name": "text",
+     "description": "the document with labels hidden (the model input)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "text"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "extension_documents/text_with_labels",
+     "name": "text_with_labels",
+     "description": "the same document with every record's label",
+     "dataType": "sc:Text",
+     "source": {
+      "fileSet": {
+       "@id": "extension-documents"
+      },
+      "extract": {
+       "column": "text_with_labels"
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "rai:dataCollection": "Records come from public datasets (provenance.json): Turkish shopping, film and supplement reviews (Turkish NLP Suite), patients' questions from doktorsitesi.com, Turkish theses' Turkish and English abstracts (YÖK), Turkish news (TRNEWS-2025), MASSIVE voice-assistant requests (tr-TR, en-US), Amazon Reviews 2023 (three categories or category groups) and English Wikinews. Nothing was collected from people for this dataset. Documents join records with synthetic user ids and dates.",
+ "rai:dataCollectionType": [
+  "Secondary data analysis",
+  "Web scraping (by the source datasets)"
+ ],
+ "rai:dataPreprocessingProtocol": "CONSTRUCTION.md, section 1: HTML and whitespace cleaning; length limits; removal of reviews that state their own score; removal of texts with two labels; language filtering; set-specific rules found by profiling without labels (personal names in doctor questions; site text, cut-off fragments and typography in news; front matter and garbled text in thesis abstracts; wiki markup). Answers are computed from the source labels and recomputed by an independent script.",
+ "rai:dataAnnotationProtocol": "Labels are the sources' own labels (ratings, news sections, the specialty of the doctor the patient addressed (a routing label, not a diagnosis), thesis subjects, Wikinews categories, MASSIVE scenarios), grouped as in label_maps.json. Before a set entered, native speakers labelled 20-48 sampled records blind and were then shown the source label; a set entered if each annotator agreed on at least 85% of the records they could decide and was unsure on at most 25% (70% when the checks started). Results per set are in the card.",
+ "rai:dataAnnotationPlatform": "A private web page for blind labelling (source label shown only after an answer).",
+ "rai:annotatorDemographics": "Native Turkish speakers: the dataset's author and two of the author's siblings, paid, blind to the source labels and to each other's answers; related to the author (disclosed).",
+ "rai:dataLimitations": "Source labels are noisy (blind agreement 86-100% per set; some labels are wrong). Label checks used small samples (20-48 records per set) by annotators related to the author. Documents are synthetic arrangements of unrelated records; some question types can be answered from a sample of the records or from metadata alone; word-statistics readers score well on easy question types. Comparable Turkish-English pairs differ in sources, years and lengths; only MASSIVE and the thesis abstracts are parallel, and the thesis abstracts' semantic equivalence is unverified. No model results yet.",
+ "rai:dataBiases": "Topics and styles follow the sources: Turkish e-commerce and film sites, one Turkish doctor-question site, Turkish news sites, YÖK theses from 2005 on, US Amazon reviews, English Wikinews. Label mixes in documents are random, not the sources' distributions. Sentiment sets exclude middle ratings.",
+ "rai:personalSensitiveInformation": "doktor_tr contains patients' questions about their health. Known-name patterns were removed (doctors' names replaced, other known first names removed, questions with e-mail addresses or self-introductions dropped); residual identifiers and linkable health narratives may remain. No consent was obtained from the writers and no ethics review was performed; the questions were public on the source site. User ids and dates in documents are synthetic. Other sets are public reviews, news, abstracts and requests.",
+ "rai:dataUseCases": "Evaluating long-context aggregation (classify every record, then count, compare or rank) in Turkish and English, per question type and length; Turkish-English comparisons on the parallel sets. Not for training models to be evaluated on it, for medical advice, or for profiling the writers.",
+ "rai:dataSocialImpact": "Adds Turkish to long-context evaluation, where it has been missing. Health questions could be misused to identify writers; removal requests are honoured in the next version.",
+ "rai:hasSyntheticData": true,
+ "rai:dataReleaseMaintenancePlan": "Versioned releases on the Hugging Face Hub (files never changed in place; a new version for every change). Maintainer: Yiğit Ateş. Removal requests privately by e-mail to yigitates1709@gmail.com (reply within 14 days; confirmed records removed in the next version, and earlier versions that contain them taken down). Generation code available to reviewers with the paper's submission and published with the paper.",
+ "prov:wasDerivedFrom": [
+  "https://huggingface.co/datasets/turkish-nlp-suite/MusteriYorumlari",
+  "https://huggingface.co/datasets/turkish-nlp-suite/BuyukSinema",
+  "https://huggingface.co/datasets/turkish-nlp-suite/vitamins-supplements-reviews",
+  "https://huggingface.co/datasets/alibayram/doktorsitesi",
+  "https://huggingface.co/datasets/umutertugrul/turkish-academic-theses-dataset",
+  "https://www.kaggle.com/datasets/sengulbayrak/trnews-2025",
+  "https://huggingface.co/datasets/AmazonScience/massive",
+  "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023",
+  "https://dumps.wikimedia.org/enwikinews/"
+ ],
+ "prov:wasGeneratedBy": [
+  {
+   "@type": "prov:Activity",
+   "prov:label": "collection",
+   "sc:description": "Records taken from the source datasets at pinned revisions or file hashes (provenance.json)."
+  },
+  {
+   "@type": "prov:Activity",
+   "prov:label": "preprocessing",
+   "sc:description": "Cleaning and selection (CONSTRUCTION.md, section 1)."
+  },
+  {
+   "@type": "prov:Activity",
+   "prov:label": "annotation",
+   "sc:description": "Source labels mapped and grouped (label_maps.json); blind checks by native speakers (card)."
+  },
+  {
+   "@type": "prov:Activity",
+   "prov:label": "generation",
+   "sc:description": "Documents and questions built with an adapted OOLONG-synth generator (CONSTRUCTION.md, sections 4-6); answers recomputed independently."
+  }
+ ]
+}

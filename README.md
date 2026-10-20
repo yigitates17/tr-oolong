@@ -1,404 +1,106 @@
 # TR-OOLONG
 
-**Status (12 October 2026): v0.11 is out as a provisional, data-only
-release** on [Hugging Face](https://huggingface.co/datasets/yigitates17/tr-oolong)
-(tag `v0.11.0-provisional`). It follows OOLONG-synth's design and was built
-with an adapted version of OOLONG's generator, whose code will be published
-here with the paper. Construction rules, label
-maps, provenance, hashes and a standalone answer-recomputation script are in
-[`release/v0.11/`](release/v0.11/). **The rest of this README and the code in
-this repository describe v0.10.0**, which is kept for reference; v0.10's MARC
-text is withdrawn (see the v0.11 dataset card).
-
-A long-context **aggregation** benchmark for Turkish, with English counterparts
-built by the same pipeline.
-
-Each document is thousands of real records (reviews, complaints, news
-articles, voice-assistant commands) joined into one long text, from 36K to 1M
-tokens. Each question asks about the whole collection:
-
-> *Bu kayıtlarda hangisi daha çok: 'turizm' etiketli kayıtlar mı, 'magazin' etiketli kayıtlar mı?* → **magazin** (44 against 41, out of 266 articles)
-> *Bu kayıtlarda kaç tane 'ulaşım' etiketli kayıt var?* → **166**
-
-Source annotation fields are omitted from the input. The core questions
-compare two categories with close counts and are evaluated against specified
-sampling and search strategies; these tests do not prove complete reading.
-See [What each question measures](#what-each-question-measures). Every answer is computed from the
-source dataset's own labels, so no one writes an answer key by hand.
-
-The construction follows OOLONG (Bertsch et al., 2025, arXiv:2511.02817), whose
-build code was not released; this is an independent implementation.
-
-- **Data:** <https://huggingface.co/datasets/yigitates17/tr-oolong> (v0.10.0)
-- **Datacard:** [`DATACARD.md`](DATACARD.md), sources, licences, known issues
-- **Why each choice was made:** [`DESIGN_DECISIONS.md`](DESIGN_DECISIONS.md)
+**A long-context aggregation benchmark for Turkish, with English
+counterparts.** Status (21 October 2026): **v0.13, provisional, data only**, on
+[Hugging Face](https://huggingface.co/datasets/yigitates17/tr-oolong). The
+release files (dataset card, construction rules, label maps, provenance,
+hashes, Croissant metadata, answer recomputation and scoring scripts) are in
+[`release/v0.13/`](release/v0.13/). The generation code will be available to
+reviewers with the paper's submission and published here with the paper.
 
 Developed at the Institute for Data Science & Artificial Intelligence (DSAI),
 Boğaziçi University, as MSc thesis work.
 
-## At a glance
+## What it tests
 
-**11 subsets · 347 documents · 2,362 questions · 102.5M tokens · 7 question types**
-(1,615 Turkish, 747 English). Every question has a role: **309 core**, 237
-retrieval, 1,816 control (see below). Lengths are counted with the
-`Qwen/Qwen3-8B` tokenizer.
+A model reads one long document made of thousands of short real texts (reviews,
+news articles, patients' questions, thesis abstracts, voice-assistant
+requests). Every text has a label the model does not see, and each question
+asks about the whole document:
 
-| subset | lang | records are | labels | docs | questions | core | longest doc | text shipped |
-|---|---|---|---:|---:|---:|---:|---:|:---:|
-| `sikayet_tr` | tr | consumer complaints | 29 | 49 | 366 | 66 | 1.0M | no |
-| `interpress_tr` | tr | news articles | 16 | 43 | 337 | 37 | 1.0M | no |
-| `sinema_tr` | tr | film reviews (sentiment from 1-10 rating) | 3 | 38 | 212 | 18 | 720K | yes |
-| `vitamins_tr` | tr | supplement reviews (sentiment) | 3 | 38 | 187 | 18 | 496K | yes |
-| `musteri_tr` | tr | shopping reviews (sentiment) | 3 | 38 | 213 | 18 | 496K | yes |
-| `tr_intent` | tr | voice commands (intent) | 48 | 10 | 139 | 19 | 100K | yes |
-| `tr_intent_paired` | tr | voice commands (intent) | 48 | 20 | 161 | 41 | 99K | yes |
-| `amazon_hpc_en` | en | health product reviews (sentiment) | 3 | 43 | 237 | 19 | 987K | no |
-| `marc_en` | en | shopping reviews (sentiment) | 3 | 38 | 216 | 19 | 522K | yes |
-| `en_intent` | en | voice commands (intent) | 48 | 10 | 133 | 13 | 100K | yes |
-| `en_intent_paired` | en | voice commands (intent) | 48 | 20 | 161 | 41 | 75K | yes |
+> *Yukarıdaki verilerde en sık görülen etiket hangisidir?* (which label is the most common?)
+> *Kaç kayıt 'olumsuz' etiketiyle sınıflandırılmalıdır?* (how many records are negative?)
+> *Which user has more instances with the label 'sports': User 41076 or User 23810?*
 
-Three subsets ship questions and answers only, because their sources grant no
-right to redistribute the text. The build is deterministic, so the text can be
-rebuilt locally byte for byte (see [Building](#building-and-adding-a-dataset)).
+Answering means classifying every record and aggregating exactly. The design
+follows OOLONG-synth (Bertsch et al., 2025, arXiv:2511.02817): a random label
+mix per document, a user and a date on every record, and counting, user and
+timeline questions.
 
-### Turkish/English pairs
+## Datasets
 
-| pair | what is matched | use it for |
-|---|---|---|
-| `tr_intent_paired` / `en_intent_paired` | **the same utterances** (MASSIVE is a human translation), same order, same labels. All 161 questions, 41 of them core, are identical and have the same answer in both languages. | a paired test: any score gap is not caused by the questions |
-| `tr_intent` / `en_intent` | same corpus, same **token budget** | comparing languages at equal cost |
-| `musteri_tr` / `marc_en` | different corpora, same task (star-rating sentiment), similar record length. Their 18 core documents have identical sizes and identical positive/negative counts, so the 18 core questions are the same question with the same answer | comparing languages on natural text |
-| `vitamins_tr` / `amazon_hpc_en` | different corpora, same task, same product area (supplements, health). Core documents matched the same way (18 identical core questions) | comparing languages on natural text |
+Three tracks. Every dataset ships its text.
 
-`sikayet_tr`, `interpress_tr` and `sinema_tr` have no English partner. The first
-two were added because 3-label sets cannot produce questions with small answers.
-`sinema_tr` was added with 10-point ratings and converted to sentiment in
-v0.10.0 (1-4 negative, 5-6 neutral, 7-10 positive), because an exact star rating
-cannot be read from the text.
+| track | dataset | records are | labels | longest document |
+|---|---|---|---|---|
+| Turkish | `musteri_tr` | shopping reviews | positive / negative | 1M tokens |
+| Turkish | `doktor_tr` | patients' questions to doctors | 9 specialties | 2M |
+| Turkish | `trnews2025_tr` | news articles | 9 sections | 4M |
+| Turkish (reported separately) | `vitamins_tr` | supplement reviews | positive / negative | 1M |
+| Turkish-English, parallel | `massive_tr`, `massive_en` | voice-assistant requests (translations) | 11 topics | 256K |
+| Turkish-English, parallel | `tez_tr`, `tez_en` | author-provided Turkish and English abstracts of the same thesis | 8 fields | 4M |
+| Turkish-English, same task | `sinema_tr` / `amazon_movies_en` | film reviews | positive / negative | 4M / 16M |
+| Turkish-English, same task | `musteri_tr` / `amazon_shop_en` | shopping reviews | positive / negative | 1M / 8M |
+| Turkish-English, same task | `trnews2025_tr` / `wikinews_en` | news | sections | 4M / 512K |
+| English | `amazon_hpc_en` | health product reviews | positive / negative | 16M |
 
-**Cross-lingual comparisons are made within a pair, never between the Turkish
-and English totals** (which differ because three subsets are Turkish only).
-Compare the two halves of a pair on the same length tiers and the same
-question types. `amazon_hpc_en` has a 1M tier that `vitamins_tr` lacks, so that
-pair is compared up to 500K. **77 core questions are identical in both
-languages**: 41 in the paired intent sets and 18 in each review pair. The
-token-matched intent pair adds 19 and 13 that are not identical.
+- **No text repeats inside a document** (texts can recur across documents). A length that a dataset cannot fill
+  with distinct records is skipped. The longest documents hold up to 236,378
+  different reviews (16M tokens).
+- **Parallel documents** carry the same records, order, users, dates and
+  answers in both languages. They are sized by the Turkish version, which
+  needs more tokens for these texts, so both versions fit the stated length.
+- **A close-comparison extension** asks whether label A is more or less common
+  than label B when their counts differ by 0-10%.
 
-| role | Turkish | English |
-|---|---:|---:|
-| core | 217 | 92 |
-| retrieval | 185 | 52 |
-| control | 1,213 | 603 |
+## How the labels were checked
 
-## Question types
-
-| type | example | answer | role | count |
-|---|---|---|---|---:|
-| `close_comparison` | which are there more of, A or B? (two frequent labels that can be told apart from the text, counts very close) | a label | core | 309 |
-| `count` with `"rare": true` | how many records have label X? (true answer 5 to 30) | a number | retrieval | 237 |
-| `count` | how many records have label X? | a number | control | 587 |
-| `proportion` | what percent (or per mille) have label X? | a number | control | 483 |
-| `label_vs_label` | is X more common, less common, or as common as Y? (counts at least 15% apart) | a word | control | 299 |
-| `most_common` / `least_common` / `second_most` | which label is most / least / second most common? | a label | control | 447 |
-
-Rare-label counts are worded exactly like any other count.
-
-Removed types: `shift` ("did X rise or fall in the second half?", v0.7.0),
-answered by reading 50 records at each end; and the three brand types
-(`entity_count`, `entity_argmax`, `pairwise`, v0.8.0), answered perfectly by
-searching the text for the printed brand name and reading about 2% of the
-document.
-
-### Why the Turkish intent questions use English label names
-
-In `tr_intent` and `tr_intent_paired` the question is in Turkish but the label
-is MASSIVE's English identifier (`transport_taxi`, `play_music`). This is
-deliberate: **translating the labels puts the answer back into the text.**
-Turkish is verb-final, so a label like `alarm_kur` appears word for word inside
-utterances such as *"iki saat sonrasına alarm kur"*. Measured on all 15,075
-utterances:
-
-| labels used | records containing their own label |
-|---|---:|
-| English identifiers (**shipped**) | 0.00% |
-| Turkish, imperative (`müzik_çal`) | 3.13% (472 records) |
-| Turkish, dictionary form (`müzik_çalmak`) | 0.14% (21 records) |
-
-Nothing Turkish is lost: the Turkish is in the text being classified, and the
-label is only the name of the bucket. The translated variants are kept in
-`configs/experimental/` and are not part of the release.
-
-## Relation to OOLONG
-
-| | OOLONG (Bertsch et al., 2025) | TR-OOLONG |
-|---|---|---|
-| languages | English | Turkish, with English counterparts built the same way |
-| document length | 1K to 4M tokens (synthetic split) | 36K to 1M tokens |
-| labels per dataset | 2 to 10 | 3, 16, 29, 48 |
-| narrowing to a subset | to users or months printed on every record | none (brand questions removed, see below) |
-| questions over dates | yes, and reported as the hardest group | none yet (`interpress_tr` has dates) |
-| sampling/search audit | selected OOLONG-synth tasks audited here | 309 close comparisons tested; results depend on origin and strategy |
-| same question, same answer in two languages | no | yes: every question of the paired intent sets, and the review pairs' core questions (77 core in all) |
-| numeric score | `partial` (0.75 per unit of error) | `partial`, plus `relative` for large answers |
-| published shortcut checks | none | yes, reports in `manifests/` and `experiments/` |
-
-OOLONG makes answers small by narrowing questions to listed users or a month.
-Both are printed on every record, so a string search finds the relevant
-records: for user-narrowed questions it reads a median of 0.8% of the document
-and gives the exact answer 99% of the time (month-narrowed: 7.6%, 99%). Its
-whole-document comparisons have a median gap of 38% between the two counts, so
-sampling answers them. TR-OOLONG's control questions share the sampling
-weakness; its core questions were built to avoid both
-([`experiments/REPORT.md`](experiments/REPORT.md), experiments 5, 7 and 8).
+Before a dataset entered, native speakers labelled a sample blind and were then
+shown the source label. A dataset enters if each annotator agrees with the
+source on at least 85% of the records they could decide and is unsure on at
+most 25%; labels that a non-expert cannot tell apart were grouped or removed
+first, and datasets that failed were dropped. Two annotators labelled most
+samples; agreement between them is reported as Cohen's kappa. Per-dataset
+results are in the dataset card.
 
 ## Using it
 
 ```python
 from datasets import load_dataset
-qs = load_dataset("yigitates17/tr-oolong", "sikayet_tr", split="test")
+q = load_dataset("yigitates17/tr-oolong", "doktor_tr", split="test")
+d = load_dataset("yigitates17/tr-oolong", "doktor_tr_documents", split="test")
 ```
 
-Each subset has `questions.jsonl`, `manifest.json` and,
-where the licence allows, `haystacks.jsonl`. Field-by-field description:
-[`DATACARD.md`](DATACARD.md#fields).
+Give the model a document's `text`, then a question. Score with
+`score_responses.py` and report results per dataset, per question type and per
+length: some question types can be answered from a small sample of the
+records, exact counts cannot. `recompute_answers.py` recomputes every answer
+from the labelled records (Python standard library only).
 
-- **Join and pool on `uid`**, never on `id`. `id` is unique only within one
-  subset; pooling on it silently drops 57% of the benchmark.
-- **Send the model only the haystack text and the question.** Other haystack
-  fields are build metadata.
-- **Score with [`src/scoring.py`](src/scoring.py).** It returns four numbers per
-  question:
-  - `exact`: 1 if correct, else 0.
-  - `partial`: OOLONG's own formula, `0.75 ** |error|`, kept for comparability.
-  - `relative`: `1 - |error| / answer`, floored at 0, for large answers, where
-    `partial` gives almost nothing for being 2% off.
-  - `primary`: the one to report. `exact` for word answers (including every
-    core question), `partial` for rare-label counts, `relative` for the other
-    numbers.
-- [`scripts/run_eval.py`](scripts/run_eval.py) runs any OpenAI-compatible
-  endpoint (vLLM, Ollama, hosted APIs) and resumes after interruption.
+## Licences
 
-**How to report a score.** Report the `primary` score **per role** (core,
-retrieval, control), never pooled into one number, and state how the model saw
-the document (whole document in one prompt, or an agent with code tools that
-can sample or search it). `run_eval.py` prints it this way.
+Each dataset keeps its source's licence, as declared by the source's publisher
+(details, links and attribution in the dataset card): Turkish review sets CC-BY-SA-4.0; MASSIVE CC-BY-4.0; doctor
+questions and thesis abstracts CC-BY-4.0; TRNEWS-2025 CC-BY-NC-4.0; Wikinews
+CC-BY 2.5/4.0; Amazon Reviews 2023 text released with the permission of the
+dataset's authors. Questions, answers and documentation written for TR-OOLONG:
+CC-BY-4.0, except where a share-alike licence applies.
 
-## How the benchmark is built
+**Removal requests:** e-mail yigitates1709@gmail.com (please not in a public
+issue); confirmed records are removed in the next version.
 
-Every subset goes through the same pipeline. Each step can reject a source or
-a question, and the rejections are recorded in
-[`DATASET_REVIEW.md`](DATASET_REVIEW.md) and [`DESIGN_DECISIONS.md`](DESIGN_DECISIONS.md).
+## Earlier versions
 
-```
-1. FIND A LABELLED CORPUS
-   The label is the answer key, so unlabelled text is unusable.
-   Preferred label sources: the writer's own rating > professional
-   annotators > crowd workers. Undocumented labels are rejected.
-        |
-2. SCREEN IT  (build_tr_oolong.py --audit)
-   class balance, the longest document it can fill, whether record
-   length or punctuation gives the label away, licence
-        |
-3. FOR A PAIR: FIND THE ENGLISH PARTNER  (check_pair.py)
-   same label source, similar record length, similar surface shape,
-   same reachable lengths; a licence that forbids sharing rules it out
-        |
-4. BUILD  (build_tr_oolong.py --build)
-   - remove records whose text contains a label name, reviews that write
-     their score ("7/10", "5 stars"), newspaper mastheads, and HTML
-   - drop labels with too few examples
-   - for each document, draw a random label mix, sample records to the
-     target length (counted with the Qwen3-8B tokenizer), join them with
-     a symbol separator
-   - core documents: exact label counts, so that one or two pairs of large
-     labels have close counts; shared random draws make the two halves of
-     a Turkish/English pair match
-   - generate questions; compute every answer twice, by two independent
-     pieces of code, and require them to agree
-        |
-5. CHECK  (the release checks below)
-   Can the questions be answered by searching for label names, by always
-   giving the most common answer, from the source corpus's overall label
-   shares, from record length and punctuation, or by sampling part of the
-   document? Question types that a check breaks on a source are switched
-   off for that source, and the omission is recorded.
-        |
-6. PUBLISH  (publish_hf.py)
-   one Hugging Face config per source, each with its own licence; text is
-   withheld where the licence does not allow sharing it
-```
+v0.10 (a different construction, with its own code in this repository) is
+described in [`README_v0.10.md`](README_v0.10.md) and
+[`DATACARD_v0.10.md`](DATACARD_v0.10.md); v0.11's release files are in
+[`release/v0.11/`](release/v0.11/). Versions are not comparable question by
+question.
 
-Screening (step 2) and checking (step 5) can disagree, and step 5 decides: a
-source can look risky before building and turn out fine once documents are
-built with random label mixes. Never accept or reject a source on step 2 alone.
+## Citation
 
-## What each question measures
-
-A model with code tools has two ways to answer without reading everything:
-**sampling** (read a small random part and scale up) and **search** (find the
-relevant records by a word or topic and read only those). Every question type
-was attacked both ways by simulated readers: short programs, not AI models,
-told the true label of each record they read, so they show what a strategy can
-achieve. Full setup and examples: [`experiments/REPORT.md`](experiments/REPORT.md).
-No AI model has been run on the benchmark yet.
-
-| role | question types | strongest shortcut found | a reader of everything |
-|---|---|---|---|
-| **core** (309) | close comparisons | sampling half the document 0.62; reading the 10% most relevant records 0.54 | 0.86 if it labels 95% of records right, 0.76 at 90% |
-| **retrieval** (237) | rare-label counts | searching by topic and reading the top 5%: 0.53 under `partial` | depends strongly on labelling accuracy |
-| **control** (1,816) | counts, proportions, rankings, wide comparisons | sampling 5%: about 0.8 under `relative` | about 0.9 or more |
-
-- **Core questions** are the evidence that a model read and judged the whole
-  document. Guessing gets 0.50. They only compare label pairs that can be told
-  apart from the text and whose labels can each be recognised among all labels
-  (`experiments/separable_pairs/`). 214 come from *core documents*
-  (`"core_document": true`), built so that two large categories have close
-  counts, with which label is larger and which is named first balanced by
-  design: there, always picking the first-named label gets 0.50, the label more
-  common in the source dataset 0.50, and reading the 10% most relevant records
-  0.49. The other 95 come from ordinary documents, where picking the label more
-  common in the source dataset gets 0.62 and topic search 0.67. Report the two
-  groups separately; the core-document group is the cleaner one.
-- **Retrieval questions** show whether a model can find a few records by their
-  meaning.
-- **Control questions** show whether a model can classify the records at all.
-  They are not evidence that it read the whole document: a 5% sample answers
-  them almost as well.
-
-**Checks every release passes.** Searching the text for the label name (0 of
-856,798 shipped records contain their label; such records are removed at build
-time. Eight news labels are written without Turkish letters and their Turkish
-spelling still appears: see Known issues in the datacard), always giving the most common answer, answering from the source corpus's
-overall label shares, and guessing labels from record length and punctuation.
-
-## Building and adding a dataset
-
-Tested with Python 3.12. Pinned versions are in `requirements.txt`; `polars`
-and `transformers` affect output bytes.
-
-```bash
-pip install -r requirements.txt
-python scripts/sinema_tr.py                                   # fetch one source
-python src/build_tr_oolong.py --config configs/sinema_tr.json --build
-python tests/test_golden.py                                   # build is deterministic
-```
-
-Fetch scripts: `massive.py` (intent sets), `vitamins.py`, `musteri.py`,
-`marc_en.py`, `health.py` (`amazon_hpc_en`), `sikayet_tr.py` (needs
-`ticaret-yorum.csv` downloaded from Kaggle by hand), `interpress_tr.py`,
-`sinema_tr.py`.
-
-**To add a new dataset**, you need a labelled corpus with a free-text column, a
-label column, at least about 1,000 records per label, and a licence you can
-state.
-
-1. Write a config (copy one from `configs/`). The main settings are the text,
-   label and optional brand columns, the target lengths, and the declared
-   `licence`, `label_provenance` and `text_provenance`.
-2. `python src/build_tr_oolong.py --config configs/new.json --audit` reports
-   size, balance, leakage and which thresholds the source can support.
-3. `python scripts/check_solo.py configs/new.json` (or `check_pair.py a.json b.json`
-   for a Turkish/English pair) runs the licence, provenance and shortcut checks
-   as one PASS/WARN/FAIL table.
-4. Build with `--build`, then run the release checks below. Close comparisons
-   and roles are produced by the builder itself; to test a new subset's core
-   questions against every shortcut, run `python experiments/attack_v08.py`.
-5. Add a licence entry for the subset in `POLICY` in `scripts/publish_hf.py`.
-
-**Choosing an English partner for a Turkish set.** Start from the Turkish
-corpus (it is the scarce side) and look for an English one that matches on,
-in order of how often each rules a candidate out:
-
-1. **How labels were made.** Both halves should get labels the same way. The
-   writer's own star rating on both sides is the strongest option.
-2. **Record length.** Large gaps change what one record means to a model.
-3. **Surface shape.** The style check (`style_solver.py`) must show a similar
-   result on both halves; the gap matters, not either level.
-4. **Reachable lengths.** Both halves must fill the same length tiers.
-
-A licence that does not allow redistribution rules a candidate out even if it
-matches better. Every candidate considered, and why it was kept or rejected,
-is in [`DATASET_REVIEW.md`](DATASET_REVIEW.md).
-
-**Release checks.** A rebuild is accepted when all of these pass (list every
-subset's output folder explicitly; zsh does not split a variable into words):
-
-```bash
-python tests/test_golden.py
-python scripts/verify_release.py            # answers recomputed, no leakage, ids unique
-python scripts/trivial_baseline.py --sets <all *_out folders> --out manifests/baseline_report.json
-python scripts/quality_audit.py --certify 250 --json manifests/quality_audit.json
-python scripts/style_solver.py --config configs/*.json --json manifests/style_audit.json
-python scripts/sampling_solver.py --json manifests/sampling_audit.json
-python tests/test_close.py
-python scripts/publish_hf.py --out hf_release            # dry run; add --repo ... --push to upload
-```
-
-## Limitations
-
-- No model has been run yet. Every statement about shortcuts comes from
-  simulated readers.
-- 309 questions are core (214 from core documents). Answered right or wrong,
-  they give a margin of error of about ±0.06 on a model's core score, ±0.07 on
-  the core-document group, and about ±0.11 on the 77 core questions that are
-  identical in both languages.
-- Half of the core questions are on documents of 100K tokens or less; 42 are on
-  documents above 600K.
-- Wrong labels in the source data decide some close comparisons, so even a
-  perfect model scores below 1.0 on core questions: about 0.85 if 5% of labels
-  are wrong. The intent labels were measured at 2.7-9.3% wrong; a check of the
-  Turkish core categories is prepared (`scripts/make_core_label_slice.py`).
-- Control questions (77%) can be answered by sampling. Report per role.
-- Questions on one document are not independent. On 3-label sets, 12 questions
-  rest on about two underlying numbers, and 337 document-label pairs are asked
-  both as a count and as a proportion. For statistical claims, the unit is the
-  document.
-- Documents of the same length within a subset share 20-39% of their records;
-  confidence intervals over them need clustered errors.
-- Label quality: the intent labels were checked on 150 records (2.7-9.3% wrong,
-  part of it translation error in the Turkish half). The complaint and news
-  categories were set by the filer and the publisher; how predictable they are
-  from text is what bounds scores (see datacard).
-- Every record comes from a public dataset, so a model that memorised a
-  dataset's labels could label records without reading them. Not tested.
-- No time-based questions, although `interpress_tr` has publication dates.
-- Lengths are counted with one tokenizer. The Turkish/English token ratio on
-  the same sentences ranges from 0.57x (BERTurk) to 2.16x (GPT-2), so it
-  reflects the tokenizer, not Turkish itself.
-- Three subsets cannot ship text; two of them have no declared licence at all.
-
-## Repository
-
-```
-src/build_tr_oolong.py     the builder: config in, haystacks + questions + manifest out
-src/scoring.py             the metric (freeze before the first model run)
-configs/                   one config per subset; configs/experimental/ = Turkish-label variants, not released
-scripts/                   fetch scripts, release checks, publishing, evaluation
-experiments/               shortcut experiments; REPORT.md explains each in plain language
-manifests/                 committed reports from the release checks
-tests/                     golden test: a fixed fixture must rebuild byte-identically
-weekly_summaries/          progress reports for thesis supervision
-```
-
-Working notes: `DESIGN_DECISIONS.md` (reason for each threshold, cited from code
-as D1-D22), `PAPER_NOTES.md` (claims for the write-up), `DATASET_REVIEW.md`
-(every source considered), `COMPARISON.md` (OOLONG and TR-OOLONG side by side),
-`REVIEW.md`, `ROADMAP.md`, `CHEATSHEET.md`.
-
-## Licence and citation
-
-Code: MIT (`LICENSE`). Each data subset keeps its source's licence; see the
-datacard. Three are CC-BY-SA-4.0 (share-alike).
-
-```bibtex
-@misc{troolong,
-  title  = {TR-OOLONG: A Turkish Long-Context Aggregation Benchmark},
-  author = {Ate{\c{s}}, Yi{\u{g}}it},
-  year   = {2026},
-  note   = {Bo{\u{g}}azi{\c{c}}i University, Institute for Data Science \& Artificial Intelligence},
-  url    = {https://github.com/yigitates17/tr-oolong}
-}
-```
-
-Please also cite OOLONG (Bertsch et al., 2025) and the source corpus of each
-subset you use.
+Cite this dataset (citation added with the paper) and the sources: OOLONG
+(Bertsch et al., 2025), MASSIVE (FitzGerald et al., ACL 2023), the Turkish NLP
+Suite (Altinok, ACL 2023), Amazon Reviews 2023 (Hou et al., 2024), TRNEWS-2025,
+the doctorsitesi.com and Turkish academic theses datasets on Hugging Face, and
+Wikinews.

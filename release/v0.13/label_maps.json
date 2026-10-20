@@ -1,0 +1,192 @@
+{
+ "_note": "Source label -> released label. null = records with this source label are not used.",
+ "musteri_tr": {
+  "source_field": "label (customer's 1-5 star rating; the Hub stores 0-4 for 1-5 stars)",
+  "map": {
+   "1": "olumsuz",
+   "2": "olumsuz",
+   "3": null,
+   "4": "olumlu",
+   "5": "olumlu"
+  }
+ },
+ "sinema_tr": {
+  "source_field": "label (reviewer's 10-point rating; the Hub stores 0-9 for 1-10)",
+  "map": {
+   "1": "olumsuz",
+   "2": "olumsuz",
+   "3": "olumsuz",
+   "4": "olumsuz",
+   "5": null,
+   "6": null,
+   "7": "olumlu",
+   "8": "olumlu",
+   "9": "olumlu",
+   "10": "olumlu"
+  }
+ },
+ "vitamins_tr": {
+  "source_field": "star (customer's 1-5 star rating)",
+  "map": {
+   "1": "olumsuz",
+   "2": "olumsuz",
+   "3": null,
+   "4": "olumlu",
+   "5": "olumlu"
+  }
+ },
+ "amazon_hpc_en": {
+  "source_field": "rating (reviewer's 1-5 star rating)",
+  "map": {
+   "1": "negative",
+   "2": "negative",
+   "3": null,
+   "4": "positive",
+   "5": "positive"
+  }
+ },
+ "massive": {
+  "source_field": "scenario (MASSIVE's 18 scenarios; the intent's prefix)",
+  "map": {
+   "alarm": "time",
+   "calendar": "time",
+   "datetime": "time",
+   "play": "media",
+   "music": "media",
+   "audio": "media",
+   "cooking": "food",
+   "takeaway": "food",
+   "lists": "lists_recommendation",
+   "recommendation": "lists_recommendation",
+   "email": "email",
+   "iot": "iot",
+   "news": "news",
+   "qa": "qa",
+   "social": "social",
+   "transport": "transport",
+   "weather": "weather",
+   "general": null
+  },
+  "note": "The same English group names are used as labels in the Turkish and English documents."
+ },
+ "amazon_movies_en": {
+  "source_field": "rating (reviewer's 1-5 star rating)",
+  "map": {
+   "1": "negative",
+   "2": "negative",
+   "3": null,
+   "4": "positive",
+   "5": "positive"
+  }
+ },
+ "amazon_shop_en": {
+  "source_field": "rating (reviewer's 1-5 star rating)",
+  "map": {
+   "1": "negative",
+   "2": "negative",
+   "3": null,
+   "4": "positive",
+   "5": "positive"
+  }
+ },
+ "doktor_tr": {
+  "source_field": "doctor_speciality (the specialty of the doctor the patient chose to ask)",
+  "map": {
+   "kadin-hastaliklari-ve-dogum*": "kadın hastalıkları ve doğum",
+   "cocuk-psikiyatrisi*": "ruh sağlığı",
+   "psikiyatri*": "ruh sağlığı",
+   "psikoloji*": "ruh sağlığı",
+   "klinik-psikolog*": "ruh sağlığı",
+   "psikolojik-danisman*": "ruh sağlığı",
+   "psikoterapi*": "ruh sağlığı",
+   "cocuk-cerrahisi*": null,
+   "cocuk-sagligi-ve-hastaliklari*": "çocuk sağlığı",
+   "dahiliye-ve-ic-hastaliklari*": null,
+   "gastroenteroloji*": null,
+   "endokrinoloji*": null,
+   "romatoloji-dahiliye*": null,
+   "tibbi-onkoloji*": null,
+   "beyin-ve-sinir-cerrahisi*": null,
+   "noroloji*": null,
+   "uroloji*": "üroloji",
+   "ortopedi-ve-travmatoloji*": null,
+   "genel-cerrahi*": null,
+   "plastik-rekonstruktif*": null,
+   "kulak-burun-bogaz*": "kulak burun boğaz",
+   "fiziksel-tip-ve-rehabilitasyon*": null,
+   "fizyoterapi*": null,
+   "dermatoloji*": "dermatoloji",
+   "kardiyoloji*": "kalp ve damar",
+   "kalp-damar-cerrahisi*": "kalp ve damar",
+   "goz-hastaliklari*": "göz",
+   "dis-hekimi*": "diş",
+   "pedodonti*": "diş",
+   "diyetisyen*": null,
+   "enfeksiyon-hastaliklari*": null,
+   "tibbi-farmakoloji*": null,
+   "gogus-hastaliklari*": null,
+   "gogus-cerrahisi*": null
+  },
+  "note": "'*' = any specialty slug starting with this prefix; first match in this order wins; null = not used"
+ },
+ "tez_tr": {
+  "source_field": "subject (YÖK subject field; single-subject theses only)",
+  "map": {
+   "Fizik ve Fizik Mühendisliği": "matematik-fizik-mühendislik",
+   "İnşaat Mühendisliği": "matematik-fizik-mühendislik",
+   "Makine Mühendisliği": "matematik-fizik-mühendislik",
+   "Matematik": "matematik-fizik-mühendislik",
+   "Ekonomi": "ekonomi ve işletme",
+   "İşletme": "ekonomi ve işletme",
+   "Din": "din",
+   "Hukuk": "hukuk",
+   "Kimya": "kimya",
+   "Tarih": "tarih",
+   "Türk Dili ve Edebiyatı": "türk dili ve edebiyatı",
+   "Ziraat": "ziraat"
+  },
+  "note": "all other subjects are not used"
+ },
+ "tez_en": {
+  "source_field": "subject (YÖK subject field; single-subject theses only)",
+  "map": {
+   "Fizik ve Fizik Mühendisliği": "matematik-fizik-mühendislik",
+   "İnşaat Mühendisliği": "matematik-fizik-mühendislik",
+   "Makine Mühendisliği": "matematik-fizik-mühendislik",
+   "Matematik": "matematik-fizik-mühendislik",
+   "Ekonomi": "ekonomi ve işletme",
+   "İşletme": "ekonomi ve işletme",
+   "Din": "din",
+   "Hukuk": "hukuk",
+   "Kimya": "kimya",
+   "Tarih": "tarih",
+   "Türk Dili ve Edebiyatı": "türk dili ve edebiyatı",
+   "Ziraat": "ziraat"
+  },
+  "note": "all other subjects are not used"
+ },
+ "trnews2025_tr": {
+  "source_field": "Sınıf (the news section the article was filed under)",
+  "map": {
+   "Bilim-Teknoloji": "bilim-teknoloji",
+   "Finans-Ekonomi": "finans-ekonomi",
+   "Kültür-Sanat": "kültür-sanat",
+   "Magazin": "magazin",
+   "Sağlık": "sağlık",
+   "Siyaset": "siyaset",
+   "Spor": "spor",
+   "Turizm": "turizm",
+   "Çevre": "çevre"
+  }
+ },
+ "wikinews_en": {
+  "source_field": "article categories (exactly one of these five; others ignored)",
+  "map": {
+   "Politics and conflicts": "politics",
+   "Sports": "sports",
+   "Culture and entertainment": "culture",
+   "Economy and business": "economy",
+   "Science and technology": "science_tech"
+  }
+ }
+}
