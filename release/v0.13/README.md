@@ -228,63 +228,6 @@ On 21 October 2026, before these documents were built, the same rule was
 applied to the doctor questions, the 2025 news, the theses and Wikinews; this
 is a later extension of the rule, not part of the original plan.
 
-## Every annotation round
-
-All blind label checks, in order, failures included. A is the author, B one of
-the author's siblings (both native Turkish speakers; B paid). Each sample was
-drawn fresh (records never shown before), with the same number of records per
-label and a fixed seed; the annotator chose a label or "unsure" without seeing
-the source label, which was shown only after the answer. Agreement is on the
-records the annotator decided; the interval is a 95% Wilson interval; the bar
-is the agreement required when the round was scored (unsure at most 25%
-throughout). Where a definition changed after a round (regrouping, a dropped
-section), the next row is a new definition checked on fresh records, except
-where marked "after seeing these results". The answers of every round are
-kept unchanged, with hashes, by the maintainer.
-
-| round | date | set (definition checked) | annotator | agree on decided | 95% interval | unsure | bar | result |
-|---|---|---|---|---:|---:|---:|---:|---|
-| 1 | 11 Oct | `musteri_tr` | A | 18/18 = 100% | 82-100 | 10% | 70% | pass |
-| 1 | 11 Oct | `sinema_tr` | A | 15/17 = 88% | 66-97 | 15% | 70% | pass |
-| 1 | 11 Oct | `vitamins_tr` | A | 11/12 = 92% | 65-99 | 40% | 70% | fails the unsure limit; kept outside the main results |
-| 1 | 11 Oct | MASSIVE, Turkish, 48 intents | A | 20/34 = 59% | 42-74 | 15% | 70% | fail; regrouped after seeing these results |
-| 1 | 11 Oct | complaints (sikayet), 30 categories | A | 19/34 = 56% | 39-71 | 15% | 70% | fail; merged after seeing these results |
-| 1 | 12 Oct | MARC (English reviews) | A | 18/18 = 100% | 82-100 | 10% | 70% | pass; later withdrawn by Amazon |
-| 1 | 12 Oct | `amazon_hpc_en` | A | 20/20 = 100% | 84-100 | 0% | 70% | pass |
-| 1 | 12 Oct | MASSIVE, English, 18 scenarios | A | 30/36 = 83% | 68-92 | n/a | 70% | pass |
-| fresh | 12 Oct | MASSIVE, Turkish, 18 scenarios | A | 22/33 = 67% | 50-80 | n/a | 70% | fail |
-| fresh | 12 Oct | MASSIVE, Turkish, grouped (as released, 11 groups) | A | 26/33 = 79% | 62-89 | n/a | 70% | pass |
-| fresh | 12 Oct | complaints, 12 merged groups | A | 20/32 = 62% | 45-77 | n/a | 70% | fail; set dropped |
-| re-check | 12 Oct | `massive_tr` (released) | A | 36/40 = 90% | 77-96 | 9% | 70% | pass |
-| re-check | 13 Oct | `massive_tr` (released) | B | 40/44 = 91% | 79-96 | 0% | 70% | pass |
-| re-check | 12 Oct | `musteri_tr` | A | 25/26 = 96% | 81-99 | 13% | 70% | pass |
-| re-check | 13 Oct | `musteri_tr` | B | 26/27 = 96% | 82-99 | 10% | 70% | pass |
-| re-check | 12 Oct | `sinema_tr` | A | 25/29 = 86% | 69-95 | 3% | 70% | pass |
-| re-check | 13 Oct | `sinema_tr` | B | 25/28 = 89% | 73-96 | 7% | 70% | pass |
-| re-check | 12 Oct | MARC | A | 17/17 = 100% | 82-100 | 15% | 70% | pass |
-| re-check | 13 Oct | MARC | B | 18/18 = 100% | 82-100 | 10% | 70% | pass |
-| re-check | 12 Oct | `amazon_hpc_en` | A | 18/19 = 95% | 75-99 | 5% | 70% | pass |
-| re-check | 13 Oct | `amazon_hpc_en` | B | 20/20 = 100% | 84-100 | 0% | 70% | pass |
-| V | 12 Oct | product types, 7 labels | A | 32/33 = 97% | 85-99 | 33% | 70% | fails the unsure limit; dropped |
-| V | 12 Oct | Turkish news (Kemik, 42K) | A | 25/33 = 76% | 59-87 | 6% | 70% | pass at 70%; removed when the bar became 85% |
-| 2 | 12 Oct | product types, 3 labels | A | 31/31 = 100% | 89-100 | 31% | 70% | fails the unsure limit; dropped |
-| 2 | 12 Oct | TR-News, 9 sections | A | 35/43 = 81% | 67-90 | 4% | 70% | pass; section dünya then removed (new definition) |
-| 3 | 12 Oct | TR-News, 8 sections | A | 33/35 = 94% | 81-98 | 12% | 70% | pass; later replaced by `trnews2025_tr` |
-| 3 | 12 Oct | AG News, 3 sections | A | 38/42 = 90% | 78-96 | 7% | 70% | pass; later replaced by `wikinews_en` |
-| 4 | 19 Oct | `doktor_tr`, 9 specialties | A | 40/45 = 89% | 77-95 | 0% | 70% | pass |
-| 4 | 19 Oct | `doktor_tr`, 9 specialties | B | 41/45 = 91% | 79-96 | 0% | 70% | pass |
-| 4 | 19 Oct | `tez_tr`, 8 fields | A | 42/48 = 88% | 75-94 | 0% | 70% | pass (79% bound without the mathematics merge) |
-| 4 | 19 Oct | `tez_tr`, 8 fields | B | 42/48 = 88% | 75-94 | 0% | 70% | pass |
-| 5 | 20 Oct | `trnews2025_tr`, 9 sections | A | 40/45 = 89% | 77-95 | 0% | 85% | pass |
-| 5 | 20 Oct | `trnews2025_tr`, 9 sections | B | 43/45 = 96% | 85-99 | 0% | 85% | pass |
-| 6 | 21 Oct | `amazon_movies_en` | A | 19/20 = 95% | 76-99 | 0% | 85% | pass |
-| 7 | 21 Oct | `amazon_shop_en` | A | 18/19 = 95% | 75-99 | 5% | 85% | pass |
-| 8 | 21 Oct | Voice of America news, 5 sections | A | 25/30 = 83% | 66-93 | 6% | 85% | fail; dropped |
-| 9 | 21 Oct | `wikinews_en`, 5 sections | A | 37/39 = 95% | 83-99 | 3% | 85% | pass |
-
-Second annotator still pending: `amazon_movies_en`, `amazon_shop_en`,
-`wikinews_en` (rounds 6, 7, 9).
-
 ## Files
 
 ```
