@@ -1,6 +1,6 @@
 # TR-OOLONG datacard
 
-The datacard of the current release (v0.13, provisional, data only) is the
+The datacard of the current release (v0.13.1, provisional, data only) is the
 dataset card shipped with the data:
 [`release/v0.13/README.md`](release/v0.13/README.md), also shown on
 [Hugging Face](https://huggingface.co/datasets/yigitates17/tr-oolong). It covers
@@ -10,4 +10,3 @@ changes between versions. [`release/v0.13/CONSTRUCTION.md`](release/v0.13/CONSTR
 gives every construction step; [`release/v0.13/provenance.json`](release/v0.13/provenance.json)
 gives source revisions and file hashes.
 
-The datacard of v0.10 is kept in [`DATACARD_v0.10.md`](DATACARD_v0.10.md).

@@ -69,10 +69,6 @@ configs:
   data_files: [{split: test, path: data/main/wikinews_en/test/questions.jsonl.gz}]
 - config_name: wikinews_en_documents
   data_files: [{split: test, path: data/main/wikinews_en/test/documents.jsonl.gz}]
-- config_name: vitamins_tr
-  data_files: [{split: test, path: data/main/vitamins_tr/test/questions.jsonl.gz}]
-- config_name: vitamins_tr_documents
-  data_files: [{split: test, path: data/main/vitamins_tr/test/documents.jsonl.gz}]
 - config_name: ext_musteri_tr
   data_files: [{split: test, path: data/extension/musteri_tr/test/questions.jsonl.gz}, {split: dev, path: data/extension/musteri_tr/dev/questions.jsonl.gz}]
 - config_name: ext_musteri_tr_documents
@@ -123,7 +119,7 @@ configs:
   data_files: [{split: test, path: data/extension/wikinews_en/test/documents.jsonl.gz}]
 ---
 
-# TR-OOLONG v0.13 (provisional)
+# TR-OOLONG v0.13.1 (provisional)
 
 > **Status: provisional, data only.** This release contains the documents,
 > questions, answers, label maps, construction rules, hashes and standalone
@@ -163,15 +159,12 @@ text) are not ruled out.
 | `amazon_movies_en` | English; pair with `sinema_tr` | en | positive, negative | 28 / 700 | 2K-16M | 95% (one annotator so far) |
 | `amazon_shop_en` | English; pair with `musteri_tr` | en | positive, negative | 28 / 700 | 1K-8M | 95% (one annotator so far) |
 | `wikinews_en` | English; pair with `trnews2025_tr` | en | 5 sections | 18 / 450 | 2K-512K | 95% (one annotator so far) |
-| `vitamins_tr` | outside the main results | tr | olumlu, olumsuz | 20 / 500 | 2K-1M | 92%; 40% of reviews state no opinion |
 
 *Native speakers labelled a sample blind (20-48 records per set) and were then
 shown the source label; agreement is on records they could decide. A set enters
 if each annotator agrees on at least 85% and is unsure on at most 25%. The
 rule was 70% when the checks started (fixed before the first review) and was
 raised to 85% after most results were known; every set kept passes both.
-Sets that failed were dropped, not repaired: a complaint set (62%), product
-types (31-33% unsure), a 42K news set (76%), Voice of America news (83%).
 Samples are small: 25 of 26 decided records has a 95% interval of 81-99%.
 The annotators are the author and two of the author's siblings (paid, blind to the
 source labels and to each other's answers). A second annotator for the three
@@ -198,8 +191,8 @@ identical texts), Wikinews vs AG News 2 of 11,962 (none identical), the other
 Amazon sets vs IMDB or app reviews at most 12 (generic short texts identical:
 at most 216, such as "love it love it ...").
 
-Main set: 228 documents and 5,687 questions in the main results (parallel
-pairs counted once, `vitamins_tr` left out); 7,187 questions in all files. Up
+Main set: 228 documents and 5,687 questions (parallel pairs counted once);
+6,687 questions in all files. Up
 to 25 questions per document, in three groups (counting, user, timeline).
 Lengths are powers of two from 1,024 tokens; a set stops where its records run
 out.
@@ -271,7 +264,7 @@ Each set keeps its source's licence, as declared by the source's publisher;
 licence. The underlying rights of the original writers (reviewers, patients,
 thesis authors, news sites) were not independently established.
 
-- `musteri_tr`, `sinema_tr`, `vitamins_tr`:
+- `musteri_tr`, `sinema_tr`:
   [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/), declared by
   the dataset's publisher (Turkish NLP Suite; Altinok, ACL 2023); the reviews
   come from public shopping and film sites. These files are redistributed
@@ -339,7 +332,7 @@ the writers, and commercial use of `trnews2025_tr`.
 
 | set | records written or collected |
 |---|---|
-| `musteri_tr`, `sinema_tr`, `vitamins_tr` | not stated by the source |
+| `musteri_tr`, `sinema_tr` | not stated by the source |
 | `doktor_tr` | not stated by the source |
 | `tez_tr`, `tez_en` | theses dated 1963-2024 in the source |
 | `trnews2025_tr` | access dates in the file 4 July - 21 August 2025 (the Kaggle page says collection began in the 2023-2024 academic year) |
@@ -416,8 +409,7 @@ answer, a number with a fractional part such as "65.5" for 65).
 ## Shortcut checks on the main set
 
 These show what the tested heuristics achieve, nothing more. All numbers are
-computed from the files in this release: test split, main sets only
-(`vitamins_tr` left out).
+computed from the files in this release: test split, main sets only.
 
 **Readers that never look at a label**, using only the question, dates, users
 and line order. Each parallel pair is counted once (its English side). Chance
@@ -522,29 +514,6 @@ files or the sources. **Label errors:** below about 2%, a few records read
 differently from their source label can change the answer; labels-hidden
 results at ties and at 0.1-0.5% measure agreement with the source labels
 under exact counting, a stress test, not evidence of reliable classification.
-
-## Changes since v0.11
-
-v0.12 was not published; its changes are included here.
-
-- **Every set ships its text.** `marc_en` (withdrawn by Amazon; questions
-  only) is replaced by `amazon_shop_en`; the Amazon review text now ships with
-  the dataset authors' permission.
-- **New sets**, each after a blind label check: `doktor_tr`, `trnews2025_tr`,
-  `tez_tr`/`tez_en`, `amazon_movies_en`, `amazon_shop_en`, `wikinews_en`.
-  `amazon_hpc_en` now uses the whole Health and Personal Care category.
-- **Longer documents:** up to 4M tokens for Turkish sets and 16M for Amazon
-  sets, still without repeating a record. Parallel documents are sized by the
-  Turkish version (in v0.11 MASSIVE was sized in English and its Turkish
-  version ran over the stated length); no document exceeds its target length.
-- **Questions (from v0.12):** label lists in random order; "user A or B" asks
-  only about two users with the same total number of records; "first month"
-  questions only for the label that is rarer overall; label questions with
-  one option, or where every option is correct, are gone.
-- A scorer, `score_responses.py`, with `--self-test`.
-
-**Question IDs are reused across versions with different content.** Join
-results by release and `uid` together, never by `uid` alone.
 
 ## Citation
 

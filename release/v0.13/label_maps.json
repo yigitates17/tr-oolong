@@ -25,16 +25,6 @@
    "10": "olumlu"
   }
  },
- "vitamins_tr": {
-  "source_field": "star (customer's 1-5 star rating)",
-  "map": {
-   "1": "olumsuz",
-   "2": "olumsuz",
-   "3": null,
-   "4": "olumlu",
-   "5": "olumlu"
-  }
- },
  "amazon_hpc_en": {
   "source_field": "rating (reviewer's 1-5 star rating)",
   "map": {

@@ -18,13 +18,11 @@ documents and answers, in enough detail to check any answer by hand.
 | `amazon_movies_en` | English | Amazon Reviews 2023, Movies and TV | a film review |
 | `amazon_shop_en` | English | Amazon Reviews 2023, six everyday categories | a product review |
 | `wikinews_en` | English | English Wikinews (Wikimedia dump) | a news article (its lead) |
-| `vitamins_tr` | Turkish | Vitamins and Supplements Reviews | a supplement review (outside the main results, see the card) |
 
 ### Selection
 
 - `musteri_tr`: the train split, randomly cut to the size of its smallest star
   class (seed 42). `sinema_tr`: the train split, 80 to 3,000 characters.
-  `vitamins_tr`: at most 20,000 reviews per class (seed 42).
 - `amazon_hpc_en`: every review with a rating in the category file.
 - `amazon_movies_en`: 1 in 16 reviews, chosen by the SHA-256 of the review
   text; matched to `sinema_tr`: at least 15 words (`sinema_tr`'s shortest) and
@@ -114,7 +112,6 @@ applied to every record of the set.
 | `amazon_movies_en` | 45,871 / 411,102 |
 | `amazon_shop_en` | 44,962 / 405,566 |
 | `wikinews_en` | 1,156 / 10,806 |
-| `vitamins_tr` | 3,929 / 34,588 |
 
 These counts include the middle ratings of the review sets and MASSIVE's
 `general` scenario, which are left out when documents are built (the counts

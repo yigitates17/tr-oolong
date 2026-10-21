@@ -1,5 +1,5 @@
 {
- "release": "TR-OOLONG v0.13.0 (provisional, data only)",
+ "release": "TR-OOLONG v0.13.1 (provisional, data only)",
  "built": "2026-10-21",
  "code_release_commitment": "The generation code (adapted generator, answer verifier, label-review tools) will be made available to reviewers with the paper's submission and published on GitHub together with the paper.",
  "rights_note": "Licences are given as declared by each source's publisher (or, for Amazon Reviews 2023, as permitted by its authors). The underlying rights of the original writers (reviewers, patients, thesis authors, news sites) were not independently established. A licence does not grant permission to process personal data.",
@@ -16,15 +16,6 @@
   "sinema_tr": {
    "hub": "turkish-nlp-suite/BuyukSinema",
    "revision": "137d0ff7d713cb773a22b38aaad4432d23d3950e",
-   "split_used": "train",
-   "licence": "CC-BY-SA-4.0",
-   "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "text_included": true,
-   "licence_declared_by": "the dataset's publisher on the Hugging Face Hub (Turkish NLP Suite); the reviews were collected from public shopping and film sites"
-  },
-  "vitamins_tr": {
-   "hub": "turkish-nlp-suite/vitamins-supplements-reviews",
-   "revision": "c4c0928ed0a5c60a08ef7205564967e3cde3ae9e",
    "split_used": "train",
    "licence": "CC-BY-SA-4.0",
    "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
